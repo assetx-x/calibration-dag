@@ -1,0 +1,155 @@
+name: assetx-calibration
+channels:
+- defaults
+- conda-forge
+
+dependencies:
+# base python libraries
+- python=3.6.10
+- pip=19.3
+- setuptools=44.0
+- six=1.15.0
+- wheel=0.33
+#- py=1.4.34
+- enum34=1.1.6
+- typing=3.6.4
+
+# base numerical libraries for high performance
+- cython=0.26
+- mkl #=2019.1 #intel Math Kernel Library to accelerate numpy, scipy, etc
+- mkl-service #=1.1.2 #interact with mkl setup
+- numpy=1.15.4
+- pandas=0.23.4
+- scipy=0.19.1
+- pykalman=0.9.5
+
+# persistent and volatile data storage
+- sqlalchemy=1.1.13
+- alembic=0.9.5 #data migration for sqlalchemy
+- bz2file=0.98
+- zlib=1.2.11
+- pytables>=3.4.2 # H5 storage for pandas
+- h5py=2.7.0 # standalone H5 driver
+- bcolz=1.2.0 # library for fast, columnar data appending
+- jsonpickle=0.9.5
+
+# data retrieval and parsing
+- pycurl=7.43.0
+- requests
+- pandas-datareader=0.8.1 # web data readers to multiple API's
+- BeautifulSoup4=4.6.0 # web page parser
+- lxml=4.1.0 # XML parser
+- ujson=1.35 # JSON parser
+- quandl=3.2.0
+- xmltodict=0.12.0
+
+# testing and verification
+- pylint=1.7.4 #static code analysis
+- astroid=1.5.3 #used by pylint
+- pytest=3.7.0 # unit testing framework
+- pytest-mock=1.6.3 # plugin to setup mocks on pytest
+- requests-mock=1.5.0 # library for mocking HTTP requests
+- nose=1.3.7 # "basic" unit testing framework for python
+- pytest-cov=2.5.1 #plugin for pytest to determine test coverage
+- httpretty=0.8.14 # HTTP mocking
+- hypothesis=3.23.0 # automatic generation of numerical data for numerical tests
+
+# interactive computing and visualization
+- jupyter=1.0.0
+- seaborn=0.8.0
+- plotly=2.0.15
+- python-graphviz=0.8.4
+
+# machine learning and analytics
+- statsmodels=0.9.0
+- scikit-learn=0.20.4
+- py-xgboost=0.90
+
+# utilities and frameworks
+- psutil=5.2.2
+- wrapt=1.10.11
+- boto3=1.4.7
+- luigi=2.7.1
+- networkx=1.11 #pinned down because incompatibility with taskflow
+- gitpython=3.1.3
+- xlsxwriter=1.0.2
+#- slackclient=2.9.1
+- eventlet=0.21.0 # monkey patching for async IO of files (used sometimes to interact with S3)
+- tzlocal=1.4
+#- apscheduler=3.4.0
+#- cmd2=0.8.5
+- flask=1.1.1
+- flask-cors=3.0.8
+
+- pip:
+  # testing and verification
+  - moto==1.1.24 # mocking of AWS
+  - fakeredis==1.4.2
+
+  # utilities and frameworks
+  - pyhocon==0.3.37 #a more updated version breaks for merging config objects
+  - fluent-logger==0.5.3
+  - git+https://github.com/blampe/IbPy.git
+  - git+https://github.com/gnhernandez/pytest-docker-fixtures.git
+  - git+https://github.com/gnhernandez/zipline.git@libraries_upgrade #custom version 0.7 updated to be able to import against pandas 0.20
+  - pylru==1.0.9 # Last Recently Used cache
+  - kafka-python==2.0.1
+  - taskflow==2.17.0
+  #- marathon==0.9.3
+  - datadog==0.16.0
+  - docker==2.5.1
+  - pyarrow==1.0.1
+  - pyspark==2.2.1
+  - grpcio-tools>=1.29.0
+  - toposort==1.5
+  - fuzzywuzzy==0.17.0
+  - python-Levenshtein==0.12.0
+  - trading-calendars==1.8.1
+  - protobuf==3.19.0
+  - grpcio>=1.29.0
+  - grpcio-testing>=1.29.0
+  - flask-restful==0.3.8
+  - gunicorn==19.10.0
+  - envkey==1.2.5
+
+  # persistent and volatile data storage
+  - h5pyd==0.2.6 #distributed h5py, to be used in conjuntion with an h5Serv setup
+
+  # data retrieval and parsing
+  - sqlalchemy-redshift==0.7.0
+  - demjson==2.2.4
+  - jsonxs==0.6
+  - ftptool==0.7.1
+  - yfinance
+  - fix-yahoo-finance==0.0.19
+  - redis==3.0.1
+  - redis-py-cluster==2.0.0
+  - pytest-flask==0.15.1
+  - allure-pytest==2.6.0
+  - fredapi==0.4.0
+  - s3io==0.1.1
+  #- paramiko==2.8.0
+  - PyMySQL==1.0.2
+
+  # machine learning and analytics
+
+  - arch==4.2
+  - git+https://github.com/hildensia/bayesian_changepoint_detection.git
+  #- sklearn==0.0
+  - ta-lib==0.4.17
+  - loky==2.6.0
+
+  # interactive computing and visualization
+  #- cufflinks==0.7.2
+
+  # google cloud
+  - google-api-core==1.25.1
+  - google-api-python-client==2.2.0
+  - google-auth==1.28.1
+  - google-cloud-bigquery==2.13.1
+  - google-cloud-bigquery-storage==2.2.1
+  - google-cloud-core==1.6.0
+  - google-cloud-monitoring==2.2.1
+  - google-cloud-pubsub==2.4.1
+  - google-cloud-storage==1.37.1
+  - pybigquery==0.6.1
