@@ -1,4 +1,0 @@
-SYM0
-SYM1
-SYM2
-SYM3

@@ -2,14 +2,24 @@ import os
 from glob import glob
 from abc import abstractmethod
 
+import sys
+# Add the path to the "plugins" folder to sys.path
+# Assuming the "calibration-dag" directory is the parent directory of your DAGs folder.
+parent_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+plugins_folder = os.path.join(parent_directory, "plugins")
+data_processing_folder = os.path.join(parent_directory, "data_processing")
+#sys.path.append(plugins_folder)
+#sys.path.append(data_processing_folder)
+
+
 import pandas as pd
 from pandas.tseries.frequencies import to_offset
-from commonlib.timeline_permutation import ReturnTypeForPermutation
-from commonlib.market_timeline import marketTimeline
-from calibrations.core.calibration_taskflow_task import CalibrationTaskflowTask
-from calibrations.common.calibration_logging import calibration_logger
-from etl_workflow_steps import StatusType
-from commonlib.data_requirements import DRDataTypes
+from data_processing.commonlib.timeline_permutation import ReturnTypeForPermutation
+from data_processing.commonlib.market_timeline import marketTimeline
+from data_processing.calibrations.core.calibration_taskflow_task import CalibrationTaskflowTask
+from data_processing.calibrations.common.calibration_logging import calibration_logger
+from data_processing.etl_workflow_steps import StatusType
+from data_processing.commonlib.data_requirements import DRDataTypes
 from calibrations.core.core_classes import SQLReader, DataReader, S3Reader, H5Reader
 from commonlib.util_functions import get_redshift_engine
 from pandas_datareader import data as web
@@ -18,7 +28,7 @@ from google.cloud import storage
 import io
 from pylru import lrudecorator
 from sqlalchemy import create_engine
-from data_processing.calibrations.common.taskflow_params import TaskflowPipelineRunMode
+from calibrations.common.taskflow_params import TaskflowPipelineRunMode
 
 from fredapi import Fred
 

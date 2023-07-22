@@ -7,8 +7,15 @@ from airflow.utils.dates import days_ago
 from airflow.operators.bash import BashOperator
 import os
 import sys
-#from plugins import data_pull_step as dps
+# Add the path to the "plugins" folder to sys.path
+# Assuming the "calibration-dag" directory is the parent directory of your DAGs folder.
+parent_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+plugins_folder = os.path.join(parent_directory, "plugins")
+data_processing_folder = os.path.join(plugins_folder, "data_processing")
+#sys.path.append(plugins_folder)
+#sys.path.append(data_processing_folder)
 
+import data_pull_step as dps
 # Get the absolute path of the project root (calibration-dag)
 
 
