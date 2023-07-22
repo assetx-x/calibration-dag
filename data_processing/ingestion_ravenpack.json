@@ -1,0 +1,60 @@
+{
+  "volumes": null,
+  "id": "/ingestion/ravenpack",
+  "cmd": "cd /opt/data_processing && bash -c 'while true; do luigi --module pipelines.ravenpack_ingestion RavenpackIngestionPipeline --scheduler-host=luigi-scheduler.marathon.mesos && sleep 60; done'",
+  "args": null,
+  "user": null,
+  "env": {
+    "RAVENPACK_PASSWORD": "",
+    "S3_SECRET_KEY": "",
+    "POSTGRES_USER": "",
+    "REDSHIFT_PWD": "",
+    "POSTGRES_DB": "dev",
+    "REDSHIFT_USER": "",
+    "RAVENPACK_USER": "",
+    "AWS_ACCESS_KEY_ID": "",
+    "AWS_SECRET_ACCESS_KEY": "",
+    "POSTGRES_HOST": "postgres.aws",
+    "S3_ACCESS_KEY": "",
+    "POSTGRES_PWD": ""
+  },
+  "instances": 1,
+  "cpus": 1,
+  "mem": 4096,
+  "disk": 0,
+  "gpus": 0,
+  "executor": null,
+  "constraints": null,
+  "fetch": null,
+  "storeUrls": null,
+  "backoffSeconds": 1,
+  "backoffFactor": 1.15,
+  "maxLaunchDelaySeconds": 3600,
+  "container": {
+    "docker": {
+      "image": "registry.marathon.mesos:5000/dcm-luigi-worker:latest",
+      "forcePullImage": true,
+      "privileged": false,
+      "network": "HOST"
+    }
+  },
+  "healthChecks": null,
+  "readinessChecks": null,
+  "dependencies": null,
+  "upgradeStrategy": {
+    "minimumHealthCapacity": 1,
+    "maximumOverCapacity": 1
+  },
+  "labels": null,
+  "acceptedResourceRoles": null,
+  "residency": null,
+  "secrets": null,
+  "taskKillGracePeriodSeconds": null,
+  "portDefinitions": [
+    {
+      "protocol": "tcp",
+      "port": 10007
+    }
+  ],
+  "requirePorts": false
+}

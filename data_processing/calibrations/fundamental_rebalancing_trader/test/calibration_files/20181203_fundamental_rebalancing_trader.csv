@@ -1,0 +1,11 @@
+date,actorID,role,ranking,long_basket,short_basket,hedge_ratio,stop_limits_pct,basket_selloff_date,rebalancing_frequency,rebalancing_time,leverage_ratio_per_trade,total_funding,fundingRequestsAmount,funding_buffer,override_filter,instructions_overrides
+2018-06-01,Fundamentals_FCFTrader_1,2,1,'["ADBE", "GDDY", "INTU", "SIVB", "WDAY"]','["IBM", "JPM"]',0.7,'(-0.4, 100.0)',2019-12-15,BMS,09:31:00,1.5,,,,,
+2018-07-02,Fundamentals_FCFTrader_1,2,1,'["BRKL", "CRM", "FB", "GDDY", "HUBS", "INTU", "NTAP", "QCOM", "SAP", "SIVB", "VMW", "WDAY"]','["BANC", "C", "IBM", "JPM"]',0.7,'(-0.4, 100.0)',2019-12-15,BMS,09:31:00,1.5,,,,,
+2018-08-01,Fundamentals_FCFTrader_1,2,1,'["CRM", "GDDY", "MCO", "MSFT", "NOW", "VMW", "WDAY", "ZEN"]',["GS"],0.7,'(-0.4, 100.0)',2019-12-15,BMS,09:31:00,1.5,,,,,
+2018-09-04,Fundamentals_FCFTrader_1,2,1,'["CRM", "EPAY", "SIVB", "VMW"]',["GS"],0.7,'(-0.4, 100.0)',2019-12-15,BMS,09:31:00,1.5,,,,,
+2018-10-01,Fundamentals_FCFTrader_1,2,1,'["EPAY", "IDTI", "PANW", "SIVB", "VMW", "WDAY"]','["ADI", "GS"]',0.7,'(-0.4, 100.0)',2019-12-15,BMS,09:31:00,1.5,,,,,
+2018-06-01,SUP,1,,,,,,,,,,9000000.0,6350000.0,250000.0,,
+2018-07-02,SUP,1,,,,,,,,,,9000000.0,6350000.0,250000.0,,
+2018-08-01,SUP,1,,,,,,,,,,9000000.0,6350000.0,250000.0,,
+2018-09-04,SUP,1,,,,,,,,,,9000000.0,6350000.0,250000.0,,
+2018-10-01,SUP,1,,,,,,,,,,9000000.0,6350000.0,250000.0,,
