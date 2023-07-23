@@ -14,7 +14,7 @@ data_processing_folder = os.path.join(parent_directory, "data_processing")
 
 import pandas as pd
 from pandas.tseries.frequencies import to_offset
-from data_processing.commonlib.timeline_permutation import ReturnTypeForPermutation
+from commonlib.timeline_permutation import ReturnTypeForPermutation
 from data_processing.commonlib.market_timeline import marketTimeline
 from data_processing.calibrations.core.calibration_taskflow_task import CalibrationTaskflowTask
 from data_processing.calibrations.common.calibration_logging import calibration_logger

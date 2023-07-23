@@ -34,3 +34,4 @@ dependencies:
       - yfinance==0.2.18
       - zipline==0.7.0
       - python-dotenv
+      - pylru==1.0.9
