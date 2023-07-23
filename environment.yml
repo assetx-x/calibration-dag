@@ -154,5 +154,6 @@ dependencies:
   - google-cloud-storage==1.37.1
   - pybigquery==0.6.1
 
-    # google cloud
-  - apache-airflow==2.1.4
+    # airflow
+  - apache-airflow==2.6.3
+  - psycopg2-binary
