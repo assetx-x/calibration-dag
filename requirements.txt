@@ -1,0 +1,9 @@
+apache-airflow==2.6.3
+psycopg2-binary
+yfinance
+fix-yahoo-finance==0.0.19
+pylru==1.0.9
+scipy
+pytest==3.7.0
+pyhocon==0.3.37
+statsmodels

@@ -1,89 +1,14 @@
 name: assetx-calibration
 channels:
-- defaults
-- conda-forge
-
+  - defaults
+  - conda-forge
 dependencies:
-# base python libraries
-- python=3.6.10
-- pip=19.3
-- numpy=1.15.4
-- pandas=0.23.4
-- scipy=0.19.1
+  - python=3.9
+  - pip=21.2.4
 
-# persistent and volatile data storage
-#- sqlalchemy=1.1.13
-#- alembic=0.9.5 #data migration for sqlalchemy
-#- pytables>=3.4.2 # H5 storage for pandas
-#- h5py=2.7.0 # standalone H5 driver
-
-
-# data retrieval and parsing
-#- pycurl=7.43.0
-#- requests
-- pandas-datareader=0.8.1 # web data readers to multiple API's
-- quandl=3.2.0
-# testing and verification
-
-#- pytest=3.7.0 # unit testing framework
-# interactive computing and visualization
-
-
-# machine learning and analytics
-#- statsmodels=0.9.0
-#- scikit-learn=0.20.4
-
-# utilities and frameworks
-- psutil=5.2.2
-- git
-#- boto3=1.4.7
-- luigi=2.7.1
-- gitpython=3.1.3
-- psycopg2-binary
-
-- pip:
-  # testing and verification
-
-
-  # utilities and frameworks
-  - pyhocon==0.3.37 #a more updated version breaks for merging config objects
-  #- git+https://github.com/blampe/IbPy.git
-  #- git+https://github.com/gnhernandez/pytest-docker-fixtures.git
-  #- git+https://github.com/gnhernandez/zipline.git@libraries_upgrade #custom version 0.7 updated to be able to import against pandas 0.20
-  #- pylru==1.0.9 # Last Recently Used cache
-  - taskflow==2.17.0
-  #- docker==2.5.1
-  #- python-Levenshtein==0.12.0
-  - trading-calendars==1.8.1
-  #- gunicorn==19.10.0
-  - envkey==1.2.5
-
-  # persistent and volatile data storage
-  - h5pyd==0.2.6 #distributed h5py, to be used in conjuntion with an h5Serv setup
-
-  # data retrieval and parsing
-  #- sqlalchemy-redshift==0.7.0
-  #- pytest-flask==0.15.1
-  - fredapi==0.4.0
-  #- PyMySQL==1.0.2
-
-  # machine learning and analytics
-  #- ta-lib==0.4.17
-
-  # interactive computing and visualization
-
-  # google cloud
-  #- google-api-core==1.25.1
-  #- google-api-python-client==2.2.0
-  #- google-auth==1.28.1
-  #- google-cloud-bigquery==2.13.1
-  #- google-cloud-bigquery-storage==2.2.1
-  #- google-cloud-core==1.6.0
-  #- google-cloud-storage==1.37.1
-  #- pybigquery==0.6.1
-
-  # airflow
-  - apache-airflow
+  - pip:
+      - apache-airflow==2.6.3
+      - psycopg2-binary
 
 
 
