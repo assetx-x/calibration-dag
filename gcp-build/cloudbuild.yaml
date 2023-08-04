@@ -1,9 +1,9 @@
 steps:
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/calibrationdag:$TAG_NAME', '.']
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/calibrationdag:$COMMIT_SHA', '.']
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/calibrationdag:$TAG_NAME']
+    args: ['push', 'gcr.io/$PROJECT_ID/calibrationdag:$COMMIT_SHA']
   - name: 'gcr.io/$PROJECT_ID/cloud-builders-helm'
-    args: [ 'upgrade', '--install', 'airflow', 'apache-airflow/airflow', '--namespace', 'default', '-f', 'k8s/values.yaml', '--set', 'images.airflow.repository=gcr.io/$PROJECT_ID/calibrationdag', '--set', 'images.airflow.tag=$TAG_NAME']
+    args: [ 'upgrade', '--install', 'airflow', 'apache-airflow/airflow', '--namespace', 'default', '-f', 'k8s/values.yaml', '--set', 'images.airflow.repository=gcr.io/$PROJECT_ID/calibrationdag', '--set', 'images.airflow.digest=$COMMIT_SHA']
 options:
   logging: GCS_ONLY
