@@ -1,9 +1,9 @@
 steps:
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/calibrationdag:latest', '.']
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/calibrationdag:$COMMIT_SHA', '.']
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/calibrationdag:latest']
-  - name: 'gcr.io/cloud-builders/helm'
+    args: ['push', 'gcr.io/$PROJECT_ID/calibrationdag:$COMMIT_SHA']
+  - name: 'gcr.io/$PROJECT_ID/cloud-builders-helm'
     args:
       - 'upgrade'
       - 'airflow'
