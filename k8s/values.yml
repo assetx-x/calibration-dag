@@ -1,0 +1,5 @@
+images:
+  airflow:
+    repository: gcr.io/dcm-prod-ba2f/calibrationdag
+
+webserverSecretKeySecretName: my-webserver-secret

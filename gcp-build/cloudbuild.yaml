@@ -3,5 +3,14 @@ steps:
     args: ['build', '-t', 'gcr.io/$PROJECT_ID/calibrationdag:$COMMIT_SHA', '.']
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/calibrationdag:$COMMIT_SHA']
+  - name: 'gcr.io/cloud-builders/helm'
+    args:
+      - 'upgrade'
+      - 'airflow'
+      - 'apache-airflow/airflow'
+      - '-f'
+      - 'k8s/values.yml'
+      - '--wait'
+      - '--timeout=15m'
 options:
   logging: GCS_ONLY
