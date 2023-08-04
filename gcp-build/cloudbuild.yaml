@@ -16,5 +16,7 @@ steps:
       - 'images.airflow.tag=$COMMIT_SHA'
       - '--wait'
       - '--timeout=15m'
+      - '--set'
+      - 'ingress.annotations.kubernetes.io/tls-acme="true"'
 options:
   logging: GCS_ONLY
