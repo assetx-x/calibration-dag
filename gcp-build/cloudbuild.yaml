@@ -10,6 +10,10 @@ steps:
       - 'apache-airflow/airflow'
       - '-f'
       - 'k8s/values.yml'
+      - '--set'
+      - 'images.airflow.repository=gcr.io/$PROJECT_ID/calibrationdag'
+      - '--set'
+      - 'images.airflow.tag=$COMMIT_SHA'
       - '--wait'
       - '--timeout=15m'
 options:
