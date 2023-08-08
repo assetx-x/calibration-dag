@@ -5,10 +5,15 @@ pylru==1.0.9
 scipy
 pyhocon==0.3.37
 statsmodels
-fredapi==0.4.0
-pandas-datareader==0.10.0
+ta-lib==0.4.17
 google-cloud-bigquery==2.13.1
 google-cloud-storage==1.37.1
+fredapi==0.4.0
+pandas-datareader==0.10.0
 pyarrow
 tables
 gcsfs
+fsspec
+google-auth
+google-auth-oauthlib
+google-auth-httplib2

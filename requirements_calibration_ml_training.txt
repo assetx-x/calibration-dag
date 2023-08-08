@@ -1,0 +1,7 @@
+apache-airflow==2.6.3
+psycopg2-binary
+pyhocon==0.3.37
+tensorflow==2.6.5
+pandas==1.2.2
+pyarrow
+tables
