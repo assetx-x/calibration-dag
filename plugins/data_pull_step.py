@@ -502,7 +502,7 @@ YAHOO_DAILY_PRICE_READER_PARAMS ={"params": {"sector_etfs": ["SPY", "MDY", "EWG"
 S3_RUSSELL_COMPONENT_READER_PARAMS = {"params": {"bucket": "dcm-prod-ba2f-us-dcm-data-test", 'key': 'N/A',
                               "r3k_key": "alex/r3k.csv", "r1k_key": "alex/r1k.csv"},
                    "start_date": RUN_DATE,
-                               'class': YahooDailyPriceReader,
+                               'class': S3RussellComponentReader,
                                'provided_data': {'russell_components': "gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},
                                'required_data': {'security_master':'gs://{}/alex/calibration_data/{}/DataPull/security_master.csv'}
                                }
@@ -519,6 +519,7 @@ S3_RAW_SQL_READER_PARAMS = {"params": {"bucket": "dcm-prod-ba2f-us-dcm-data-temp
 
 
 SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS = {'params':{"start_date" : "2000-01-03","end_date" : "2023-06-28"},
+                                            'class':SQLMinuteToDailyEquityPrices,
                                       'start_date':RUN_DATE,
                                         'provided_data': {'daily_price_data': "gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},
                                             'required_data': {'security_master': 'gs://{}/alex/calibration_data/{}/DataPull/security_master.csv'}
