@@ -3,20 +3,20 @@ steps:
     args: ['build', '-t', 'gcr.io/$PROJECT_ID/calibrationdag:$COMMIT_SHA', '.']
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/calibrationdag:$COMMIT_SHA']
-  - name: 'gcr.io/$PROJECT_ID/helm'
-    args:
-      - 'upgrade'
-      - 'airflow'
-      - 'apache-airflow/airflow'
-      - '-f'
-      - 'k8s/values.yml'
-      - '--set'
-      - 'images.airflow.repository=gcr.io/$PROJECT_ID/calibrationdag'
-      - '--set'
-      - 'images.airflow.tag=$COMMIT_SHA'
-      - '--wait'
-      - '--timeout=15m'
-      - '--set'
-      - 'ingress.annotations.kubernetes.io/tls-acme="true"'
+#  - name: 'gcr.io/$PROJECT_ID/helm'
+#    args:
+#      - 'upgrade'
+#      - 'airflow'
+#      - 'apache-airflow/airflow'
+#      - '-f'
+#      - 'k8s/values.yml'
+#      - '--set'
+#      - 'images.airflow.repository=gcr.io/$PROJECT_ID/calibrationdag'
+#      - '--set'
+#      - 'images.airflow.tag=$COMMIT_SHA'
+#      - '--wait'
+#      - '--timeout=15m'
+#      - '--set'
+#      - 'ingress.annotations.kubernetes.io/tls-acme="true"'
 options:
   logging: GCS_ONLY
