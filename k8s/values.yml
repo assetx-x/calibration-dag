@@ -1,5 +1,31 @@
+airflowVersion: "2.6.3"
+
 images:
   airflow:
     repository: gcr.io/dcm-prod-ba2f/calibrationdag
+    tag: df3d455610da8bd87fa3502d251926cd2df779dc
 
 webserverSecretKeySecretName: my-webserver-secret
+
+triggerer:
+  strategy:
+    rollingUpdate:
+      maxSurge: "100%"
+      maxUnavailable: "75%"
+  livenessProbe:
+    initialDelaySeconds: 10
+    timeoutSeconds: 1200
+    failureThreshold: 40
+    periodSeconds: 120
+
+webserver:
+  livenessProbe:
+    initialDelaySeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 40
+    periodSeconds: 120
+  readinessProbe:
+    initialDelaySeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 40
+    periodSeconds: 120
