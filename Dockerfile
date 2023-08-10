@@ -26,5 +26,6 @@ RUN pip install --no-cache-dir ta-lib
 RUN pip install --no-cache-dir "apache-airflow==${AIRFLOW_VERSION}"
 RUN pip install --no-cache-dir -r requirements.txt
 ENV PYTHONPATH "${PYTHONPATH}:/usr/local/airflow/:/usr/local/airflow/dags:/usr/local/airflow/plugins"
+RUN mkdir -p logs/scheduler logs/webserver logs/worker logs/flower logs/redis logs/postgres
 COPY . .
 
