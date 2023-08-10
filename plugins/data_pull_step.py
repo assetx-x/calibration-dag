@@ -242,9 +242,9 @@ class S3RawQuandlDataReader(GCPReader):
         mapping.columns = ['dcm_security_id', 'ticker']
         raw = pd.merge(raw, mapping, how='inner', on='ticker')
         raw.drop('ticker', axis=1, inplace=True)
-        start_date_str = str(kwargs['start_date'])
+        start_date_str = str(kwargs['params']['start_date'])
         end_date_str = str(kwargs['end_date'])
-        raw = raw[(raw['datekey']>=start_date_str) & (raw['datekey']<=end_date_str)]
+        raw = raw[(raw['datekey']>= start_date_str) & (raw['datekey']<=end_date_str)]
         raw = raw[raw['dimension'].isin(['ARQ', 'ART'])].reset_index(drop=True)
         data = raw
         data["dcm_security_id"] = data["dcm_security_id"].astype(int)
