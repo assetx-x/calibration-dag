@@ -6,7 +6,9 @@ USER root
 RUN apt-get update && apt-get install -y \
     gcc \
     wget \
-    build-essential
+    build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Download and Install TA-Lib
 RUN wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz && \
@@ -16,16 +18,21 @@ RUN wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz && \
     make && \
     make install && \
     cd .. && \
-    rm -r ta-lib && \
-    rm ta-lib-0.4.0-src.tar.gz
+    rm -rf ta-lib ta-lib-0.4.0-src.tar.gz
 
 USER airflow
-COPY requirements.txt .
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir ta-lib
-RUN pip install --no-cache-dir "apache-airflow==${AIRFLOW_VERSION}"
-RUN pip install --no-cache-dir -r requirements.txt
-ENV PYTHONPATH "${PYTHONPATH}:/usr/local/airflow/:/usr/local/airflow/dags:/usr/local/airflow/plugins"
-RUN mkdir -p logs/scheduler logs/webserver logs/worker logs/flower logs/redis logs/postgres
-COPY . .
 
+# Copy and install requirements
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir ta-lib "apache-airflow==${AIRFLOW_VERSION}"
+
+# Set environment variables
+ENV PYTHONPATH "${PYTHONPATH}:/usr/local/airflow/:/usr/local/airflow/dags:/usr/local/airflow/plugins"
+
+# Create necessary directories
+RUN mkdir -p logs/{scheduler,webserver,worker,flower,redis,postgres}
+
+# Copy the rest of the files
+COPY . .
