@@ -3,7 +3,6 @@ airflowVersion: "2.6.3"
 images:
   airflow:
     repository: gcr.io/dcm-prod-ba2f/calibrationdag
-    tag: df3d455610da8bd87fa3502d251926cd2df779dc
 
 webserverSecretKeySecretName: my-webserver-secret
 
