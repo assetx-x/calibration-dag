@@ -37,9 +37,9 @@ from targets_step import TARGETS_PARAMS
 from derived_fundamental_data_process_step import CalculateDerivedQuandlFeatures_PARAMS
 
 ######## DerivedTechnicalDataProcessing #######
-#from derived_technical_data_processing_step import CalculateTaLibSTOCHRSIMultiParam_PARAMS,\
-#    CalculateVolatilityMultiParam_params,CalculateTaLibWILLRMultiParam_params,CalculateTaLibPPOMultiParam_configs,\
-# CalculateTaLibADXMultiParam_params
+from derived_technical_data_processing_step import CalculateTaLibSTOCHRSIMultiParam_PARAMS,\
+    CalculateVolatilityMultiParam_params,CalculateTaLibWILLRMultiParam_params,CalculateTaLibPPOMultiParam_params,\
+ CalculateTaLibADXMultiParam_params
 
 
 
@@ -165,19 +165,46 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             op_kwargs=CalculateDerivedQuandlFeatures_PARAMS
         )
 
-    """with TaskGroup("DerivedTechnicalDataProcessing", tooltip="DerivedTechnicalDataProcessing") as DerivedTechnicalDataProcessing:
-        CalculateTargetReturns = PythonOperator(
-            task_id="CalculateTargetReturns",
+    with TaskGroup("DerivedTechnicalDataProcessing", tooltip="DerivedTechnicalDataProcessing") as DerivedTechnicalDataProcessing:
+
+        CalculateTaLibSTOCHRSIMultiParam = PythonOperator(
+            task_id="CalculateTaLibSTOCHRSIMultiParam",
             python_callable=airflow_wrapper,
-            op_kwargs=TARGETS_PARAMS
-        )"""
+            op_kwargs=CalculateTaLibSTOCHRSIMultiParam_PARAMS
+        )
+
+        CalculateVolatilityMultiParam = PythonOperator(
+            task_id="CalculateVolatilityMultiParam",
+            python_callable=airflow_wrapper,
+            op_kwargs=CalculateVolatilityMultiParam_params
+        )
+
+        CalculateTaLibWILLRMultiParam = PythonOperator(
+            task_id="CalculateTaLibWILLRMultiParam",
+            python_callable=airflow_wrapper,
+            op_kwargs=CalculateTaLibWILLRMultiParam_params
+        )
+
+        CalculateTaLibPPOMultiParam = PythonOperator(
+            task_id="CalculateTaLibPPOMultiParam",
+            python_callable=airflow_wrapper,
+            op_kwargs=CalculateTaLibPPOMultiParam_params
+        )
+
+        CalculateTaLibADXMultiParam = PythonOperator(
+            task_id="CalculateTaLibADXMultiParam",
+            python_callable=airflow_wrapper,
+            op_kwargs=CalculateTaLibADXMultiParam_params
+        )
+
+        CalculateTaLibSTOCHRSIMultiParam >> CalculateVolatilityMultiParam >> CalculateTaLibWILLRMultiParam >> CalculateTaLibPPOMultiParam >> CalculateTaLibADXMultiParam
 
 
 
 
 
 
-    DataPull >> EconData >> FundamentalCleanup >> Targets >> DerivedFundamentalDataProcessing
+    DataPull >> EconData >> FundamentalCleanup >> Targets >> DerivedFundamentalDataProcessing >> DerivedTechnicalDataProcessing
 
 
 

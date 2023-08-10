@@ -1,20 +1,9 @@
 from core_classes import GCPReader,download_yahoo_data,DataReaderClass
-from market_timeline import marketTimeline
-from abc import ABC,ABCMeta, abstractmethod
-from google.cloud import storage
-from enum import Enum
 import pandas as pd
-import io
-import os
-from pandas_datareader import data as web
-import yfinance as yf
-#import fix_yahoo_finance as fyf
-from fredapi import Fred
-import pandas
-from google.cloud import bigquery
+import numpy as np
 from datetime import datetime
 from core_classes import StatusType
-from commonlib import talib_STOCHRSI
+from commonlib import talib_STOCHRSI, MA,talib_PPO
 import talib
 current_date = datetime.now().date()
 RUN_DATE = '2023-06-28' #current_date.strftime('%Y-%m-%d')
@@ -501,7 +490,7 @@ CalculateTaLibWILLRMultiParam_params = {'params':{'configs':CalculateTaLibWILLRM
 
 ##############
 
-CalculateTaLibPPOMultiParam_params = [{"technical_indicator_params": {"fastperiod": 12, "slowperiod": 26, "matype": 0},
+CalculateTaLibPPOMultiParam_configs = [{"technical_indicator_params": {"fastperiod": 12, "slowperiod": 26, "matype": 0},
                                     "price_column": "close", "invert_sign": True},
                                       {"technical_indicator_params": {"fastperiod": 3, "slowperiod": 14, "matype": 0},
                                     "price_column": "close", "invert_sign": True},
@@ -510,7 +499,7 @@ CalculateTaLibPPOMultiParam_params = [{"technical_indicator_params": {"fastperio
                                      ]
 
 
-CalculateTaLibPPOMultiParam_configs = {'params':{'configs':CalculateTaLibPPOMultiParam_params},
+CalculateTaLibPPOMultiParam_params = {'params':{'configs':CalculateTaLibPPOMultiParam_configs},
                                            'class':CalculateTaLibPPOMultiParam,
                                            'start_date':RUN_DATE,
                                            'provided_data': {'talib_ppo_indicator_data': "gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},

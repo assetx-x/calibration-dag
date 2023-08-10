@@ -224,9 +224,11 @@ class S3RawQuandlDataReader(GCPReader):
     '''
     REQUIRES_FIELDS = ["security_master"]
     #PROVIDES_FIELDS = ["raw_quandl_data"]
-    def __init__(self, bucket, key,index_col):
+    def __init__(self, bucket, key,index_col,start_date,end_date):
         self.data = None
         self.index_col = index_col or 0
+        self._start_date = start_date
+        self._end_date = end_date
         GCPReader.__init__(self, bucket, key)
 
     def _post_process_pulled_data(self, raw, **kwargs):
@@ -236,8 +238,8 @@ class S3RawQuandlDataReader(GCPReader):
         mapping.columns = ['dcm_security_id', 'ticker']
         raw = pd.merge(raw, mapping, how='inner', on='ticker')
         raw.drop('ticker', axis=1, inplace=True)
-        start_date_str = str(kwargs['start_date'])
-        end_date_str = str(kwargs['end_date'])
+        start_date_str = str(self._start_date)
+        end_date_str = str(self._end_date)
         raw = raw[(raw['datekey']>=start_date_str) & (raw['datekey']<=end_date_str)]
         raw = raw[raw['dimension'].isin(['ARQ', 'ART'])].reset_index(drop=True)
         data = raw
