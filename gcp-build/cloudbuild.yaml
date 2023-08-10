@@ -9,6 +9,23 @@ steps:
       - 'add'
       - 'apache-airflow'
       - 'https://airflow.apache.org'
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'kms'
+      - 'decrypt'
+      - '--ciphertext-file=secrets.yaml.enc'
+      - '--plaintext-file=secrets.yaml'
+      - '--location=global'
+      - '--keyring=abc-keyring-$_ENVIRONMENT'
+      - '--key=abc-webshop-$_ENVIRONMENT'
+    dir: 'k8s/charts-values/gcloud-sqlproxy/$_VALUES_DIRECTORY'
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'container'
+      - 'clusters'
+      - 'get-credentials'
+      - '$_CLUSTER_ID'
+      - '--zone=global'
   - name: 'gcr.io/$PROJECT_ID/helm'
     args:
       - 'upgrade'
