@@ -5,6 +5,12 @@ steps:
     args: ['push', 'gcr.io/$PROJECT_ID/calibrationdag:$COMMIT_SHA']
   - name: 'gcr.io/$PROJECT_ID/helm'
     args:
+      - 'repo'
+      - 'add'
+      - 'apache-airflow'
+      - 'https://airflow.apache.org'
+  - name: 'gcr.io/$PROJECT_ID/helm'
+    args:
       - 'upgrade'
       - 'airflow'
       - 'apache-airflow/airflow'
