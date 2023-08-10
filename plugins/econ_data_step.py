@@ -1,11 +1,6 @@
 from core_classes import GCPReader,download_yahoo_data,DataReaderClass
 from market_timeline import marketTimeline
-from abc import ABC,ABCMeta, abstractmethod
-from google.cloud import storage
-from enum import Enum
 import pandas as pd
-import io
-import os
 from fredapi import Fred
 from datetime import datetime
 
@@ -116,7 +111,7 @@ class DownloadEconomicData(DataReaderClass):
 
 ################ AIRFLOW ##################
 
-DOWNLOAD_ECONOMIC_DATA = {"params": {"sector_etfs": ["SPY", "MDY", "EWG", "EWH", "EWJ", "EWW", "EWS", "EWU"],
+DOWNLOAD_ECONOMIC_DATA_PARAMS = {"params": {"sector_etfs": ["SPY", "MDY", "EWG", "EWH", "EWJ", "EWW", "EWS", "EWU"],
                                    "start_date": "1997-01-01",
                                    "end_date": RUN_DATE,
                                    },

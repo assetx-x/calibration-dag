@@ -7,6 +7,7 @@ from airflow.utils.dates import days_ago
 from airflow.operators.bash import BashOperator
 from airflow.operators.python_operator import PythonOperator
 import pandas as pd
+from datetime import timedelta
 
 import os
 import sys
@@ -24,12 +25,29 @@ S3_ECON_TRANSFORMATION_PARAMS,YAHOO_DAILY_PRICE_READER_PARAMS,S3_RUSSELL_COMPONE
 SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS
 
 ### ECON DATA STEP INSTRUCTIONS ####
-from econ_data_step import DOWNLOAD_ECONOMIC_DATA
+from econ_data_step import DOWNLOAD_ECONOMIC_DATA_PARAMS
+
+####### FundamentalCleanup INSTRUCTIONS #####
+from fundamental_cleanup_step import QuandlDataCleanup_PARAMS
+
+### TARTGET INSTRUCTIONS #######
+from targets_step import TARGETS_PARAMS
+
+####### DerivedFundamentalDataProcessing ######
+from derived_fundamental_data_process_step import CalculateDerivedQuandlFeatures_PARAMS
+
+######## DerivedTechnicalDataProcessing #######
+#from derived_technical_data_processing_step import CalculateTaLibSTOCHRSIMultiParam_PARAMS,\
+#    CalculateVolatilityMultiParam_params,CalculateTaLibWILLRMultiParam_params,CalculateTaLibPPOMultiParam_configs,\
+# CalculateTaLibADXMultiParam_params
+
 
 
 # PARAMS
 END_DATE = '2023-06-28'
 JUMP_DATES_CSV = os.path.join(data_processing_folder,'intervals_for_jump.csv')
+
+
 
 
 def airflow_wrapper(**kwargs):
@@ -66,59 +84,99 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     with TaskGroup("DataPull", tooltip="DataPull") as DataPull:
 
         CalibrationDatesJump = PythonOperator(
-            task_id="calibration_jump_dates",
+            task_id="CalibrationDatesJump",
             python_callable=airflow_wrapper,
             provide_context=True,
-            op_kwargs=CALIBRATIONDATEJUMP_PARAMS
+            op_kwargs=CALIBRATIONDATEJUMP_PARAMS,
+            execution_timeout=timedelta(minutes=25)
         )
 
         S3SecurityMasterReader = PythonOperator(
-            task_id="s3_security_master_reader",
+            task_id="S3SecurityMasterReader",
             python_callable=airflow_wrapper,
             op_kwargs=S3_SECURITY_MASTER_READER_PARAMS,
+            execution_timeout=timedelta(minutes=25)
         )
 
         S3IndustryMappingReader = PythonOperator(
-            task_id="s3_industry_mapping_reader",
+            task_id="S3IndustryMappingReader",
             python_callable=airflow_wrapper,
             op_kwargs=S3_INDUSTRY_MAPPER_READER_PARAMS,
+            execution_timeout=timedelta(minutes=25)
         )
 
         S3EconTransformationReader = PythonOperator(
-            task_id="s3_econ_transformation_reader",
+            task_id="S3EconTransformationReader",
             python_callable=airflow_wrapper,
             op_kwargs=S3_ECON_TRANSFORMATION_PARAMS,
+            execution_timeout=timedelta(minutes=25)
         )
 
         YahooDailyPriceReader = PythonOperator(
-            task_id="yahoo_daily_price_reader",
+            task_id="YahooDailyPriceReader",
             python_callable=airflow_wrapper,
             op_kwargs=YAHOO_DAILY_PRICE_READER_PARAMS,
+            execution_timeout=timedelta(minutes=25)
         )
 
         S3RussellComponentReader = PythonOperator(
-            task_id="s3_russell_component_reader",
+            task_id="S3RussellComponentReader",
             python_callable=airflow_wrapper,
             op_kwargs=S3_RUSSELL_COMPONENT_READER_PARAMS,
+            execution_timeout=timedelta(minutes=25)
         )
 
         S3RawQuandlDataReader = PythonOperator(
-            task_id="s3_raw_quandl_reader",
+            task_id="S3RawQuandlDataReader",
             python_callable=airflow_wrapper,
             op_kwargs=S3_RAW_SQL_READER_PARAMS,
+            execution_timeout=timedelta(minutes=25)
         )
 
         CalibrationDatesJump >> S3SecurityMasterReader >> S3IndustryMappingReader >> S3EconTransformationReader >> YahooDailyPriceReader >> S3RussellComponentReader >> S3RawQuandlDataReader
 
     with TaskGroup("EconData", tooltip="EconData") as EconData:
         DownloadEconomicData = PythonOperator(
-            task_id="download_economic_data",
+            task_id="DownloadEconomicData",
             python_callable=airflow_wrapper,
-            op_kwargs=DOWNLOAD_ECONOMIC_DATA
+            op_kwargs=DOWNLOAD_ECONOMIC_DATA_PARAMS
         )
 
 
-    DataPull >> EconData
+    with TaskGroup("FundamentalCleanup", tooltip="FundamentalCleanup") as FundamentalCleanup:
+        QuandlDataCleanup = PythonOperator(
+            task_id="QuandlDataCleanup",
+            python_callable=airflow_wrapper,
+            op_kwargs=QuandlDataCleanup_PARAMS
+        )
+
+
+    with TaskGroup("Targets", tooltip="Targets") as Targets:
+        CalculateTargetReturns = PythonOperator(
+            task_id="CalculateTargetReturns",
+            python_callable=airflow_wrapper,
+            op_kwargs=TARGETS_PARAMS
+        )
+
+    with TaskGroup("DerivedFundamentalDataProcessing", tooltip="DerivedFundamentalDataProcessing") as DerivedFundamentalDataProcessing:
+        CalculateDerivedQuandlFeatures = PythonOperator(
+            task_id="CalculateTargetReturns",
+            python_callable=airflow_wrapper,
+            op_kwargs=CalculateDerivedQuandlFeatures_PARAMS
+        )
+
+    """with TaskGroup("DerivedTechnicalDataProcessing", tooltip="DerivedTechnicalDataProcessing") as DerivedTechnicalDataProcessing:
+        CalculateTargetReturns = PythonOperator(
+            task_id="CalculateTargetReturns",
+            python_callable=airflow_wrapper,
+            op_kwargs=TARGETS_PARAMS
+        )"""
+
+
+
+
+
+    DataPull >> EconData >> FundamentalCleanup >> Targets >> DerivedFundamentalDataProcessing
 
 
 
