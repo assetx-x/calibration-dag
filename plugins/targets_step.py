@@ -7,6 +7,7 @@ current_date = datetime.now().date()
 RUN_DATE = '2023-06-28' #current_date.strftime('%Y-%m-%d')
 
 
+
 class CalculateTargetReturns(DataReaderClass):
     '''
 

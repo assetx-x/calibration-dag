@@ -15,13 +15,7 @@ import pandas
 from google.cloud import bigquery
 import gc
 import numpy as np
-import pyarrow
-from airflow.models import XCom
-from google.oauth2.credentials import Credentials
 from datetime import datetime
-
-
-
 
 
 parent_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))

@@ -9,6 +9,7 @@ RUN_DATE = '2023-06-28' #current_date.strftime('%Y-%m-%d')
 
 
 
+
 class QuandlDataCleanup(DataReaderClass):
     '''
     Cleans Quandl Data and resamples to daily, monthly, and quarterly frequencies

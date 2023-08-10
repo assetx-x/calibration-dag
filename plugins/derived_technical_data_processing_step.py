@@ -9,7 +9,6 @@ import os
 from pandas_datareader import data as web
 import yfinance as yf
 #import fix_yahoo_finance as fyf
-import sys
 from fredapi import Fred
 import pandas
 from google.cloud import bigquery
