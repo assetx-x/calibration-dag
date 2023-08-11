@@ -55,7 +55,7 @@ def read_csv_in_chunks(gcs_path, batch_size=10000):
 
     Parameters:
     - gcs_path (str): The path to the CSV file on GCS.
-    - chunksize (int, optional): The number of rows per chunk. Default is 10,000.
+    - batch_size (int, optional): The number of rows per chunk. Default is 10,000.
 
     Returns:
     - pd.DataFrame: The concatenated DataFrame.
