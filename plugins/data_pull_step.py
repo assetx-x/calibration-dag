@@ -505,7 +505,9 @@ S3_RUSSELL_COMPONENT_READER_PARAMS = {"params": {"bucket": "dcm-prod-ba2f-us-dcm
 
 
 S3_RAW_SQL_READER_PARAMS = {"params": {"bucket": "dcm-prod-ba2f-us-dcm-data-temp",
-                              "key": "jack/SHARADAR_SF1.csv", 'index_col': False},
+                              "key": "jack/SHARADAR_SF1.csv", 'index_col': False,
+                                       "start_date" : "2000-01-03","end_date" : "2023-06-28"
+                                      },
                    "start_date": RUN_DATE,
                      'class': S3RawQuandlDataReader,
                      'provided_data': {'raw_quandl_data': "gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},
