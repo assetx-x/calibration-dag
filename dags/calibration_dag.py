@@ -8,6 +8,7 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python_operator import PythonOperator
 import pandas as pd
 from datetime import timedelta
+import gcsfs
 
 import os
 import sys
@@ -48,14 +49,40 @@ END_DATE = '2023-06-28'
 JUMP_DATES_CSV = os.path.join(data_processing_folder,'intervals_for_jump.csv')
 
 
+def read_csv_in_chunks(gcs_path, batch_size=10000):
+    """
+    Reads a CSV file from Google Cloud Storage in chunks and returns a concatenated DataFrame.
 
+    Parameters:
+    - gcs_path (str): The path to the CSV file on GCS.
+    - chunksize (int, optional): The number of rows per chunk. Default is 10,000.
+
+    Returns:
+    - pd.DataFrame: The concatenated DataFrame.
+    """
+    # Create GCS file system object
+    fs = gcsfs.GCSFileSystem(project='dcm-prod-ba2f')
+
+    # Use a list to store each chunk as a DataFrame
+    dfs = []
+
+    # Open the GCS file for reading
+    with fs.open(gcs_path, 'r') as f:
+        # Iterate through the CSV in chunks
+        for batch in pd.read_csv(f, chunksize=batch_size, index_col=0):
+            dfs.append(batch)
+
+    # Concatenate all the chunks into a single DataFrame
+    final_df = pd.concat(dfs, ignore_index=True)
+
+    return final_df
 
 def airflow_wrapper(**kwargs):
     params = kwargs['params']
 
     # Read all required data into step_action_args dictionary
     try:
-        step_action_args = {k: pd.read_csv(v.format(os.environ['GCS_BUCKET'],kwargs['start_date']), index_col=0) for k, v in kwargs['required_data'].items()}
+        step_action_args = {k: read_csv_in_chunks(v.format(os.environ['GCS_BUCKET'],kwargs['start_date'])) for k, v in kwargs['required_data'].items()}
     except Exception as e:
         print(f"Error reading data: {e}")
         step_action_args = {}
