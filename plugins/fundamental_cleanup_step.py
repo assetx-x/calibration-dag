@@ -2,9 +2,9 @@ from core_classes import GCPReader,download_yahoo_data,DataReaderClass
 from market_timeline import marketTimeline
 import pandas as pd
 from fredapi import Fred
-from datetime import datetime
+import datetime
 
-current_date = datetime.now().date()
+current_date = datetime.datetime.now().date()
 RUN_DATE = '2023-06-28' #current_date.strftime('%Y-%m-%d')
 
 
