@@ -52,8 +52,10 @@ from merge_step import QuantamentalMerge_params
 
 from filter_dates_single_names import FilterMonthlyDatesFullPopulationWeekly_params, CreateMonthlyDataSingleNamesWeekly_params
 
-from transformation import CreateYahooDailyPriceRolling_params, TransformEconomicDataWeekly_params
+from transformation import CreateYahooDailyPriceRolling_params, TransformEconomicDataWeekly_params,CreateIndustryAverageWeekly_params
 
+from merge_econ_step import QuantamentalMergeEconIndustryWeekly_params
+from standarization import FactorStandardizationFullPopulationWeekly_params
 
 # PARAMS
 END_DATE = '2023-06-28'
@@ -344,11 +346,35 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             op_kwargs=TransformEconomicDataWeekly_params
         )
 
-        CreateYahooDailyPriceRolling >> TransformEconomicDataWeekly
+        CreateIndustryAverageWeekly = PythonOperator(
+            task_id="CreateIndustryAverageWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=CreateIndustryAverageWeekly_params
+        )
+
+
+        CreateYahooDailyPriceRolling >> TransformEconomicDataWeekly >> CreateIndustryAverageWeekly
+
+
+    with TaskGroup("MergeEcon", tooltip="MergeEcon") as MergeEcon:
+
+        QuantamentalMergeEconIndustryWeekly = PythonOperator(
+            task_id="QuantamentalMergeEconIndustryWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=QuantamentalMergeEconIndustryWeekly_params
+        )
+
+    with TaskGroup("Standarization", tooltip="Standarization") as Standarization:
+
+        FactorStandardizationFullPopulationWeekly = PythonOperator(
+            task_id="FactorStandardizationFullPopulationWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=FactorStandardizationFullPopulationWeekly_params
+        )
 
 
 
-    DataPull >> EconData >> FundamentalCleanup >> Targets >> DerivedFundamentalDataProcessing >> DerivedTechnicalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation
+    DataPull >> EconData >> FundamentalCleanup >> Targets >> DerivedFundamentalDataProcessing >> DerivedTechnicalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> Standarization
 
 
 
