@@ -42,6 +42,17 @@ from derived_technical_data_processing_step import CalculateTaLibSTOCHRSIMultiPa
     CalculateVolatilityMultiParam_params,CalculateTaLibWILLRMultiParam_params,CalculateTaLibPPOMultiParam_params,\
  CalculateTaLibADXMultiParam_params
 
+from derived_technical_data_processing_step import ComputeBetaQuantamental_params,CalculateMACD_params,\
+    CalcualteCorrelation_params,CalculateDollarVolume_params,CalculateOvernightReturn_params,\
+    CalculatePastReturnEquity_params, CalculateTaLibSTOCH_params,CalculateTaLibSTOCHF_params,\
+    CalculateTaLibTRIX_params,CalculateTaLibULTOSC_params
+
+
+from merge_step import QuantamentalMerge_params
+
+from filter_dates_single_names import FilterMonthlyDatesFullPopulationWeekly_params, CreateMonthlyDataSingleNamesWeekly_params
+
+from transformation import CreateYahooDailyPriceRolling_params, TransformEconomicDataWeekly_params
 
 
 # PARAMS
@@ -226,12 +237,118 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
 
         CalculateTaLibSTOCHRSIMultiParam >> CalculateVolatilityMultiParam >> CalculateTaLibWILLRMultiParam >> CalculateTaLibPPOMultiParam >> CalculateTaLibADXMultiParam
 
+    with TaskGroup("DerivedSimplePriceFeatureProcessing", tooltip="DerivedSimplePriceFeatureProcessing") as DerivedSimplePriceFeatureProcessing:
+
+        ComputeBetaQuantamental = PythonOperator(
+            task_id="ComputeBetaQuantamental",
+            python_callable=airflow_wrapper,
+            op_kwargs=ComputeBetaQuantamental_params
+        )
+
+        CalculateMACD = PythonOperator(
+            task_id="CalculateMACD",
+            python_callable=airflow_wrapper,
+            op_kwargs=CalculateMACD_params
+        )
+
+        CalcualteCorrelation = PythonOperator(
+            task_id="CalcualteCorrelation",
+            python_callable=airflow_wrapper,
+            op_kwargs=CalcualteCorrelation_params
+        )
+
+        CalculateDollarVolume = PythonOperator(
+            task_id="CalculateDollarVolume",
+            python_callable=airflow_wrapper,
+            op_kwargs=CalculateDollarVolume_params
+        )
+
+        CalculateOvernightReturn = PythonOperator(
+            task_id="CalculateOvernightReturn",
+            python_callable=airflow_wrapper,
+            op_kwargs=CalculateOvernightReturn_params
+        )
+
+        CalculatePastReturnEquity = PythonOperator(
+            task_id="CalculatePastReturnEquity",
+            python_callable=airflow_wrapper,
+            op_kwargs=CalculatePastReturnEquity_params
+        )
+
+        CalculateTaLibSTOCH = PythonOperator(
+            task_id="CalculateTaLibSTOCH",
+            python_callable=airflow_wrapper,
+            op_kwargs=CalculateTaLibSTOCH_params
+        )
+
+        CalculateTaLibSTOCHF = PythonOperator(
+            task_id="CalculateTaLibSTOCHF",
+            python_callable=airflow_wrapper,
+            op_kwargs=CalculateTaLibSTOCHF_params
+        )
+
+        CalculateTaLibTRIX = PythonOperator(
+            task_id="CalculateTaLibTRIX",
+            python_callable=airflow_wrapper,
+            op_kwargs=CalculateTaLibTRIX_params
+        )
+
+        CalculateTaLibULTOSC = PythonOperator(
+            task_id="CalculateTaLibULTOSC",
+            python_callable=airflow_wrapper,
+            op_kwargs=CalculateTaLibULTOSC_params
+        )
 
 
 
 
 
-    DataPull >> EconData >> FundamentalCleanup >> Targets >> DerivedFundamentalDataProcessing >> DerivedTechnicalDataProcessing
+        ComputeBetaQuantamental >> CalculateMACD >> CalcualteCorrelation >> CalculateDollarVolume >> CalculateOvernightReturn >> CalculatePastReturnEquity >> CalculateTaLibSTOCH >> CalculateTaLibSTOCHF >> CalculateTaLibULTOSC
+
+
+    with TaskGroup("MergeStep", tooltip="MergeStep") as MergeStep:
+
+        QuantamentalMerge = PythonOperator(
+            task_id="QuantamentalMerge",
+            python_callable=airflow_wrapper,
+            op_kwargs=QuantamentalMerge_params
+        )
+
+    with TaskGroup("FilterDatesSingleNames", tooltip="FilterDatesSingleNames") as FilterDatesSingleNames:
+
+        FilterMonthlyDatesFullPopulationWeekly = PythonOperator(
+            task_id="FilterMonthlyDatesFullPopulationWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=FilterMonthlyDatesFullPopulationWeekly_params
+        )
+
+        CreateMonthlyDataSingleNamesWeekly = PythonOperator(
+            task_id="CreateMonthlyDataSingleNamesWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=CreateMonthlyDataSingleNamesWeekly_params
+        )
+
+        FilterMonthlyDatesFullPopulationWeekly >> CreateMonthlyDataSingleNamesWeekly
+
+    with TaskGroup("Transformation", tooltip="Transformation") as Transformation:
+
+        CreateYahooDailyPriceRolling = PythonOperator(
+            task_id="CreateYahooDailyPriceRolling",
+            python_callable=airflow_wrapper,
+            op_kwargs=CreateYahooDailyPriceRolling_params
+        )
+
+        TransformEconomicDataWeekly = PythonOperator(
+            task_id="TransformEconomicDataWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=TransformEconomicDataWeekly_params
+        )
+
+        CreateYahooDailyPriceRolling >> TransformEconomicDataWeekly
+
+
+
+    DataPull >> EconData >> FundamentalCleanup >> Targets >> DerivedFundamentalDataProcessing >> DerivedTechnicalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation
 
 
 

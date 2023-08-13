@@ -4,6 +4,8 @@ import pytz
 import pandas as pd
 from pylru import lrudecorator
 from numpy import int64
+import os
+from commonlib import transform_data
 
 FIRST_POSSIBLE_TRADING_DATE = "1990-01-01"
 LAST_POSSIBLE_TRADING_DATE = "2050-12-31"
@@ -310,3 +312,37 @@ class marketTimeline(object):
             return marketTimeline.get_trading_day_using_offset(cob, 0)
         else:
             return marketTimeline.get_trading_day_using_offset(cob, -1)
+
+
+def pick_trading_week_dates(start_date, end_date, mode='w-mon'):
+    weekly_days = pd.date_range(start_date, end_date, freq=mode)
+    trading_dates = pd.Series(weekly_days).apply(marketTimeline.get_next_trading_day_if_holiday)
+    dates = trading_dates[(trading_dates>=start_date) & (trading_dates<=end_date)]
+    return dates
+
+
+def pick_trading_month_dates(start_date, end_date, mode="bme"):
+    trading_days = marketTimeline.get_trading_days(start_date, end_date).tz_localize(None)
+    if mode=="bme":
+        dates = pd.Series(trading_days).groupby(trading_days.to_period('M')).last()
+    else:
+        dates = pd.Series(trading_days).groupby(trading_days.to_period('M')).first()
+    dates = dates[(dates>=start_date) & (dates<=end_date)]
+    return dates
+
+
+def transform_wrapper(ts, transform_dict):
+    try:
+        transform_type = transform_dict[ts.name]
+    except:
+        transform_type = 1 # Default is no transform
+    return transform_data(ts, transform_type)
+
+
+def create_directory_if_does_not_exists(dir_path):
+    try:
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise

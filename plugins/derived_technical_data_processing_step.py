@@ -7,6 +7,7 @@ from commonlib import talib_STOCHRSI, MA,talib_PPO
 import talib
 current_date = datetime.now().date()
 RUN_DATE = '2023-06-28' #current_date.strftime('%Y-%m-%d')
+from core_classes import construct_required_path,construct_destination_path
 
 
 class CalculateTaLibSTOCHRSI(DataReaderClass):
@@ -38,6 +39,7 @@ class CalculateTaLibSTOCHRSI(DataReaderClass):
 
     def do_step_action(self, **kwargs):
         daily_prices = kwargs[self.__class__.REQUIRES_FIELDS[0]].copy(deep=True)
+        daily_prices['date'] = daily_prices['date'].apply(pd.Timestamp)
         daily_prices['date'] = daily_prices['date'].dt.normalize()
         shift_value = 0 if self.price_column == "open" else 1
 
@@ -130,7 +132,7 @@ class CalculateVolatility(DataReaderClass):
         daily_prices = kwargs[self.__class__.REQUIRES_FIELDS[0]]
         shift_value = 0 if self.price_column == "open" else 1
         column_name = "volatility_{0}".format(self.volatility_lookback)
-        vol_func = lambda g: (pd.np.log(g[self.price_column]).diff().rolling(self.volatility_lookback).std()) \
+        vol_func = lambda g: (np.log(g[self.price_column]).diff().rolling(self.volatility_lookback).std()) \
             .to_frame(name=column_name)
         apply_func = lambda x: vol_func(x.set_index("date").sort_index().shift(shift_value))
         self.data = daily_prices.groupby("ticker").apply(apply_func).reset_index()[["date", "ticker", column_name]]
@@ -202,6 +204,7 @@ class CalculateTaLibWILLR(DataReaderClass):
 
     def do_step_action(self, **kwargs):
         daily_prices = kwargs[self.__class__.REQUIRES_FIELDS[0]].copy(deep=True)
+        daily_prices['date'] = daily_prices['date'].apply(pd.Timestamp)
         daily_prices['date'] = daily_prices['date'].dt.normalize()
         shift_value = 1
 
@@ -221,8 +224,9 @@ class CalculateTaLibWILLR(DataReaderClass):
         indicator_signal = pd.concat(indicator_generator, axis=1, keys=high.columns)
         indicator_signal = indicator_signal.stack().reset_index().rename(columns={0: column_name})
 
+        # TODO : Investigate allignment later
         indicator_signal[ma_column_name] = indicator_signal.groupby(["ticker"])[column_name] \
-            .apply(lambda x: MA(x, self.smoothing_period, type='simple'))
+            .apply(lambda x: MA(x, self.smoothing_period, type='simple')).reset_index(level=0, drop=True)
         self.data = indicator_signal  # .set_index(["date","ticker"])
         return StatusType.Success
 
@@ -293,6 +297,7 @@ class CalculateTaLibPPO(DataReaderClass):
 
     def do_step_action(self, **kwargs):
         daily_prices = kwargs[self.__class__.REQUIRES_FIELDS[0]].copy(deep=True)
+        daily_prices['date'] = daily_prices['date'].apply(pd.Timestamp)
         daily_prices['date'] = daily_prices['date'].dt.normalize()
         shift_value = 0 if self.price_column == "open" else 1
 
@@ -375,6 +380,7 @@ class CalculateTaLibADX(DataReaderClass):
 
     def do_step_action(self, **kwargs):
         daily_prices = kwargs[self.__class__.REQUIRES_FIELDS[0]].copy(deep=True)
+        daily_prices['date'] = daily_prices['date'].apply(pd.Timestamp)
         daily_prices['date'] = daily_prices['date'].dt.normalize()
         shift_value = 1
 
@@ -395,7 +401,7 @@ class CalculateTaLibADX(DataReaderClass):
         indicator_signal = indicator_signal.stack().reset_index().rename(columns={0: column_name})
 
         indicator_signal[ma_column_name] = indicator_signal.groupby(["ticker"])[column_name] \
-            .apply(lambda x: MA(x, self.smoothing_period, type='simple'))
+            .apply(lambda x: MA(x, self.smoothing_period, type='simple')).reset_index(level=0, drop=True)
         self.data = indicator_signal  # .set_index(["date","ticker"])
         return StatusType.Success
 
@@ -456,8 +462,8 @@ CalculateTaLibSTOCHRSIMultiParam_figs = [{"technical_indicator_params": {"timepe
 CalculateTaLibSTOCHRSIMultiParam_PARAMS = {'params':{'configs':CalculateTaLibSTOCHRSIMultiParam_figs},
                                            'class':CalculateTaLibSTOCHRSIMultiParam,
                                            'start_date':RUN_DATE,
-                                           'provided_data': {'talib_stochrsi_indicator_data': "gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},
-                                            'required_data': {'daily_price_data': 'gs://{}/alex/calibration_data/{}/DataPull/daily_price_data.csv'}}
+                                           'provided_data': {'talib_stochrsi_indicator_data':construct_destination_path('derived_technical')},
+                                            'required_data': {'daily_price_data': construct_required_path('data_pull','daily_price_data')}}
 
 ######
 
@@ -469,8 +475,9 @@ CalculateVolatilityMultiParam_configs = [{"volatility_lookback": 63, "price_colu
 CalculateVolatilityMultiParam_params = {'params':{'configs':CalculateVolatilityMultiParam_configs},
                                            'class':CalculateVolatilityMultiParam,
                                            'start_date':RUN_DATE,
-                                           'provided_data': {'volatility_data': "gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},
-                                            'required_data': {'daily_price_data': 'gs://{}/alex/calibration_data/{}/DataPull/daily_price_data.csv'}}
+                                           'provided_data': {'volatility_data': construct_destination_path('derived_technical')},
+                                            'required_data': {'daily_price_data': construct_required_path('data_pull','daily_price_data')}}
+
 
 #######
 
@@ -482,8 +489,8 @@ CalculateTaLibWILLRMultiParam_configs = [{"technical_indicator_params": {"timepe
 CalculateTaLibWILLRMultiParam_params = {'params':{'configs':CalculateTaLibWILLRMultiParam_configs},
                                            'class':CalculateTaLibWILLRMultiParam,
                                            'start_date':RUN_DATE,
-                                           'provided_data': {'talib_willr_indicator_data': "gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},
-                                            'required_data': {'daily_price_data': 'gs://{}/alex/calibration_data/{}/DataPull/daily_price_data.csv'}}
+                                           'provided_data': {'talib_willr_indicator_data': construct_destination_path('derived_technical')},
+                                            'required_data': {'daily_price_data': construct_required_path('data_pull','daily_price_data')}}
 
 
 
@@ -502,8 +509,9 @@ CalculateTaLibPPOMultiParam_configs = [{"technical_indicator_params": {"fastperi
 CalculateTaLibPPOMultiParam_params = {'params':{'configs':CalculateTaLibPPOMultiParam_configs},
                                            'class':CalculateTaLibPPOMultiParam,
                                            'start_date':RUN_DATE,
-                                           'provided_data': {'talib_ppo_indicator_data': "gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},
-                                            'required_data': {'daily_price_data': 'gs://{}/alex/calibration_data/{}/DataPull/daily_price_data.csv'}}
+                                           'provided_data': {'talib_ppo_indicator_data': construct_destination_path('derived_technical')},
+                                            'required_data': {'daily_price_data': construct_required_path('data_pull','daily_price_data')}}
+
 
 ##########
 

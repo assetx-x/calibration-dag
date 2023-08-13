@@ -6,6 +6,7 @@ import gc
 current_date = datetime.now().date()
 RUN_DATE = '2023-06-28' #current_date.strftime('%Y-%m-%d')
 
+from core_classes import construct_required_path,construct_destination_path
 
 
 class CalculateDerivedQuandlFeatures(DataReaderClass):
@@ -31,8 +32,8 @@ class CalculateDerivedQuandlFeatures(DataReaderClass):
                          on='dcm_security_id')
         daily['GICS_Sector'] = daily['GICS_Sector'].fillna('n/a')
         daily['GICS_IndustryGroup'] = daily['GICS_IndustryGroup'].fillna('n/a')
-        daily['log_mktcap'] = pd.np.log(daily['marketcap'])
-        daily['log_dollar_volume'] = pd.np.log(daily['close'] * daily['volume'])
+        daily['log_mktcap'] = np.log(daily['marketcap'])
+        daily['log_dollar_volume'] = np.log(daily['close'] * daily['volume'])
         daily['bm'] = 1.0 / daily['pb']
         daily['bm_ia_sector'] = daily['bm'] - daily.groupby(['date', 'GICS_Sector'])['bm'].transform('mean')
         daily['bm_ia_indgrp'] = daily['bm'] - daily.groupby(['date', 'GICS_IndustryGroup'])['bm'].transform('mean')
@@ -128,9 +129,10 @@ class CalculateDerivedQuandlFeatures(DataReaderClass):
 
         quandl = quandl[['date', 'dcm_security_id', 'ebitda_to_ev', 'ps', 'netmargin', 'sharey']]
         quandl["date"] = quandl["date"].apply(pd.Timestamp)
-        df['amihud'] = -pd.np.log(df['amihud'] + 1e-12)  # normalize the skew
+        df['amihud'] = -np.log(df['amihud'] + 1e-12)  # normalize the skew
 
         df["dcm_security_id"] = df["dcm_security_id"].astype(int)
+        df['date'] = df['date'].apply(pd.Timestamp)
         merged = pd.merge(df, quandl, how='left', on=['date', 'dcm_security_id'])
         merged["dcm_security_id"] = merged["dcm_security_id"].astype(int)
         return merged
@@ -168,6 +170,7 @@ class CalculateDerivedQuandlFeatures(DataReaderClass):
         extra_features = self._construct_liquidity_ratio_features(price, quandl)
         mapper = kwargs['security_master'][['dcm_security_id', 'ticker']].set_index(['dcm_security_id']).to_dict()[
             'ticker']
+        daily['date'] = daily['date'].apply(pd.Timestamp)
         daily = pd.merge(daily, extra_features, how="left", on=["date", "dcm_security_id"]) \
             .rename(columns={"dcm_security_id": "ticker"})
         daily['ticker'] = daily['ticker'].map(mapper)
@@ -181,10 +184,13 @@ class CalculateDerivedQuandlFeatures(DataReaderClass):
 CalculateDerivedQuandlFeatures_PARAMS = {'params':{},
                   'class':CalculateDerivedQuandlFeatures,
                                       'start_date':RUN_DATE,
-                                        'provided_data': {'fundamental_features': "gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},
-                                            'required_data': {'industry_map': 'gs://{}/alex/calibration_data/{}/DataPull/industry_map.csv',
-                                                              'daily_price_data': 'gs://{}/alex/calibration_data/{}/DataPull/daily_price_data.csv',
-                                                              'quandl_daily': 'gs://{}/alex/calibration_data/{}/DataPull/quandl_daily.csv',
-                                                              'quandl_quarterly': 'gs://{}/alex/calibration_data/{}/DataPull/quandl_quarterly.csv',
+                                        'provided_data': {'fundamental_features': construct_destination_path('derived_fundamental')},
+                                            'required_data': {"industry_map": construct_required_path('data_pull','industry_mapper'),
+                                                              'daily_price_data': construct_required_path('data_pull','daily_price_data'),
+                                                              'quandl_daily': construct_required_path('fundamental_cleanup','quandl_daily'),
+                                                              'quandl_quarterly': construct_required_path('fundamental_cleanup','quandl_quarterly'),
+                                                              'security_master': construct_required_path('data_pull','security_master'),
                                                               }
                                             }
+
+

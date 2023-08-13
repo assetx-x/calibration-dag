@@ -50,3 +50,54 @@ def macd(ts, nslow=26, nfast=12):
 
 def talib_TRIX(close, timeperiod=30):
     return pd.Series(talib.TRIX(close, timeperiod), index=close.index)
+
+
+def transform_data(ts, transform_type=1):
+    if transform_type==2:
+        transformed = ts.diff()
+    elif transform_type==3:
+        transformed = ts.diff().diff()
+    elif transform_type==4:
+        transformed = np.log(ts)
+    elif transform_type==5:
+        transformed = np.log(ts).diff()
+    elif transform_type==6:
+        transformed = np.log(ts).diff().diff()
+    elif transform_type==7:
+        transformed = ts.pct_change().diff()
+    else:
+        transformed = ts # Default is no transform
+    return transformed
+
+
+def factor_standarization(df, X_cols, y_col, exclude_from_standardization):
+    df = df.copy(deep=True).set_index(["date", "ticker"])
+    not_X_col = [k for k in X_cols if k not in df.columns]
+    print("Missing X columns: {0}".format(not_X_col))
+    not_y_col = [k for k in y_col if k not in df.columns]
+    print("Missing Y columns: {0}".format(not_y_col))
+    X_cols = [k for k in X_cols if k not in not_X_col]
+    y_col = [k for k in y_col if k not in not_y_col]
+    exclude_from_standardization_df = df[list(set(df.columns).intersection(set(exclude_from_standardization)))]
+    df = df[y_col + X_cols]
+
+    lb = df.groupby('date').transform(pd.Series.quantile, 0.005)
+    lb.fillna(-999999999999999, inplace=True)
+    ub = df.groupby('date').transform(pd.Series.quantile, 0.995)
+    ub.fillna(999999999999999, inplace=True)
+    new_df = df.clip(lb, ub)
+    df = new_df
+    #df[df<=lb]=lb
+    #df[df>=ub]=ub
+    #new_df = df.copy()
+    new_df = new_df.groupby("date").transform(lambda x: (x - x.mean()) / x.std())
+    new_df.fillna(0, inplace=True)
+    renaming = {k:"{0}_std".format(k) for k in y_col}
+    new_df.rename(columns=renaming, inplace=True)
+    df = df[y_col]
+    new_df = pd.concat([new_df, df, exclude_from_standardization_df], axis=1)
+    new_df = new_df.reset_index()
+    #new_df["ticker"] = new_df["ticker"].astype(int)
+    new_df["Sector"] = new_df["Sector"].astype(str)
+    new_df["IndustryGroup"] = new_df["IndustryGroup"].astype(str)
+    return new_df

@@ -148,30 +148,9 @@ class GCPReader(DataReaderClass):
         return self.data
 
 
-######## AIRFLOW WRAPPER
+def construct_required_path(step,file_name):
+    return "gs://{}/calibration_data" + "/{}/".format(step) + "{}.csv".format(file_name)
 
-def airflow_wrapper(**kwargs):
-    params = kwargs['params']
-
-    # Read all required data into step_action_args dictionary
-    try:
-        step_action_args = {k: pd.read_csv(v, index_col=0) for k, v in kwargs['required_data'].items()}
-    except Exception as e:
-        print(f"Error reading data: {e}")
-        step_action_args = {}
-
-    # Execute do_step_action method
-    data_outputs = kwargs['class'](**params).do_step_action(**step_action_args)
-
-    # If the method doesn't return a dictionary (for classes returning just a single DataFrame)
-    # convert it into a dictionary for consistency
-    if not isinstance(data_outputs, dict):
-        data_outputs = {list(kwargs['provided_data'].keys())[0]: data_outputs}
-
-    # Save each output data to its respective path on GCS
-    for data_key, data_value in data_outputs.items():
-        if data_key in kwargs['provided_data']:
-            gcs_path = kwargs['provided_data'][data_key].format(os.environ['GCS_BUCKET'], kwargs['start_date'], data_key)
-
-            data_value.to_csv(gcs_path)
+def construct_destination_path(step):
+    return "gs://{}/calibration_data" +"/{}/".format(step) +"{}.csv"
 
