@@ -1,0 +1,864 @@
+---
+fullnameOverride: ""
+nameOverride: ""
+revisionHistoryLimit: ~
+uid: 50000
+gid: 0
+securityContext: {}
+securityContexts:
+  pod: {}
+  containers: {}
+airflowHome: /opt/airflow
+defaultAirflowRepository: apache/airflow
+defaultAirflowTag: "2.6.3"
+defaultAirflowDigest: ~
+airflowVersion: "2.6.3"
+images:
+  airflow:
+    repository: gcr.io/dcm-prod-ba2f/calibrationdag
+    tag: a1fd72730e5a18bf2bba08e8dc6eba6fea2f49e0
+#    digest: ~
+    pullPolicy: IfNotPresent
+  useDefaultImageForMigration: false
+  migrationsWaitTimeout: 60
+  pod_template:
+    repository: ~
+    tag: ~
+    pullPolicy: IfNotPresent
+  flower:
+    repository: ~
+    tag: ~
+    pullPolicy: IfNotPresent
+  statsd:
+    repository: quay.io/prometheus/statsd-exporter
+    tag: v0.22.8
+    pullPolicy: IfNotPresent
+  redis:
+    repository: redis
+    tag: 7-bullseye
+    pullPolicy: IfNotPresent
+  pgbouncer:
+    repository: apache/airflow
+    tag: airflow-pgbouncer-2023.02.24-1.16.1
+    pullPolicy: IfNotPresent
+  pgbouncerExporter:
+    repository: apache/airflow
+    tag: airflow-pgbouncer-exporter-2023.02.21-0.14.0
+    pullPolicy: IfNotPresent
+  gitSync:
+    repository: registry.k8s.io/git-sync/git-sync
+    tag: v3.6.3
+    pullPolicy: IfNotPresent
+nodeSelector: {}
+affinity: {}
+tolerations: []
+topologySpreadConstraints: []
+labels: {}
+ingress:
+  enabled: ~
+  web:
+    enabled: false
+    annotations: {}
+    path: "/"
+    pathType: "ImplementationSpecific"
+    host: ""
+    hosts: []
+    ingressClassName: ""
+    tls:
+      enabled: false
+      secretName: ""
+    precedingPaths: []
+    succeedingPaths: []
+  flower:
+    enabled: false
+    annotations: {}
+    path: "/"
+    pathType: "ImplementationSpecific"
+    host: ""
+    hosts: []
+    ingressClassName: ""
+    tls:
+      enabled: false
+      secretName: ""
+networkPolicies:
+  enabled: false
+airflowPodAnnotations: {}
+airflowConfigAnnotations: {}
+airflowLocalSettings: |-
+  {{- if semverCompare ">=2.2.0" .Values.airflowVersion }}
+  {{- if not (or .Values.webserverSecretKey .Values.webserverSecretKeySecretName) }}
+  from airflow.www.utils import UIAlert
+  DASHBOARD_UIALERTS = [
+    UIAlert(
+      'Usage of a dynamic webserver secret key detected. We recommend a static webserver secret key instead.'
+      ' See the <a href='
+      'Helm Chart Production Guide</a> for more details.',
+      category="warning",
+      roles=["Admin"],
+      html=True,
+    )
+  ]
+  {{- end }}
+  {{- end }}
+rbac:
+  create: true
+  createSCCRoleBinding: false
+executor: "KubernetesExecutor"
+allowPodLaunching: true
+env: []
+volumes: []
+volumeMounts: []
+secret: []
+enableBuiltInSecretEnvVars:
+  AIRFLOW__CORE__FERNET_KEY: true
+  AIRFLOW__CORE__SQL_ALCHEMY_CONN: true
+  AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: true
+  AIRFLOW_CONN_AIRFLOW_DB: true
+  AIRFLOW__WEBSERVER__SECRET_KEY: true
+  AIRFLOW__CELERY__CELERY_RESULT_BACKEND: true
+  AIRFLOW__CELERY__RESULT_BACKEND: true
+  AIRFLOW__CELERY__BROKER_URL: true
+  AIRFLOW__ELASTICSEARCH__HOST: true
+  AIRFLOW__ELASTICSEARCH__ELASTICSEARCH_HOST: true
+extraSecrets: {}
+extraConfigMaps: {}
+extraEnv: ~
+extraEnvFrom: ~
+data:
+  metadataSecretName: ~
+  resultBackendSecretName: ~
+  brokerUrlSecretName: ~
+  metadataConnection:
+    user: postgres
+    pass: postgres
+    protocol: postgresql
+    host: ~
+    port: 5432
+    db: postgres
+    sslmode: disable
+  resultBackendConnection: ~
+  brokerUrl: ~
+fernetKey: ~
+fernetKeySecretName: ~
+webserverSecretKey: ~
+webserverSecretKeySecretName: my-webserver-secret
+kerberos:
+  enabled: false
+  ccacheMountPath: /var/kerberos-ccache
+  ccacheFileName: cache
+  configPath: /etc/krb5.conf
+  keytabBase64Content: ~
+  keytabPath: /etc/airflow.keytab
+  principal: airflow@FOO.COM
+  reinitFrequency: 3600
+  config: |
+    [logging]
+    default = "FILE:{{ template "airflow_logs_no_quote" . }}/kerberos_libs.log"
+    kdc = "FILE:{{ template "airflow_logs_no_quote" . }}/kerberos_kdc.log"
+    admin_server = "FILE:{{ template "airflow_logs_no_quote" . }}/kadmind.log"
+    [libdefaults]
+    default_realm = FOO.COM
+    ticket_lifetime = 10h
+    renew_lifetime = 7d
+    forwardable = true
+    [realms]
+    FOO.COM = {
+      kdc = kdc-server.foo.com
+      admin_server = admin_server.foo.com
+    }
+workers:
+  replicas: 2
+  revisionHistoryLimit: ~
+  command: ~
+  args:
+    - "bash"
+    - "-c"
+    - |-
+      exec \
+      airflow {{ semverCompare ">=2.0.0" .Values.airflowVersion | ternary "celery worker" "worker" }}
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    timeoutSeconds: 20
+    failureThreshold: 5
+    periodSeconds: 60
+    command: ~
+  updateStrategy: ~
+  strategy:
+    rollingUpdate:
+      maxSurge: "100%"
+      maxUnavailable: "50%"
+  securityContext: {}
+  securityContexts:
+    pod: {}
+    container: {}
+  serviceAccount:
+    create: true
+    name: ~
+    annotations: {}
+  keda:
+    enabled: false
+    namespaceLabels: {}
+    pollingInterval: 5
+    cooldownPeriod: 30
+    minReplicaCount: 0
+    maxReplicaCount: 10
+    advanced: {}
+  persistence:
+    enabled: true
+    size: 100Gi
+    storageClassName:
+    fixPermissions: false
+    annotations: {}
+    securityContexts:
+      container: {}
+  kerberosSidecar:
+    enabled: false
+    resources: {}
+    securityContexts:
+      container: {}
+  resources: {}
+  terminationGracePeriodSeconds: 600
+  safeToEvict: true
+  extraContainers: []
+  extraInitContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
+  nodeSelector: {}
+  priorityClassName: ~
+  affinity: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  hostAliases: []
+  annotations: {}
+  podAnnotations: {}
+  labels: {}
+  logGroomerSidecar:
+    enabled: true
+    command: ~
+    args: ["bash", "/clean-logs"]
+    retentionDays: 15
+    resources: {}
+    securityContexts:
+      container: {}
+  waitForMigrations:
+    enabled: true
+    env: []
+    securityContexts:
+      container: {}
+  env: []
+scheduler:
+  hostAliases: []
+  livenessProbe:
+    initialDelaySeconds: 10
+    timeoutSeconds: 20
+    failureThreshold: 5
+    periodSeconds: 60
+    command: ~
+  replicas: 1
+  revisionHistoryLimit: ~
+  command: ~
+  args: ["bash", "-c", "exec airflow scheduler"]
+  updateStrategy: ~
+  strategy: ~
+  securityContext: {}
+  securityContexts:
+    pod: {}
+    container: {}
+  serviceAccount:
+    create: true
+    name: ~
+    annotations: {}
+  podDisruptionBudget:
+    enabled: false
+    config:
+      maxUnavailable: 1
+  resources: {}
+  safeToEvict: true
+  extraContainers: []
+  extraInitContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  priorityClassName: ~
+  annotations: {}
+  podAnnotations: {}
+  labels: {}
+  logGroomerSidecar:
+    enabled: true
+    command: ~
+    args: ["bash", "/clean-logs"]
+    retentionDays: 15
+    resources: {}
+    securityContexts:
+      container: {}
+  waitForMigrations:
+    enabled: true
+    env: []
+    securityContexts:
+      container: {}
+  env: []
+createUserJob:
+  ttlSecondsAfterFinished: 300
+  command: ~
+  args:
+    - "bash"
+    - "-c"
+    - |-
+      exec \
+      airflow {{ semverCompare ">=2.0.0" .Values.airflowVersion | ternary "users create" "create_user" }} "$@"
+    - --
+    - "-r"
+    - "{{ .Values.webserver.defaultUser.role }}"
+    - "-u"
+    - "{{ .Values.webserver.defaultUser.username }}"
+    - "-e"
+    - "{{ .Values.webserver.defaultUser.email }}"
+    - "-f"
+    - "{{ .Values.webserver.defaultUser.firstName }}"
+    - "-l"
+    - "{{ .Values.webserver.defaultUser.lastName }}"
+    - "-p"
+    - "{{ .Values.webserver.defaultUser.password }}"
+  annotations: {}
+  jobAnnotations: {}
+  labels: {}
+  securityContext: {}
+  securityContexts:
+    pod: {}
+    container: {}
+  serviceAccount:
+    create: true
+    name: ~
+    annotations: {}
+  extraContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  useHelmHooks: true
+  applyCustomEnv: true
+  env: []
+  resources: {}
+migrateDatabaseJob:
+  enabled: true
+  ttlSecondsAfterFinished: 300
+  command: ~
+  args:
+    - "bash"
+    - "-c"
+    - |-
+      exec \
+      airflow {{ semverCompare ">=2.0.0" .Values.airflowVersion | ternary "db upgrade" "upgradedb" }}
+  annotations: {}
+  jobAnnotations: {}
+  securityContext: {}
+  securityContexts:
+    pod: {}
+    container: {}
+  serviceAccount:
+    create: true
+    name: ~
+    annotations: {}
+  resources: {}
+  extraContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  useHelmHooks: true
+  applyCustomEnv: true
+webserver:
+  hostAliases: []
+  allowPodLogReading: true
+  livenessProbe:
+    initialDelaySeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 5
+    periodSeconds: 10
+    scheme: HTTP
+  readinessProbe:
+    initialDelaySeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 5
+    periodSeconds: 10
+    scheme: HTTP
+  replicas: 1
+  revisionHistoryLimit: ~
+  command: ~
+  args: ["bash", "-c", "exec airflow webserver"]
+  serviceAccount:
+    create: true
+    name: ~
+    annotations: {}
+  podDisruptionBudget:
+    enabled: false
+    config:
+      maxUnavailable: 1
+  strategy: ~
+  securityContext: {}
+  securityContexts:
+    pod: {}
+    container: {}
+  extraNetworkPolicies: []
+  networkPolicy:
+    ingress:
+      from: []
+      ports:
+        - port: "{{ .Values.ports.airflowUI }}"
+  resources: {}
+  defaultUser:
+    enabled: true
+    role: Admin
+    username: admin
+    email: admin@example.com
+    firstName: admin
+    lastName: user
+    password: admin
+  extraContainers: []
+  extraInitContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
+  webserverConfig: ~
+  webserverConfigConfigMapName: ~
+  service:
+    type: ClusterIP
+    annotations: {}
+    ports:
+      - name: airflow-ui
+        port: "{{ .Values.ports.airflowUI }}"
+    loadBalancerIP: ~
+    loadBalancerSourceRanges: []
+  nodeSelector: {}
+  priorityClassName: ~
+  affinity: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  annotations: {}
+  podAnnotations: {}
+  labels: {}
+  waitForMigrations:
+    enabled: true
+    env: []
+    securityContexts:
+      container: {}
+  env: []
+triggerer:
+  enabled: true
+  replicas: 1
+  revisionHistoryLimit: ~
+  command: ~
+  args: ["bash", "-c", "exec airflow triggerer"]
+  updateStrategy: ~
+  strategy:
+    rollingUpdate:
+      maxSurge: "100%"
+      maxUnavailable: "50%"
+  livenessProbe:
+    initialDelaySeconds: 10
+    timeoutSeconds: 20
+    failureThreshold: 5
+    periodSeconds: 60
+    command: ~
+  serviceAccount:
+    create: true
+    name: ~
+    annotations: {}
+  securityContext: {}
+  securityContexts:
+    pod: {}
+    container: {}
+  persistence:
+    enabled: true
+    size: 100Gi
+    storageClassName:
+    fixPermissions: false
+    annotations: {}
+  resources: {}
+  terminationGracePeriodSeconds: 60
+  safeToEvict: true
+  extraContainers: []
+  extraInitContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  priorityClassName: ~
+  annotations: {}
+  podAnnotations: {}
+  labels: {}
+  logGroomerSidecar:
+    enabled: true
+    command: ~
+    args: ["bash", "/clean-logs"]
+    retentionDays: 15
+    resources: {}
+    securityContexts:
+      container: {}
+  waitForMigrations:
+    enabled: true
+    env: []
+    securityContexts:
+      container: {}
+  env: []
+dagProcessor:
+  enabled: false
+  replicas: 1
+  revisionHistoryLimit: ~
+  command: ~
+  args: ["bash", "-c", "exec airflow dag-processor"]
+  strategy:
+    rollingUpdate:
+      maxSurge: "100%"
+      maxUnavailable: "50%"
+  livenessProbe:
+    initialDelaySeconds: 10
+    timeoutSeconds: 20
+    failureThreshold: 5
+    periodSeconds: 60
+    command: ~
+  serviceAccount:
+    create: true
+    name: ~
+    annotations: {}
+  securityContext: {}
+  securityContexts:
+    pod: {}
+    container: {}
+  resources: {}
+  terminationGracePeriodSeconds: 60
+  safeToEvict: true
+  extraContainers: []
+  extraInitContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  priorityClassName: ~
+  annotations: {}
+  podAnnotations: {}
+  logGroomerSidecar:
+    enabled: true
+    command: ~
+    args: ["bash", "/clean-logs"]
+    retentionDays: 15
+    resources: {}
+  waitForMigrations:
+    enabled: true
+    env: []
+  env: []
+flower:
+  enabled: false
+  revisionHistoryLimit: ~
+  command: ~
+  args:
+    - "bash"
+    - "-c"
+    - |-
+      exec \
+      airflow {{ semverCompare ">=2.0.0" .Values.airflowVersion | ternary "celery flower" "flower" }}
+  extraNetworkPolicies: []
+  networkPolicy:
+    ingress:
+      from: []
+      ports:
+        - port: "{{ .Values.ports.flowerUI }}"
+  resources: {}
+  securityContext: {}
+  securityContexts:
+    pod: {}
+    container: {}
+  serviceAccount:
+    create: true
+    name: ~
+    annotations: {}
+  secretName: ~
+  username: ~
+  password: ~
+  service:
+    type: ClusterIP
+    annotations: {}
+    ports:
+      - name: flower-ui
+        port: "{{ .Values.ports.flowerUI }}"
+    loadBalancerIP: ~
+    loadBalancerSourceRanges: []
+  extraContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  priorityClassName: ~
+  annotations: {}
+  podAnnotations: {}
+  labels: {}
+  env: []
+statsd:
+  enabled: true
+  revisionHistoryLimit: ~
+  args: ["--statsd.mapping-config=/etc/statsd-exporter/mappings.yml"]
+  annotations: {}
+  serviceAccount:
+    create: true
+    name: ~
+    annotations: {}
+  uid: 65534
+  securityContext: {}
+  securityContexts:
+    pod: {}
+    container: {}
+  extraNetworkPolicies: []
+  resources: {}
+  service:
+    extraAnnotations: {}
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  priorityClassName: ~
+  extraMappings: []
+  overrideMappings: []
+  podAnnotations: {}
+pgbouncer:
+  enabled: false
+  replicas: 1
+  revisionHistoryLimit: ~
+  command: ["pgbouncer", "-u", "nobody", "/etc/pgbouncer/pgbouncer.ini"]
+  args: ~
+  auth_type: md5
+  auth_file: /etc/pgbouncer/users.txt
+  annotations: {}
+  podAnnotations: {}
+  serviceAccount:
+    create: true
+    name: ~
+    annotations: {}
+  extraNetworkPolicies: []
+  metadataPoolSize: 10
+  resultBackendPoolSize: 5
+  maxClientConn: 100
+  configSecretName: ~
+  podDisruptionBudget:
+    enabled: false
+    config:
+      maxUnavailable: 1
+  resources: {}
+  service:
+    extraAnnotations: {}
+  verbose: 0
+  logDisconnections: 0
+  logConnections: 0
+  sslmode: "prefer"
+  ciphers: "normal"
+  ssl:
+    ca: ~
+    cert: ~
+    key: ~
+  extraIniMetadata: ~
+  extraIniResultBackend: ~
+  extraIni: ~
+  extraVolumes: []
+  extraVolumeMounts: []
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  priorityClassName: ~
+  uid: 65534
+  securityContexts:
+    container: {}
+  metricsExporterSidecar:
+    resources: {}
+    sslmode: "disable"
+    securityContexts:
+      container: {}
+    livenessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 1
+    readinessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 1
+redis:
+  enabled: true
+  terminationGracePeriodSeconds: 600
+  serviceAccount:
+    create: true
+    name: ~
+    annotations: {}
+  persistence:
+    enabled: true
+    size: 1Gi
+    storageClassName:
+    annotations: {}
+  resources: {}
+  passwordSecretName: ~
+  password: ~
+  safeToEvict: true
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  uid: 0
+  securityContext: {}
+  securityContexts:
+    pod: {}
+    container: {}
+  podAnnotations: {}
+registry:
+  secretName: ~
+  connection: {}
+elasticsearch:
+  enabled: false
+  secretName: ~
+  connection: {}
+ports:
+  flowerUI: 5555
+  airflowUI: 8080
+  workerLogs: 8793
+  triggererLogs: 8794
+  redisDB: 6379
+  statsdIngest: 9125
+  statsdScrape: 9102
+  pgbouncer: 6543
+  pgbouncerScrape: 9127
+quotas: {}
+limits: []
+cleanup:
+  enabled: false
+  schedule: "*/15 * * * *"
+  command: ~
+  args: ["bash", "-c", "exec airflow kubernetes cleanup-pods --namespace={{ .Release.Namespace }}"]
+  jobAnnotations: {}
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  topologySpreadConstraints: []
+  podAnnotations: {}
+  labels: {}
+  resources: {}
+  serviceAccount:
+    create: true
+    name: ~
+    annotations: {}
+  securityContext: {}
+  env: []
+  securityContexts:
+    container: {}
+  failedJobsHistoryLimit: ~
+  successfulJobsHistoryLimit: ~
+postgresql:
+  enabled: true
+  image:
+    tag: "11"
+  auth:
+    enablePostgresUser: true
+    postgresPassword: postgres
+    username: ""
+    password: ""
+config:
+  core:
+    dags_folder: '{{ include "airflow_dags" . }}'
+    load_examples: 'False'
+    executor: '{{ .Values.executor }}'
+    colored_console_log: 'False'
+    remote_logging: '{{- ternary "True" "False" .Values.elasticsearch.enabled }}'
+  logging:
+    remote_logging: '{{- ternary "True" "False" .Values.elasticsearch.enabled }}'
+    colored_console_log: 'False'
+  metrics:
+    statsd_on: '{{ ternary "True" "False" .Values.statsd.enabled }}'
+    statsd_port: 9125
+    statsd_prefix: airflow
+    statsd_host: '{{ printf "%s-statsd" .Release.Name }}'
+  webserver:
+    enable_proxy_fix: 'True'
+    rbac: 'True'
+  celery:
+    flower_url_prefix: '{{ .Values.ingress.flower.path }}'
+    worker_concurrency: 4
+  scheduler:
+    standalone_dag_processor: '{{ ternary "True" "False" .Values.dagProcessor.enabled }}'
+    statsd_on: '{{ ternary "True" "False" .Values.statsd.enabled }}'
+    statsd_port: 9125
+    statsd_prefix: airflow
+    statsd_host: '{{ printf "%s-statsd" .Release.Name }}'
+    run_duration: 41460
+  elasticsearch:
+    json_format: 'True'
+    log_id_template: "{dag_id}_{task_id}_{execution_date}_{try_number}"
+  elasticsearch_configs:
+    max_retries: 3
+    timeout: 30
+    retry_timeout: 'True'
+  kerberos:
+    keytab: '{{ .Values.kerberos.keytabPath }}'
+    reinit_frequency: '{{ .Values.kerberos.reinitFrequency }}'
+    principal: '{{ .Values.kerberos.principal }}'
+    ccache: '{{ .Values.kerberos.ccacheMountPath }}/{{ .Values.kerberos.ccacheFileName }}'
+  celery_kubernetes_executor:
+    kubernetes_queue: 'kubernetes'
+  kubernetes:
+    namespace: '{{ .Release.Namespace }}'
+    airflow_configmap: '{{ include "airflow_config" . }}'
+    airflow_local_settings_configmap: '{{ include "airflow_config" . }}'
+    pod_template_file: '{{ include "airflow_pod_template_file" . }}/pod_template_file.yaml'
+    worker_container_repository: '{{ .Values.images.airflow.repository | default .Values.defaultAirflowRepository }}'
+    worker_container_tag: '{{ .Values.images.airflow.tag | default .Values.defaultAirflowTag }}'
+    multi_namespace_mode: '{{ ternary "True" "False" .Values.multiNamespaceMode }}'
+  kubernetes_executor:
+    namespace: '{{ .Release.Namespace }}'
+    pod_template_file: '{{ include "airflow_pod_template_file" . }}/pod_template_file.yaml'
+    worker_container_repository: '{{ .Values.images.airflow.repository | default .Values.defaultAirflowRepository }}'
+    worker_container_tag: '{{ .Values.images.airflow.tag | default .Values.defaultAirflowTag }}'
+    multi_namespace_mode: '{{ ternary "True" "False" .Values.multiNamespaceMode }}'
+multiNamespaceMode: false
+podTemplate: ~
+dags:
+  persistence:
+    annotations: {}
+    enabled: false
+    size: 1Gi
+    storageClassName:
+    accessMode: ReadWriteOnce
+    existingClaim:
+    subPath: ~
+  gitSync:
+    enabled: true
+    repo: ssh://git@github.com/assetx-x/calibration-dag.git
+    branch: main
+    rev: HEAD
+    depth: 1
+    maxFailures: 0
+    subPath: "dags"
+    sshKeySecret: airflow-ssh-keys
+    wait: 5
+    containerName: git-sync
+    uid: 65533
+    securityContext: {}
+    securityContexts:
+      container: {}
+    extraVolumeMounts: []
+    env: []
+    resources: {}
+logs:
+  persistence:
+    enabled: false
+    size: 100Gi
+    annotations: {}
+    storageClassName:
+    existingClaim:
