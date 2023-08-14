@@ -55,7 +55,9 @@ from filter_dates_single_names import FilterMonthlyDatesFullPopulationWeekly_par
 from transformation import CreateYahooDailyPriceRolling_params, TransformEconomicDataWeekly_params,CreateIndustryAverageWeekly_params
 
 from merge_econ_step import QuantamentalMergeEconIndustryWeekly_params
-from standarization import FactorStandardizationFullPopulationWeekly_params
+from standarization_step import FactorStandardizationFullPopulationWeekly_params
+from active_matrix_step import GenerateActiveMatrixWeekly_params
+from additional_gan_features_step import GenerateBMEReturnsWeekly_params
 
 # PARAMS
 END_DATE = '2023-06-28'
@@ -372,9 +374,23 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             op_kwargs=FactorStandardizationFullPopulationWeekly_params
         )
 
+    with TaskGroup("ActiveMatrix", tooltip="ActiveMatrix") as ActiveMatrix:
+        GenerateActiveMatrixWeekly = PythonOperator(
+            task_id="GenerateActiveMatrixWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=GenerateActiveMatrixWeekly_params
+        )
+
+    with TaskGroup("AdditionalGanFeatures", tooltip="AdditionalGanFeatures") as AdditionalGanFeatures:
+        GenerateBMEReturnsWeekly = PythonOperator(
+            task_id="GenerateBMEReturnsWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=GenerateBMEReturnsWeekly_params
+        )
 
 
-    DataPull >> EconData >> FundamentalCleanup >> Targets >> DerivedFundamentalDataProcessing >> DerivedTechnicalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> Standarization
+
+    DataPull >> EconData >> FundamentalCleanup >> Targets >> DerivedFundamentalDataProcessing >> DerivedTechnicalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> Standarization >> ActiveMatrix >> AdditionalGanFeatures
 
 
 

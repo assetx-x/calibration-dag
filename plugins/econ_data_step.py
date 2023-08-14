@@ -3,6 +3,7 @@ from market_timeline import marketTimeline
 import pandas as pd
 from fredapi import Fred
 from datetime import datetime
+from core_classes import construct_required_path,construct_destination_path
 
 
 current_date = datetime.now().date()
@@ -117,8 +118,8 @@ DOWNLOAD_ECONOMIC_DATA_PARAMS = {"params": {"sector_etfs": ["SPY", "MDY", "EWG",
                                    },
                           "start_date": RUN_DATE,
                           'class': DownloadEconomicData,
-                          'provided_data': {'econ_data': "gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},
-                          'required_data': {'econ_transformation': 'gs://{}/alex/calibration_data/{}/DataPull/econ_transformation.csv'}
+                          'provided_data': {'econ_data': construct_destination_path('econ_data')},
+                          'required_data': {'econ_transformation': construct_required_path('data_pull','econ_transformation')}
                           }
 
 

@@ -527,5 +527,5 @@ CalculateTaLibADXMultiParam_configs = [{"technical_indicator": talib.ADX, "techn
 CalculateTaLibADXMultiParam_params = {'params':{'configs':CalculateTaLibADXMultiParam_configs},
                                            'class':CalculateTaLibADXMultiParam,
                                            'start_date':RUN_DATE,
-                                           'provided_data': {'talib_adx_indicator_data': "gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},
-                                            'required_data': {'daily_price_data': 'gs://{}/alex/calibration_data/{}/DataPull/daily_price_data.csv'}}
+                                           'provided_data': {'talib_adx_indicator_data':construct_destination_path('derived_technical')},
+                                            'required_data': {'daily_price_data': construct_required_path('data_pull','daily_price_data')}}

@@ -16,6 +16,7 @@ from google.cloud import bigquery
 import gc
 import numpy as np
 from datetime import datetime
+from core_classes import construct_required_path,construct_destination_path
 
 
 parent_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
@@ -455,7 +456,7 @@ S3_SECURITY_MASTER_READER_PARAMS = {
             },
     "start_date": RUN_DATE,
     'class': S3SecurityMasterReader,
-    'provided_data': {'security_master':"gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},
+    'provided_data': {'security_master':construct_destination_path('data_pull')},
     'required_data':{}
 
         }
@@ -469,8 +470,8 @@ S3_INDUSTRY_MAPPER_READER_PARAMS={
             },
             "start_date":RUN_DATE,
     'class': S3IndustryMappingReader,
-    'provided_data': {'industry_mapper':"gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},
-    'required_data':{'security_master':'gs://{}/alex/calibration_data/{}/DataPull/security_master.csv'}
+    'provided_data': {'industry_mapper':construct_destination_path('data_pull')},
+    'required_data':{'security_master':construct_required_path('data_pull','security_master')}
         }
 
 
@@ -479,8 +480,8 @@ S3_ECON_TRANSFORMATION_PARAMS = {"params": {"sector_etfs": ["SPY", "MDY", "EWG",
                               "key": "alex/econ_transform_definitions.csv"},
                    "start_date": RUN_DATE,
                     'class': S3EconTransformationReader,
-    'provided_data': {'econ_transformation':"gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},
-    'required_data':{'security_master':'gs://{}/alex/calibration_data/{}/DataPull/security_master.csv'}
+    'provided_data': {'econ_transformation':construct_destination_path('data_pull')},
+    'required_data':{'security_master':construct_required_path('data_pull','security_master')}
                    }
 
 
@@ -490,7 +491,7 @@ YAHOO_DAILY_PRICE_READER_PARAMS ={"params": {"sector_etfs": ["SPY", "MDY", "EWG"
                               "end_date": RUN_DATE},
                    "start_date": RUN_DATE,
                            'class': YahooDailyPriceReader,
-                           'provided_data': {'etf_prices': "gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},
+                           'provided_data': {'etf_prices': construct_destination_path('data_pull')},
                            'required_data': {}
                            }
 
@@ -499,28 +500,28 @@ S3_RUSSELL_COMPONENT_READER_PARAMS = {"params": {"bucket": "dcm-prod-ba2f-us-dcm
                               "r3k_key": "alex/r3k.csv", "r1k_key": "alex/r1k.csv"},
                    "start_date": RUN_DATE,
                                'class': S3RussellComponentReader,
-                               'provided_data': {'russell_components': "gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},
-                               'required_data': {'security_master':'gs://{}/alex/calibration_data/{}/DataPull/security_master.csv'}
+                               'provided_data': {'russell_components': construct_destination_path('data_pull')},
+                               'required_data': {'security_master':construct_required_path('data_pull','security_master')}
                                }
 
 
 S3_RAW_SQL_READER_PARAMS = {"params": {"bucket": "dcm-prod-ba2f-us-dcm-data-temp",
                               "key": "jack/SHARADAR_SF1.csv", 'index_col': False,
-                                       "start_date" : "2000-01-03","end_date" : "2023-06-28"
+                                       "start_date" : "2000-01-03","end_date" : RUN_DATE
                                       },
                    "start_date": RUN_DATE,
                      'class': S3RawQuandlDataReader,
-                     'provided_data': {'raw_quandl_data': "gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},
+                     'provided_data': {'raw_quandl_data': construct_destination_path('data_pull')},
                      'required_data': {
-                         'security_master': 'gs://{}/alex/calibration_data/{}/DataPull/security_master.csv'}
+                         'security_master': construct_required_path('data_pull','security_master')}
                      }
 
 
 SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS = {'params':{"start_date" : "2000-01-03","end_date" : "2023-06-28"},
                                             'class':SQLMinuteToDailyEquityPrices,
                                       'start_date':RUN_DATE,
-                                        'provided_data': {'daily_price_data': "gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},
-                                            'required_data': {'security_master': 'gs://{}/alex/calibration_data/{}/DataPull/security_master.csv'}
+                                        'provided_data': {'daily_price_data': construct_destination_path('data_pull')},
+                                            'required_data': {'security_master': construct_required_path('data_pull','security_master')}
 
                                             }
 
