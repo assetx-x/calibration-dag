@@ -42,7 +42,7 @@ from derived_technical_data_processing_step import CalculateTaLibSTOCHRSIMultiPa
     CalculateVolatilityMultiParam_params,CalculateTaLibWILLRMultiParam_params,CalculateTaLibPPOMultiParam_params,\
  CalculateTaLibADXMultiParam_params
 
-from derived_technical_data_processing_step import ComputeBetaQuantamental_params,CalculateMACD_params,\
+from derived_technical_data_processing_step import ComputeBetaQuantamental_params, CalculateMACD_params,\
     CalcualteCorrelation_params,CalculateDollarVolume_params,CalculateOvernightReturn_params,\
     CalculatePastReturnEquity_params, CalculateTaLibSTOCH_params,CalculateTaLibSTOCHF_params,\
     CalculateTaLibTRIX_params,CalculateTaLibULTOSC_params
