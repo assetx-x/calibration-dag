@@ -25,7 +25,7 @@ S3_ECON_TRANSFORMATION_PARAMS,YAHOO_DAILY_PRICE_READER_PARAMS,S3_RUSSELL_COMPONE
 SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS
 
 ### ECON DATA STEP INSTRUCTIONS ####
-from econ_data_step import DOWNLOAD_ECONOMIC_DATA
+from econ_data_step import DOWNLOAD_ECONOMIC_DATA_PARAMS
 
 
 # PARAMS
@@ -123,7 +123,7 @@ with DAG(dag_id="test_calibration", start_date=days_ago(1)) as dag:
     DownloadEconomicData = PythonOperator(
         task_id="download_economic_data",
         python_callable=airflow_wrapper,
-        op_kwargs=DOWNLOAD_ECONOMIC_DATA
+        op_kwargs=DOWNLOAD_ECONOMIC_DATA_PARAMS
     )
 
 
