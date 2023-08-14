@@ -5,7 +5,7 @@ from datetime import datetime
 
 current_date = datetime.now().date()
 RUN_DATE = '2023-06-28' #current_date.strftime('%Y-%m-%d')
-
+from core_classes import construct_required_path,construct_destination_path
 
 
 class CalculateTargetReturns(DataReaderClass):
@@ -49,8 +49,8 @@ TARGETS_PARAMS = {'params':{'return_column':'close',
                                                       'winsorize_alpha':0.01},
                                             'class':CalculateTargetReturns,
                                       'start_date':RUN_DATE,
-                                        'provided_data': {'target_returns': "gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},
-                                            'required_data': {'daily_price_data': 'gs://{}/alex/calibration_data/{}/DataPull/daily_price_data.csv'}
+                                        'provided_data': {'target_returns': construct_destination_path('targets')},
+                                            'required_data': {'daily_price_data': construct_required_path('data_pull','daily_price_data')}
 
                                             }
 

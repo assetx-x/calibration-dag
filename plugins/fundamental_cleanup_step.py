@@ -6,7 +6,7 @@ import datetime
 
 current_date = datetime.datetime.now().date()
 RUN_DATE = '2023-06-28' #current_date.strftime('%Y-%m-%d')
-
+from core_classes import construct_required_path,construct_destination_path
 
 
 
@@ -150,10 +150,10 @@ class QuandlDataCleanup(DataReaderClass):
 QuandlDataCleanup_PARAMS = {"params": {},
                           "start_date": RUN_DATE,
                           'class': QuandlDataCleanup,
-                          'provided_data': {'quandl_daily': "gs://{}/alex/calibration_data/{}/FundamentalCleanup/{}.csv",
-                                            'quandl_monthly': "gs://{}/alex/calibration_data/{}/FundamentalCleanup/{}.csv",
-                                            'quandl_quarterly':"gs://{}/alex/calibration_data/{}/FundamentalCleanup/{}.csv"},
-                          'required_data': {'daily_price_data': 'gs://{}/alex/calibration_data/{}/DataPull/daily_price_data.csv',
-                                            'raw_quandl_data': 'gs://{}/alex/calibration_data/{}/DataPull/raw_quandl_data.csv'
+                          'provided_data': {'quandl_daily': construct_destination_path('fundamental_cleanup'),
+                                            'quandl_monthly': construct_destination_path('fundamental_cleanup'),
+                                            'quandl_quarterly':construct_destination_path('fundamental_cleanup')},
+                          'required_data': {'daily_price_data': construct_required_path('data_pull','daily_price_data'),
+                                            'raw_quandl_data': construct_required_path('data_pull','raw_quandl_data')
                                             }
                           }
