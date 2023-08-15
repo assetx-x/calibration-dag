@@ -475,6 +475,7 @@ S3_INDUSTRY_MAPPER_READER_PARAMS={
         }
 
 
+
 S3_ECON_TRANSFORMATION_PARAMS = {"params": {"sector_etfs": ["SPY", "MDY", "EWG", "EWH", "EWJ", "EWW", "EWS", "EWU"],
                               "bucket": "dcm-prod-ba2f-us-dcm-data-test",
                               "key": "alex/econ_transform_definitions.csv"},
