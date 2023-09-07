@@ -203,7 +203,7 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     with TaskGroup("DerivedFundamentalDataProcessing",
                    tooltip="DerivedFundamentalDataProcessing") as DerivedFundamentalDataProcessing:
         CalculateDerivedQuandlFeatures = PythonOperator(
-            task_id="CalculateTargetReturns",
+            task_id="CalculateDerivedQuandlFeatures",
             python_callable=airflow_wrapper,
             op_kwargs=CalculateDerivedQuandlFeatures_PARAMS
         )
