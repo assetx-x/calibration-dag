@@ -26,7 +26,7 @@ parent_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pa
 plugins_folder = os.path.join(parent_directory, "plugins")
 data_processing_folder = os.path.join(plugins_folder, "data_processing")
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(data_processing_folder, 'dcm-prod.json')
-os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
+os.environ[' '] = 'dcm-prod-ba2f-us-dcm-data-test'
 
 ##### DATA PULL STEP INSTRUCTIONS #####
 from data_pull_step import CALIBRATIONDATEJUMP_PARAMS, S3_SECURITY_MASTER_READER_PARAMS, \
@@ -125,7 +125,7 @@ def airflow_wrapper(**kwargs):
 
 """ Calibration Process"""
 
-with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
+with DAG(dag_id="test_calibration", start_date=days_ago(1)) as dag:
 
     CalibrationDatesJump = PythonOperator(
         task_id="CalibrationDatesJump",
