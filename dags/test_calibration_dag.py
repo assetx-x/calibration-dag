@@ -196,7 +196,7 @@ with DAG(dag_id="test_calibration", start_date=days_ago(1)) as dag:
     )
 
     CalculateDerivedQuandlFeatures = PythonOperator(
-        task_id="CalculateTargetReturns",
+        task_id="CalculateDerivedQuandlFeatures",
         python_callable=airflow_wrapper,
         op_kwargs=CalculateDerivedQuandlFeatures_PARAMS
     )
