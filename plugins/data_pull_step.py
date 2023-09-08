@@ -444,7 +444,7 @@ CALIBRATIONDATEJUMP_PARAMS = {
                        'target_dt':"2018-11-30"},
     "start_date": RUN_DATE,
     'class': CalibrationDatesJump,
-    'provided_data': {'interval_data':"gs://{}/alex/calibration_data/{}/DataPull/{}.csv"},
+    'provided_data': {'interval_data':construct_destination_path('data_pull')},
     'required_data':{}
         }
 
