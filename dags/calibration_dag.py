@@ -101,8 +101,7 @@ def airflow_wrapper(**kwargs):
 
     # Read all required data into step_action_args dictionary
     try:
-        step_action_args = {k: read_csv_in_chunks(v.format(os.environ['GCS_BUCKET'], kwargs['start_date'])) for k, v in
-                            kwargs['required_data'].items()}
+        step_action_args = {k: pd.read_csv(v.format(os.environ['GCS_BUCKET']), index_col=0) for k, v in kwargs['required_data'].items()}
     except Exception as e:
         print(f"Error reading data: {e}")
         step_action_args = {}
@@ -115,11 +114,12 @@ def airflow_wrapper(**kwargs):
     if not isinstance(data_outputs, dict):
         data_outputs = {list(kwargs['provided_data'].keys())[0]: data_outputs}
 
+
     # Save each output data to its respective path on GCS
     for data_key, data_value in data_outputs.items():
         if data_key in kwargs['provided_data']:
-            gcs_path = kwargs['provided_data'][data_key].format(os.environ['GCS_BUCKET'], kwargs['start_date'],
-                                                                data_key)
+            gcs_path = kwargs['provided_data'][data_key].format(os.environ['GCS_BUCKET'], data_key)
+            print(gcs_path)
             data_value.to_csv(gcs_path)
 
 
