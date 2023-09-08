@@ -100,11 +100,11 @@ class QuandlDataCleanup(DataReaderClass):
         daily['marketcap'] = daily['sharesbas'] * daily['close'] * daily['sharefactor']
         self.data = daily.sort_values(['dcm_security_id', 'date'])
 
-    def do_step_action(self, daily_price_data, raw_quandl_data, **kwargs):
-        price = daily_price_data.copy(deep=True)
+    def do_step_action(self, **kwargs):
+        price = kwargs['daily_price_data'].copy(deep=True)
         price = price.drop(['ticker'], axis=1)
         # price.rename(columns={"ticker": "dcm_security_id"}, inplace=True)
-        raw = raw_quandl_data.copy(deep=True)
+        raw = kwargs['raw_quandl_data'].copy(deep=True)
 
         raw = self._resolve_duplicates(raw)
         # Old version

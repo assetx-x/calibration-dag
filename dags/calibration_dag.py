@@ -100,11 +100,8 @@ def airflow_wrapper(**kwargs):
     params = kwargs['params']
 
     # Read all required data into step_action_args dictionary
-    try:
-        step_action_args = {k: pd.read_csv(v.format(os.environ['GCS_BUCKET']), index_col=0) for k, v in kwargs['required_data'].items()}
-    except Exception as e:
-        print(f"Error reading data: {e}")
-        step_action_args = {}
+    step_action_args = {k: pd.read_csv(v.format(os.environ['GCS_BUCKET']), index_col=0) for k, v in kwargs['required_data'].items()}
+
 
     # Execute do_step_action method
     data_outputs = kwargs['class'](**params).do_step_action(**step_action_args)
