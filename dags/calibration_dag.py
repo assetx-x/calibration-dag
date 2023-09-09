@@ -174,7 +174,14 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             execution_timeout=timedelta(minutes=25)
         )
 
-        CalibrationDatesJump >> S3SecurityMasterReader >> S3IndustryMappingReader >> S3EconTransformationReader >> YahooDailyPriceReader >> S3RussellComponentReader >> S3RawQuandlDataReader
+        SQLMinuteToDailyEquityPrices = PythonOperator(
+            task_id="SQLMinuteToDailyEquityPrices",
+            python_callable=airflow_wrapper,
+            op_kwargs=SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS,
+            execution_timeout=timedelta(minutes=50)
+        )
+
+        CalibrationDatesJump >> S3SecurityMasterReader >> S3IndustryMappingReader >> S3EconTransformationReader >> YahooDailyPriceReader >> S3RussellComponentReader >> S3RawQuandlDataReader >> SQLMinuteToDailyEquityPrices
 
     with TaskGroup("EconData", tooltip="EconData") as EconData:
         DownloadEconomicData = PythonOperator(
