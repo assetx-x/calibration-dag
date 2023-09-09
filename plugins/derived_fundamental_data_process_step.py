@@ -1,12 +1,14 @@
-from core_classes import GCPReader,download_yahoo_data,DataReaderClass
+import numpy as np
+
+from core_classes import GCPReader, download_yahoo_data, DataReaderClass
 import pandas as pd
 from datetime import datetime
 import gc
 
 current_date = datetime.now().date()
-RUN_DATE = '2023-06-28' #current_date.strftime('%Y-%m-%d')
+RUN_DATE = '2023-06-28'  # current_date.strftime('%Y-%m-%d')
 
-from core_classes import construct_required_path,construct_destination_path
+from core_classes import construct_required_path, construct_destination_path
 
 
 class CalculateDerivedQuandlFeatures(DataReaderClass):
@@ -181,16 +183,15 @@ class CalculateDerivedQuandlFeatures(DataReaderClass):
 ############# AIRFLOW ############
 
 
-CalculateDerivedQuandlFeatures_PARAMS = {'params':{},
-                  'class':CalculateDerivedQuandlFeatures,
-                                      'start_date':RUN_DATE,
-                                        'provided_data': {'fundamental_features': construct_destination_path('derived_fundamental')},
-                                            'required_data': {"industry_map": construct_required_path('data_pull','industry_mapper'),
-                                                              'daily_price_data': construct_required_path('data_pull','daily_price_data'),
-                                                              'quandl_daily': construct_required_path('fundamental_cleanup','quandl_daily'),
-                                                              'quandl_quarterly': construct_required_path('fundamental_cleanup','quandl_quarterly'),
-                                                              'security_master': construct_required_path('data_pull','security_master'),
-                                                              }
-                                            }
-
-
+CalculateDerivedQuandlFeatures_PARAMS = {
+    'params': {},
+    'class': CalculateDerivedQuandlFeatures,
+    'start_date': RUN_DATE,
+    'provided_data': {'fundamental_features': construct_destination_path('derived_fundamental')},
+    'required_data': {"industry_map": construct_required_path('data_pull', 'industry_mapper'),
+                      'daily_price_data': construct_required_path('data_pull', 'daily_price_data'),
+                      'quandl_daily': construct_required_path('fundamental_cleanup', 'quandl_daily'),
+                      'quandl_quarterly': construct_required_path('fundamental_cleanup', 'quandl_quarterly'),
+                      'security_master': construct_required_path('data_pull', 'security_master'),
+                      }
+}
