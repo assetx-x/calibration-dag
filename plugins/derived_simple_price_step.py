@@ -61,6 +61,7 @@ class ComputeBetaQuantamental(DataReaderClass):
     def do_step_action(self, **kwargs):
         daily_prices = kwargs[self.__class__.REQUIRES_FIELDS[0]]
         intervals = kwargs[self.__class__.REQUIRES_FIELDS[1]]
+        daily_prices['date'] = daily_prices['date'].apply(pd.Timestamp)
         if "date" in intervals:
             self.dates_to_compute = list(set(intervals["date"]))
         else:
@@ -69,7 +70,7 @@ class ComputeBetaQuantamental(DataReaderClass):
         self.dates_to_compute.sort()
         pivot_data = daily_prices[["date", "ticker", self.price_column]] \
             .pivot_table(index="date", values=self.price_column, columns="ticker", dropna=False).sort_index()
-        return_data = pd.np.log(pivot_data).diff()
+        return_data = np.log(pivot_data).diff()
         return_data.index = return_data.index.normalize()
         benchmark_df = return_data[self.benchmark_names]
         if self.use_robust:
