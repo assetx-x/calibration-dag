@@ -9,6 +9,7 @@ fredapi==0.4.0
 pandas-datareader==0.10.0
 google-cloud-bigquery==2.13.1
 google-cloud-storage==1.37.1
+pandas==2.0.3
 pyarrow
 tables
 gcsfs
