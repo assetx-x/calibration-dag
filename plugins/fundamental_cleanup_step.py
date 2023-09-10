@@ -140,7 +140,8 @@ class QuandlDataCleanup(DataReaderClass):
         self.data["dcm_security_id"] = self.data["dcm_security_id"].astype(int)
         self.monthly["dcm_security_id"] = self.monthly["dcm_security_id"].astype(int)
         self.quarterly["dcm_security_id"] = self.quarterly["dcm_security_id"].astype(int)
-        return self.data, self.monthly, self.quarterly
+        return {"quandl_daily": self.data, "quandl_monthly": self.monthly, "quandl_quarterly": self.quarterly}
+
 
 
 
