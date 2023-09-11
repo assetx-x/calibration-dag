@@ -33,7 +33,7 @@ from data_pull_step import CALIBRATIONDATEJUMP_PARAMS, S3_SECURITY_MASTER_READER
     S3_INDUSTRY_MAPPER_READER_PARAMS, \
     S3_ECON_TRANSFORMATION_PARAMS, YAHOO_DAILY_PRICE_READER_PARAMS, S3_RUSSELL_COMPONENT_READER_PARAMS, \
     S3_RAW_SQL_READER_PARAMS, \
-    SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS
+    SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS,current_gan_universe_params
 
 ### ECON DATA STEP INSTRUCTIONS ####
 from econ_data_step import DOWNLOAD_ECONOMIC_DATA_PARAMS
@@ -123,7 +123,7 @@ def airflow_wrapper(**kwargs):
 """ Calibration Process"""
 
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
-    with TaskGroup("DataPull", tooltip="DataPull") as DataPull:
+    """with TaskGroup("DataPull", tooltip="DataPull") as DataPull:
         CalibrationDatesJump = PythonOperator(
             task_id="CalibrationDatesJump",
             python_callable=airflow_wrapper,
@@ -136,6 +136,13 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             task_id="S3SecurityMasterReader",
             python_callable=airflow_wrapper,
             op_kwargs=S3_SECURITY_MASTER_READER_PARAMS,
+            execution_timeout=timedelta(minutes=25)
+        )
+
+        S3GANUniverseReader = PythonOperator(
+            task_id="S3GANUniverseReader",
+            python_callable=airflow_wrapper,
+            op_kwargs=current_gan_universe_params,
             execution_timeout=timedelta(minutes=25)
         )
 
@@ -181,7 +188,7 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             execution_timeout=timedelta(minutes=50)
         )
 
-        CalibrationDatesJump >> S3SecurityMasterReader >> S3IndustryMappingReader >> S3EconTransformationReader >> YahooDailyPriceReader >> S3RussellComponentReader >> S3RawQuandlDataReader >> SQLMinuteToDailyEquityPrices
+        CalibrationDatesJump >> S3SecurityMasterReader >> S3GANUniverseReader >> S3IndustryMappingReader >> S3EconTransformationReader >> YahooDailyPriceReader >> S3RussellComponentReader >> S3RawQuandlDataReader >> SQLMinuteToDailyEquityPrices
 
     with TaskGroup("EconData", tooltip="EconData") as EconData:
         DownloadEconomicData = PythonOperator(
@@ -365,7 +372,7 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             task_id="FactorStandardizationFullPopulationWeekly",
             python_callable=airflow_wrapper,
             op_kwargs=FactorStandardizationFullPopulationWeekly_params
-        )
+        )"""
 
     with TaskGroup("ActiveMatrix", tooltip="ActiveMatrix") as ActiveMatrix:
         GenerateActiveMatrixWeekly = PythonOperator(

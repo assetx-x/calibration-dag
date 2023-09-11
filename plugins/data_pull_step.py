@@ -461,6 +461,15 @@ S3_SECURITY_MASTER_READER_PARAMS = {
 
         }
 
+S3GANUniverseReader_params = {"bucket": os.environ['GCS_BUCKET'],
+                              "key": "calibration_data/current_gan_training_universe.csv"}
+current_gan_universe_params ={'params':S3GANUniverseReader_params,
+                              'class':S3GANUniverseReader,
+                              'start_date':RUN_DATE,
+                              'provided_data': {'current_gan_universe': construct_destination_path('data_pull')},
+                              'required_data': {'security_master': construct_required_path('data_pull','security_master')}
+                             }
+
 
 
 S3_INDUSTRY_MAPPER_READER_PARAMS={
