@@ -12,3 +12,8 @@ deploy:
 	gcloud container clusters get-credentials cluster-1 --zone us-east4-a --project dcm-prod-ba2f
 	helm repo add apache-airflow https://airflow.apache.org
 	helm upgrade airflow apache-airflow/airflow -f k8s/values.yml --wait --timeout=30m --debug --atomic --namespace default
+
+rebuild:
+	docker compose down
+	sudo git pull
+	docker compose up --build -d
