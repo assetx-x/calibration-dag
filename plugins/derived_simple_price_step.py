@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from core_classes import StatusType
-from commonlib import talib_STOCHRSI, MA,talib_PPO, talib_TRIX
+from commonlib import talib_STOCHRSI, MA,talib_PPO, talib_TRIX,macd,winsorize
 import talib
 current_date = datetime.now().date()
 RUN_DATE = '2023-06-28' #current_date.strftime('%Y-%m-%d')
