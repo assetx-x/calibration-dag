@@ -122,7 +122,7 @@ def airflow_wrapper(**kwargs):
 
 """ Calibration Process"""
 
-with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
+with (DAG(dag_id="calibration", start_date=days_ago(1)) as dag):
     """with TaskGroup("DataPull", tooltip="DataPull") as DataPull:
         CalibrationDatesJump = PythonOperator(
             task_id="CalibrationDatesJump",
@@ -388,4 +388,5 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             op_kwargs=GenerateBMEReturnsWeekly_params
         )
 
-    DataPull >> EconData >> FundamentalCleanup >> Targets >> DerivedFundamentalDataProcessing >> DerivedTechnicalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> Standarization >> ActiveMatrix >> AdditionalGanFeatures
+    #DataPull >> EconData >> FundamentalCleanup >> Targets >> DerivedFundamentalDataProcessing >> DerivedTechnicalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> Standarization
+    ActiveMatrix >> AdditionalGanFeatures
