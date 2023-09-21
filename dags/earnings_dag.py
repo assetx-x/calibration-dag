@@ -19,11 +19,12 @@ import sys
 
 # Add the path to the "plugins" folder to sys.path
 # Assuming the "calibration-dag" directory is the parent directory of your DAGs folder.
-parent_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-plugins_folder = os.path.join(parent_directory, "plugins")
-data_processing_folder = os.path.join(plugins_folder, "data_processing")
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(data_processing_folder, 'dcm-prod.json')
+parent_directory = os.path.abspath(os.getcwd())
+json_auth_file = os.path.join('plugins', 'data_processing', 'dcm-prod.json')
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = json_auth_file
 os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
+print(f"GOOGLE_APPLICATION_CREDENTIALS: {os.environ['GOOGLE_APPLICATION_CREDENTIALS']}")
+print(f"GCS_BUCKET: {os.environ['GCS_BUCKET']}")
 
 ##### DATA PULL STEP INSTRUCTIONS #####
 from earnings_steps.data_pull_step import CALIBRATIONDATEJUMP_PARAMS, S3_SECURITY_MASTER_READER_PARAMS, \
