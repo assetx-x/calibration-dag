@@ -60,6 +60,8 @@ from earnings_steps.standarization_step import FactorStandardizationFullPopulati
 
 current_date = datetime.datetime.now().date()
 END_DATE = current_date.strftime('%Y-%m-%d')
+plugins_folder = os.path.join(parent_directory, "plugins")
+data_processing_folder = os.path.join(plugins_folder, "data_processing")
 JUMP_DATES_CSV = os.path.join(data_processing_folder, 'intervals_for_jump.csv')
 
 
