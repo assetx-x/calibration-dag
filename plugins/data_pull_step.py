@@ -382,7 +382,7 @@ class CalibrationDates(DataReaderClass):
 class CalibrationDatesJump(CalibrationDates):
     PROVIDES_FIELDS = ["intervals_data"]
 
-    def __init__(self, cache_file="../configuration/intervals_for_jump.csv", target_dt=None, intervals_start_dt=None,
+    def __init__(self, cache_file="plugins/data_processing/intervals_for_jump.csv", target_dt=None, intervals_start_dt=None,
                  intervals_end_dt=None, holding_period_in_trading_days=1, force_recalculation=False,
                  save_intervals_to=None):
         target_dt = pd.Timestamp(target_dt) if target_dt else None
