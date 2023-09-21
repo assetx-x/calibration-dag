@@ -7,7 +7,7 @@ from commonlib import talib_STOCHRSI, MA,talib_PPO, talib_TRIX
 import talib
 import gc
 from market_timeline import marketTimeline
-current_date = datetime.datetime.now().date()
+current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
 
 from core_classes import construct_required_path_earnings as construct_required_path

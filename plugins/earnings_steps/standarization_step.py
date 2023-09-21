@@ -4,7 +4,7 @@ import numpy as np
 from datetime import datetime
 import yfinance as yf
 from core_classes import StatusType
-current_date = datetime.datetime.now().date()
+current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
 
 from core_classes import construct_required_path_earnings as construct_required_path

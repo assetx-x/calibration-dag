@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import datetime
 import gc
 
-current_date = datetime.datetime.now().date()
+current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
 
 from core_classes import construct_required_path_earnings as construct_required_path
