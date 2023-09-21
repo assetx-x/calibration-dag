@@ -125,7 +125,7 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             provide_context=True,
             op_kwargs=CALIBRATIONDATEJUMP_PARAMS,
             execution_timeout=timedelta(minutes=25),
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
         S3SecurityMasterReader = PythonOperator(
@@ -133,7 +133,7 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             python_callable=airflow_wrapper,
             op_kwargs=S3_SECURITY_MASTER_READER_PARAMS,
             execution_timeout=timedelta(minutes=25),
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
         S3GANUniverseReader = PythonOperator(
@@ -141,7 +141,7 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             python_callable=airflow_wrapper,
             op_kwargs=current_gan_universe_params,
             execution_timeout=timedelta(minutes=25),
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
         S3IndustryMappingReader = PythonOperator(
@@ -149,7 +149,7 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             python_callable=airflow_wrapper,
             op_kwargs=S3_INDUSTRY_MAPPER_READER_PARAMS,
             execution_timeout=timedelta(minutes=25),
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
         S3EconTransformationReader = PythonOperator(
@@ -157,7 +157,7 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             python_callable=airflow_wrapper,
             op_kwargs=S3_ECON_TRANSFORMATION_PARAMS,
             execution_timeout=timedelta(minutes=25),
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
         YahooDailyPriceReader = PythonOperator(
@@ -165,7 +165,7 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             python_callable=airflow_wrapper,
             op_kwargs=YAHOO_DAILY_PRICE_READER_PARAMS,
             execution_timeout=timedelta(minutes=25),
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
         S3RussellComponentReader = PythonOperator(
@@ -173,7 +173,7 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             python_callable=airflow_wrapper,
             op_kwargs=S3_RUSSELL_COMPONENT_READER_PARAMS,
             execution_timeout=timedelta(minutes=25),
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
         S3RawQuandlDataReader = PythonOperator(
@@ -181,7 +181,7 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             python_callable=airflow_wrapper,
             op_kwargs=S3_RAW_SQL_READER_PARAMS,
             execution_timeout=timedelta(minutes=25),
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
         SQLMinuteToDailyEquityPrices = PythonOperator(
@@ -189,7 +189,7 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             python_callable=airflow_wrapper,
             op_kwargs=SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS,
             execution_timeout=timedelta(minutes=50),
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
         CalibrationDatesJump >> S3SecurityMasterReader >> S3GANUniverseReader >> S3IndustryMappingReader >> S3EconTransformationReader >> YahooDailyPriceReader >> S3RussellComponentReader >> S3RawQuandlDataReader >> SQLMinuteToDailyEquityPrices
@@ -199,7 +199,7 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             task_id="DownloadEconomicData",
             python_callable=airflow_wrapper,
             op_kwargs=DOWNLOAD_ECONOMIC_DATA_PARAMS,
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
     with TaskGroup("FundamentalCleanup", tooltip="FundamentalCleanup") as FundamentalCleanup:
@@ -207,7 +207,7 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             task_id="QuandlDataCleanup",
             python_callable=airflow_wrapper,
             op_kwargs=QuandlDataCleanup_PARAMS,
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
     with TaskGroup("DerivedFundamentalDataProcessing",
@@ -216,7 +216,7 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             task_id="CalculateDerivedQuandlFeatures",
             python_callable=airflow_wrapper,
             op_kwargs=CalculateDerivedQuandlFeatures_PARAMS,
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
     with TaskGroup("DerivedSimplePriceFeatureProcessing",
@@ -225,14 +225,14 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             task_id="ComputeBetaQuantamental",
             python_callable=airflow_wrapper,
             op_kwargs=ComputeBetaQuantamental_params,
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
         CalculateOvernightReturn = PythonOperator(
             task_id="CalculateOvernightReturn",
             python_callable=airflow_wrapper,
             op_kwargs=CalculateOvernightReturn_params,
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
         ComputeBetaQuantamental >> CalculateOvernightReturn
@@ -242,7 +242,7 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             task_id="QuantamentalMerge",
             python_callable=airflow_wrapper,
             op_kwargs=QuantamentalMerge_params,
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
     with TaskGroup("FilterDatesSingleNames", tooltip="FilterDatesSingleNames") as FilterDatesSingleNames:
@@ -250,14 +250,14 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             task_id="FilterMonthlyDatesFullPopulationWeekly",
             python_callable=airflow_wrapper,
             op_kwargs=FilterMonthlyDatesFullPopulationWeekly_params,
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
         CreateMonthlyDataSingleNamesWeekly = PythonOperator(
             task_id="CreateMonthlyDataSingleNamesWeekly",
             python_callable=airflow_wrapper,
             op_kwargs=CreateMonthlyDataSingleNamesWeekly_params,
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
         FilterMonthlyDatesFullPopulationWeekly >> CreateMonthlyDataSingleNamesWeekly
@@ -267,14 +267,14 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             task_id="CreateYahooDailyPriceRolling",
             python_callable=airflow_wrapper,
             op_kwargs=CreateYahooDailyPriceRolling_params,
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
         TransformEconomicDataWeekly = PythonOperator(
             task_id="TransformEconomicDataWeekly",
             python_callable=airflow_wrapper,
             op_kwargs=TransformEconomicDataWeekly_params,
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
         CreateYahooDailyPriceRolling >> TransformEconomicDataWeekly
@@ -284,7 +284,7 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             task_id="QuantamentalMergeEconIndustryWeekly",
             python_callable=airflow_wrapper,
             op_kwargs=QuantamentalMergeEconIndustryWeekly_params,
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
     with TaskGroup("Standarization", tooltip="Standarization") as Standarization:
@@ -292,7 +292,7 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             task_id="FactorStandardizationFullPopulationWeekly",
             python_callable=airflow_wrapper,
             op_kwargs=FactorStandardizationFullPopulationWeekly_params,
-            conn_id='dcm_connection'
+            gcp_conn_id='dcm_connection'
         )
 
     DataPull >> EconData >> FundamentalCleanup >> DerivedFundamentalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> Standarization
