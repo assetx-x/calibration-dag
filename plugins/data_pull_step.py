@@ -382,9 +382,11 @@ class CalibrationDates(DataReaderClass):
 class CalibrationDatesJump(CalibrationDates):
     PROVIDES_FIELDS = ["intervals_data"]
 
-    def __init__(self, cache_file="plugins/data_processing/intervals_for_jump.csv", target_dt=None, intervals_start_dt=None,
+    def __init__(self, cache_file=None, target_dt=None, intervals_start_dt=None,
                  intervals_end_dt=None, holding_period_in_trading_days=1, force_recalculation=False,
                  save_intervals_to=None):
+        if not cache_file:
+            cache_file = self.cache_path
         target_dt = pd.Timestamp(target_dt) if target_dt else None
         intervals_start_dt = pd.Timestamp(intervals_start_dt) if intervals_start_dt else None
         intervals_end_dt = pd.Timestamp(intervals_end_dt) if intervals_end_dt else None
@@ -395,6 +397,14 @@ class CalibrationDatesJump(CalibrationDates):
         self.holding_period_in_trading_days = holding_period_in_trading_days
         read_csv_kwargs = dict(index_col=0, parse_dates=["entry_date", "exit_date"])
         CalibrationDates.__init__(self, cache_file, read_csv_kwargs, force_recalculation, save_intervals_to)
+
+    @property
+    def cache_path(self):
+        _cache_file = os.path.abspath(os.path.dirname(__file__))
+        _cache_file = os.path.join(_cache_file, 'intervals_for_jump.csv')
+        print(f'[!] Cache file is {_cache_file}')
+        return _cache_file
+
 
     def calculate_intervals(self):
         self.intervals_start_dt = self.intervals_start_dt  # or self.task_params.start_dt.normalize()
