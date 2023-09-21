@@ -400,11 +400,9 @@ class CalibrationDatesJump(CalibrationDates):
 
     @property
     def cache_path(self):
-        _cache_file = os.path.abspath(os.path.dirname(__file__))
-        _cache_file = os.path.join(_cache_file, 'intervals_for_jump.csv')
-        print(f'[!] Cache file is {_cache_file}')
-        return _cache_file
-
+        project_root = os.getcwd()
+        _cache_path = os.path.join(project_root, 'plugins', 'data_processing', 'intervals_for_jump.csv')
+        return _cache_path
 
     def calculate_intervals(self):
         self.intervals_start_dt = self.intervals_start_dt  # or self.task_params.start_dt.normalize()
