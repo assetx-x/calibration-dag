@@ -5,6 +5,7 @@ import pandas as pd
 import io
 import os
 import yfinance as yf
+from market_timeline import marketTimeline
 
 EXEMPTIONS = []
 
@@ -154,3 +155,25 @@ def construct_required_path(step,file_name):
 def construct_destination_path(step):
     return "gs://{}/calibration_data/live" +"/{}/".format(step) +"{}.csv"
 
+
+
+def construct_required_path_earnings(step,file_name):
+    return "gs://{}/calibration_data/live" + "/{}/".format(step) + "{}.csv".format(file_name)
+
+def construct_destination_path_earnings(step):
+    return "gs://{}/calibration_data/live" +"/{}/".format(step) +"{}.csv"
+
+def pick_trading_quarterly_dates(start_date, end_date, mode='BQ'):
+    weekly_days = pd.date_range(start_date, end_date, freq=mode)
+    trading_dates = pd.Series(weekly_days).apply(marketTimeline.get_next_trading_day_if_holiday)
+    dates = trading_dates[(trading_dates>=start_date) & (trading_dates<=end_date)]
+    return dates
+
+def pick_trading_month_dates(start_date, end_date, mode="bme"):
+    trading_days = marketTimeline.get_trading_days(start_date, end_date).tz_localize(None)
+    if mode=="bme":
+        dates = pd.Series(trading_days).groupby(trading_days.to_period('M')).last()
+    else:
+        dates = pd.Series(trading_days).groupby(trading_days.to_period('M')).first()
+    dates = dates[(dates>=start_date) & (dates<=end_date)]
+    return dates
