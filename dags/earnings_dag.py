@@ -268,6 +268,20 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             op_kwargs=QuantamentalMergeEconIndustryWeekly_params
         )
 
+    with TaskGroup("PullEarnings", tooltip="PullEarnings") as EarningsPull:
+        PullEarnings = PythonOperator(
+            task_id="PullEarnings",
+            python_callable=airflow_wrapper,
+            op_kwargs=PullEarnings_params
+        )
+
+    with TaskGroup("MergeEarnings", tooltip="MergeEarnings") as EarningsMerge:
+        MergeEarnings = PythonOperator(
+            task_id="PullEarnings",
+            python_callable=airflow_wrapper,
+            op_kwargs=MergeEarnings_params
+        )
+
     with TaskGroup("Standarization", tooltip="Standarization") as Standarization:
         FactorStandardizationFullPopulationWeekly = PythonOperator(
             task_id="FactorStandardizationFullPopulationWeekly",
@@ -275,5 +289,5 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             op_kwargs=FactorStandardizationFullPopulationWeekly_params
         )
 
-    DataPull >> EconData >> FundamentalCleanup >> DerivedFundamentalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> Standarization
+    DataPull >> EconData >> FundamentalCleanup >> DerivedFundamentalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> EarningsPull >> EarningsMerge >> Standarization
 
