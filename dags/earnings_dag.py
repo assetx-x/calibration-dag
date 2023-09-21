@@ -27,35 +27,35 @@ print(f"GOOGLE_APPLICATION_CREDENTIALS: {os.environ['GOOGLE_APPLICATION_CREDENTI
 print(f"GCS_BUCKET: {os.environ['GCS_BUCKET']}")
 
 ##### DATA PULL STEP INSTRUCTIONS #####
-from earnings_steps.data_pull_step import CALIBRATIONDATEJUMP_PARAMS, S3_SECURITY_MASTER_READER_PARAMS, \
+from earnings_data_pull_step import CALIBRATIONDATEJUMP_PARAMS, S3_SECURITY_MASTER_READER_PARAMS, \
     S3_INDUSTRY_MAPPER_READER_PARAMS, \
     S3_ECON_TRANSFORMATION_PARAMS, YAHOO_DAILY_PRICE_READER_PARAMS, S3_RUSSELL_COMPONENT_READER_PARAMS, \
     S3_RAW_SQL_READER_PARAMS, \
     SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS,current_gan_universe_params
 
 ### ECON DATA STEP INSTRUCTIONS ####
-from earnings_steps.econ_data_step import DOWNLOAD_ECONOMIC_DATA_PARAMS
+from earnings_econ_data_step import DOWNLOAD_ECONOMIC_DATA_PARAMS
 
 ####### FundamentalCleanup INSTRUCTIONS #####
-from earnings_steps.fundamental_cleanup_step import QuandlDataCleanup_PARAMS
+from earnings_fundamental_cleanup_step import QuandlDataCleanup_PARAMS
 
 
 ####### DerivedFundamentalDataProcessing ######
-from earnings_steps.derived_fundamental_data_process_step import CalculateDerivedQuandlFeatures_PARAMS
+from earnings_derived_fundamental_data_process_step import CalculateDerivedQuandlFeatures_PARAMS
 
 
 
-from earnings_steps.merge_step import QuantamentalMerge_params
+from earnings_merge_step import QuantamentalMerge_params
 
-from earnings_steps.filter_dates_single_names import FilterMonthlyDatesFullPopulationWeekly_params, \
+from earnings_filter_dates_single_names import FilterMonthlyDatesFullPopulationWeekly_params, \
     CreateMonthlyDataSingleNamesWeekly_params
 
-from earnings_steps.merge_econ_step import QuantamentalMergeEconIndustryWeekly_params
+from earnings_merge_econ_step import QuantamentalMergeEconIndustryWeekly_params
 
-from earnings_steps.pull_earnings_step import PullEarnings_params
-from earnings_steps.merge_earnings import MergeEarnings_params
+from earnings_pull_earnings_step import PullEarnings_params
+from earnings_merge_earnings import MergeEarnings_params
 
-from earnings_steps.standarization_step import FactorStandardizationFullPopulationWeekly_params
+from earnings_standarization_step import FactorStandardizationFullPopulationWeekly_params
 
 
 current_date = datetime.datetime.now().date()
