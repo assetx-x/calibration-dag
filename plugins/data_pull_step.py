@@ -22,7 +22,7 @@ from core_classes import construct_required_path,construct_destination_path
 parent_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 plugins_folder = os.path.join(parent_directory, "plugins")
 data_processing_folder = os.path.join(plugins_folder, "data_processing")
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(data_processing_folder,'dcm-prod.json')
+# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(data_processing_folder,'dcm-prod.json')
 os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
 JUMP_DATES_CSV = os.path.join(data_processing_folder,'intervals_for_jump.csv')
 current_date = datetime.now().date()
@@ -384,9 +384,10 @@ class CalibrationDatesJump(CalibrationDates):
 
     def __init__(self, cache_file=None, target_dt=None, intervals_start_dt=None,
                  intervals_end_dt=None, holding_period_in_trading_days=1, force_recalculation=False,
-                 save_intervals_to=None):
+                 save_intervals_to=None, **kwargs):
         if not cache_file:
             cache_file = self.cache_path
+        self.gcp_conn = kwargs.get("gcp_conn_id")
         target_dt = pd.Timestamp(target_dt) if target_dt else None
         intervals_start_dt = pd.Timestamp(intervals_start_dt) if intervals_start_dt else None
         intervals_end_dt = pd.Timestamp(intervals_end_dt) if intervals_end_dt else None
