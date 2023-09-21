@@ -272,3 +272,5 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             op_kwargs=FactorStandardizationFullPopulationWeekly_params
         )
 
+    DataPull >> EconData >> FundamentalCleanup >> DerivedFundamentalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> Standarization
+
