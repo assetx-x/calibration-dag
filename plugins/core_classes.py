@@ -158,10 +158,10 @@ def construct_destination_path(step):
 
 
 def construct_required_path_earnings(step,file_name):
-    return "gs://{}/calibration_data/live" + "/{}/".format(step) + "{}.csv".format(file_name)
+    return "gs://{}/calibration_data/earnings" + "/{}/".format(step) + "{}.csv".format(file_name)
 
 def construct_destination_path_earnings(step):
-    return "gs://{}/calibration_data/live" +"/{}/".format(step) +"{}.csv"
+    return "gs://{}/calibration_data/earnings" +"/{}/".format(step) +"{}.csv"
 
 def pick_trading_quarterly_dates(start_date, end_date, mode='BQ'):
     weekly_days = pd.date_range(start_date, end_date, freq=mode)
