@@ -1,6 +1,6 @@
 apache-airflow==2.6.3
 psycopg2-binary
-yfinance=0.1.74
+yfinance==0.1.74
 pylru==1.0.9
 scipy
 pyhocon==0.3.37
