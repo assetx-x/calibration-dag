@@ -98,7 +98,7 @@ def airflow_wrapper(**kwargs):
     params = kwargs['params']
 
     # Read all required data into step_action_args dictionary
-    step_action_args = {k: pd.read_csv(v.format(os.environ['GCS_BUCKET']), index_col=0) for k, v in kwargs['required_data'].items()}
+    step_action_args = {k: pd.read_csv(v.format(os.environ['GCS_BUCKET']), index_col=[0]) for k, v in kwargs['required_data'].items()}
 
 
     # Execute do_step_action method
@@ -231,6 +231,63 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
             op_kwargs=QuantamentalMerge_params
         )
 
+    with TaskGroup("FilterDatesSingleNames", tooltip="FilterDatesSingleNames") as FilterDatesSingleNames:
+        FilterMonthlyDatesFullPopulationWeekly = PythonOperator(
+            task_id="FilterMonthlyDatesFullPopulationWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=FilterMonthlyDatesFullPopulationWeekly_params
+        )
 
+        CreateMonthlyDataSingleNamesWeekly = PythonOperator(
+            task_id="CreateMonthlyDataSingleNamesWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=CreateMonthlyDataSingleNamesWeekly_params
+        )
 
-    DataPull >> EconData >> FundamentalCleanup >> DerivedFundamentalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep
+        FilterMonthlyDatesFullPopulationWeekly >> CreateMonthlyDataSingleNamesWeekly
+
+    with TaskGroup("Transformation", tooltip="Transformation") as Transformation:
+        CreateYahooDailyPriceRolling = PythonOperator(
+            task_id="CreateYahooDailyPriceRolling",
+            python_callable=airflow_wrapper,
+            op_kwargs=CreateYahooDailyPriceRolling_params
+        )
+
+        TransformEconomicDataWeekly = PythonOperator(
+            task_id="TransformEconomicDataWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=TransformEconomicDataWeekly_params
+        )
+
+        CreateYahooDailyPriceRolling >> TransformEconomicDataWeekly
+
+    with TaskGroup("MergeEcon", tooltip="MergeEcon") as MergeEcon:
+        QuantamentalMergeEconIndustryWeekly = PythonOperator(
+            task_id="QuantamentalMergeEconIndustryWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=QuantamentalMergeEconIndustryWeekly_params
+        )
+
+    with TaskGroup("PullEarnings", tooltip="PullEarnings") as EarningsPull:
+        PullEarnings = PythonOperator(
+            task_id="PullEarnings",
+            python_callable=airflow_wrapper,
+            op_kwargs=PullEarnings_params
+        )
+
+    with TaskGroup("MergeEarnings", tooltip="MergeEarnings") as EarningsMerge:
+        MergeEarnings = PythonOperator(
+            task_id="PullEarnings",
+            python_callable=airflow_wrapper,
+            op_kwargs=MergeEarnings_params
+        )
+
+    with TaskGroup("Standarization", tooltip="Standarization") as Standarization:
+        FactorStandardizationFullPopulationWeekly = PythonOperator(
+            task_id="FactorStandardizationFullPopulationWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=FactorStandardizationFullPopulationWeekly_params
+        )
+
+    DataPull >> EconData >> FundamentalCleanup >> DerivedFundamentalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> EarningsPull >> EarningsMerge >> Standarization
+
