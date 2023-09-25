@@ -141,7 +141,7 @@ class CreateMonthlyDataSingleNamesQuarterly(CreateMonthlyDataSingleNames):
 FMDP_params = {'monthly_mode':"bme",
         'weekly_mode':"BQ",
         'start_date':"2000-03-15",
-        'end_date':"2023-06-28"}
+        'end_date':RUN_DATE}
 
 FilterMonthlyDatesFullPopulationWeekly_params = {'params':FMDP_params,
                                    'class':FilterMonthlyDatesFullPopulationQuarterly,'start_date':RUN_DATE,
