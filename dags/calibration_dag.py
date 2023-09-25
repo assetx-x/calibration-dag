@@ -381,5 +381,11 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             op_kwargs=GenerateActiveMatrixWeekly_params
         )
 
+    with TaskGroup("AdditionalGanFeatures", tooltip="AdditionalGanFeatures") as AdditionalGanFeatures:
+        GenerateBMEReturnsWeekly = PythonOperator(
+            task_id="GenerateBMEReturnsWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=GenerateBMEReturnsWeekly_params
+        )
 
     DataPull >> EconData >> FundamentalCleanup >> Targets >> DerivedFundamentalDataProcessing >> DerivedTechnicalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> Standarization >> ActiveMatrix >> AdditionalGanFeatures
