@@ -186,6 +186,108 @@ with DAG(dag_id="earnings_calibration", start_date=days_ago(1)) as dag:
 
         CalibrationDatesJump >> S3SecurityMasterReader >> S3GANUniverseReader >> S3IndustryMappingReader >> S3EconTransformationReader >> YahooDailyPriceReader >> S3RussellComponentReader >> S3RawQuandlDataReader >> SQLMinuteToDailyEquityPrices
 
+    with TaskGroup("EconData", tooltip="EconData") as EconData:
+        DownloadEconomicData = PythonOperator(
+            task_id="DownloadEconomicData",
+            python_callable=airflow_wrapper,
+            op_kwargs=DOWNLOAD_ECONOMIC_DATA_PARAMS
+        )
 
+    with TaskGroup("FundamentalCleanup", tooltip="FundamentalCleanup") as FundamentalCleanup:
+        QuandlDataCleanup = PythonOperator(
+            task_id="QuandlDataCleanup",
+            python_callable=airflow_wrapper,
+            op_kwargs=QuandlDataCleanup_PARAMS
+        )
 
-    DataPull
+    with TaskGroup("DerivedFundamentalDataProcessing",
+                   tooltip="DerivedFundamentalDataProcessing") as DerivedFundamentalDataProcessing:
+        CalculateDerivedQuandlFeatures = PythonOperator(
+            task_id="CalculateDerivedQuandlFeatures",
+            python_callable=airflow_wrapper,
+            op_kwargs=CalculateDerivedQuandlFeatures_PARAMS
+        )
+
+    with TaskGroup("DerivedSimplePriceFeatureProcessing",
+                   tooltip="DerivedSimplePriceFeatureProcessing") as DerivedSimplePriceFeatureProcessing:
+        ComputeBetaQuantamental = PythonOperator(
+            task_id="ComputeBetaQuantamental",
+            python_callable=airflow_wrapper,
+            op_kwargs=ComputeBetaQuantamental_params
+        )
+
+        CalculateOvernightReturn = PythonOperator(
+            task_id="CalculateOvernightReturn",
+            python_callable=airflow_wrapper,
+            op_kwargs=CalculateOvernightReturn_params
+        )
+
+        ComputeBetaQuantamental >> CalculateOvernightReturn
+
+    with TaskGroup("MergeStep", tooltip="MergeStep") as MergeStep:
+        QuantamentalMerge = PythonOperator(
+            task_id="QuantamentalMerge",
+            python_callable=airflow_wrapper,
+            op_kwargs=QuantamentalMerge_params
+        )
+
+    with TaskGroup("FilterDatesSingleNames", tooltip="FilterDatesSingleNames") as FilterDatesSingleNames:
+        FilterMonthlyDatesFullPopulationWeekly = PythonOperator(
+            task_id="FilterMonthlyDatesFullPopulationWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=FilterMonthlyDatesFullPopulationWeekly_params
+        )
+
+        CreateMonthlyDataSingleNamesWeekly = PythonOperator(
+            task_id="CreateMonthlyDataSingleNamesWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=CreateMonthlyDataSingleNamesWeekly_params
+        )
+
+        FilterMonthlyDatesFullPopulationWeekly >> CreateMonthlyDataSingleNamesWeekly
+
+    with TaskGroup("Transformation", tooltip="Transformation") as Transformation:
+        CreateYahooDailyPriceRolling = PythonOperator(
+            task_id="CreateYahooDailyPriceRolling",
+            python_callable=airflow_wrapper,
+            op_kwargs=CreateYahooDailyPriceRolling_params
+        )
+
+        TransformEconomicDataWeekly = PythonOperator(
+            task_id="TransformEconomicDataWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=TransformEconomicDataWeekly_params
+        )
+
+        CreateYahooDailyPriceRolling >> TransformEconomicDataWeekly
+
+    with TaskGroup("MergeEcon", tooltip="MergeEcon") as MergeEcon:
+        QuantamentalMergeEconIndustryWeekly = PythonOperator(
+            task_id="QuantamentalMergeEconIndustryWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=QuantamentalMergeEconIndustryWeekly_params
+        )
+
+    with TaskGroup("PullEarnings", tooltip="PullEarnings") as EarningsPull:
+        PullEarnings = PythonOperator(
+            task_id="PullEarnings",
+            python_callable=airflow_wrapper,
+            op_kwargs=PullEarnings_params
+        )
+
+    with TaskGroup("MergeEarnings", tooltip="MergeEarnings") as EarningsMerge:
+        MergeEarnings = PythonOperator(
+            task_id="PullEarnings",
+            python_callable=airflow_wrapper,
+            op_kwargs=MergeEarnings_params
+        )
+
+    with TaskGroup("Standarization", tooltip="Standarization") as Standarization:
+        FactorStandardizationFullPopulationWeekly = PythonOperator(
+            task_id="FactorStandardizationFullPopulationWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=FactorStandardizationFullPopulationWeekly_params
+        )
+
+    DataPull >> EconData >> FundamentalCleanup >> DerivedFundamentalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> EarningsPull >> EarningsMerge >> Standarization
+

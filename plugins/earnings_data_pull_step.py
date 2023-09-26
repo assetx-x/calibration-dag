@@ -480,7 +480,9 @@ class SQLMinuteToDailyEquityPrices_2_0(DataReaderClass):
         data = data.groupby(['ticker', 'date']).mean()[
             ['open', 'high', 'low', 'close', 'volume', 'dcm_security_id']].reset_index().sort_values(by=['date'])
 
-        #data['dcm_security_id'] = data['dcm_security_id'].astype(int)
+        data = data[data['dcm_security_id'].notna()]
+        data['dcm_security_id'] = data['dcm_security_id'].astype(int)
+        data['date'] = data['date'].apply(pd.Timestamp)
 
         return data
 
