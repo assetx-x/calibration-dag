@@ -477,6 +477,11 @@ class SQLMinuteToDailyEquityPrices_2_0(DataReaderClass):
         self._prepare_to_pull_data()
         data = self.query_client.query(base_query).to_dataframe()
         data = data.drop_duplicates().sort_values(['date'])
+        data = data.groupby(['ticker', 'date']).mean()[
+            ['open', 'high', 'low', 'close', 'volume', 'dcm_security_id']].reset_index().sort_values(by=['date'])
+
+        data['dcm_security_id'] = data['dcm_security_id'].astype(int)
+
         return data
 
 ############ AIRFLOW FUNCTIONS ############
