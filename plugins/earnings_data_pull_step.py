@@ -59,7 +59,7 @@ class S3SecurityMasterReader(GCPReader):
                                          'AXP', 'JPM', 'TXN', 'ABNB', 'ULTA', 'TWLO', 'EB', 'GLW', 'TJX',
                                          'ILMN', 'LYFT', 'MU', 'BKNG', 'VIEW', 'CMCSA', 'OSCR', 'SHOP', 'SPY'])]"""
 
-        data = data[data['ticker'].isin(['NKE','AAPL','MSFT','JPM','SPY'])]
+        #data = data[data['ticker'].isin(['NKE','AAPL','MSFT','JPM','SPY'])]
 
         """if self.task_params.run_mode==TaskflowPipelineRunMode.Test:
             query = "select ticker from whitelist where run_dt in ('{0}') and as_of_end is null"\
