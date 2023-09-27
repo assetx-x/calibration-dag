@@ -21,7 +21,9 @@ load_dotenv()
 iso_format = '%Y-%m-%dT%H:%M:%S'
 
 if sys.platform in ['darwin', 'linux']:
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '$HOME/.config/gcloud/application_default_credentials.json'
+    home_path = os.getenv('HOME')
+    credentials_path = os.path.join(home_path, '.config/gcloud/application_default_credentials.json')
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
     print(f'Credentials set to {os.environ["GOOGLE_APPLICATION_CREDENTIALS"]}')
 else:
     raise ValueError('Only Linux is supported')
