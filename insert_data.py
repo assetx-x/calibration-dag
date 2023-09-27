@@ -20,7 +20,7 @@ load_dotenv()
 iso_format = '%Y-%m-%dT%H:%M:%S'
 
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/iklo/calibration-DAG/plugins/data_processing/dcm-prod.json'
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/iklo/.config/gcloud/application_default_credentials.json'
+# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/iklo/.config/gcloud/application_default_credentials.json'
 os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
 
 client = bigquery.Client()
