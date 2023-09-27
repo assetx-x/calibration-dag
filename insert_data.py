@@ -252,7 +252,7 @@ def main():
             insert_query = create_insert_query(row)
             queries.append(insert_query)
 
-            if len(queries) >= 1_000_000:
+            if len(queries) >= 10_000_000:
                 q_head = (f"INSERT INTO {table_name} (ticker, date, open, close, high, low, volume, as_of_start, "
                           f"as_of_end, symbol_asof, dcm_security_id) VALUES")
                 execute_query(q_head, queries)  # , batch_size=500)
