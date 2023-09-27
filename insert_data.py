@@ -50,8 +50,8 @@ def fibonacci_time_sleep():
     while True:
         value = a
         print(f'[*] Sleeping for {value} seconds')
-        yield value
         a, b = b, a + b
+        yield value
 
 
 def get_security_id_from_ticker_mapper(ticker):
