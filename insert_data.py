@@ -20,7 +20,6 @@ load_dotenv()
 
 iso_format = '%Y-%m-%dT%H:%M:%S'
 
-# check if mac os or linux and set the path to the credentials file
 if sys.platform in ['darwin', 'linux']:
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '$HOME/.config/gcloud/application_default_credentials.json'
     print(f'Credentials set to {os.environ["GOOGLE_APPLICATION_CREDENTIALS"]}')
