@@ -1,5 +1,6 @@
 import os
 import time
+import sys
 
 import requests
 import yfinance as yf
@@ -19,8 +20,13 @@ load_dotenv()
 
 iso_format = '%Y-%m-%dT%H:%M:%S'
 
-# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/iklo/calibration-DAG/plugins/data_processing/dcm-prod.json'
-# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/iklo/.config/gcloud/application_default_credentials.json'
+# check if mac os or linux and set the path to the credentials file
+if sys.platform in ['darwin', 'linux']:
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '$HOME/.config/gcloud/application_default_credentials.json'
+    print(f'Credentials set to {os.environ["GOOGLE_APPLICATION_CREDENTIALS"]}')
+else:
+    raise ValueError('Only Linux is supported')
+
 os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
 
 client = bigquery.Client()
