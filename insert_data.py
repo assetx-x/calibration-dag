@@ -48,10 +48,8 @@ weekday_dict = {
 def fibonacci_time_sleep():
     a, b = 0, 1
     while True:
-        value = a
-        print(f'[*] Sleeping for {value} seconds')
+        yield a
         a, b = b, a + b
-        yield value
 
 
 def get_security_id_from_ticker_mapper(ticker):
@@ -134,6 +132,7 @@ def download_tickers_list_by_date(start: str, end: str = None):
             r = requests.get(api_url, params=args)
             file_status = r.json().get('datatable_bulk_download').get('file').get('status')
             sleep_time = next(fibonacci_time_sleep())
+            print(f'[*] Sleeping for {sleep_time} seconds')
             time.sleep(sleep_time)
         file_to_download_link = r.json().get('datatable_bulk_download').get('file').get('link')
         if file_to_download_link is None:
