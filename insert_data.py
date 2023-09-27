@@ -1,19 +1,41 @@
 import os
+import time
 
+import requests
 import yfinance as yf
 import pandas as pd
 import warnings
+import zipfile
+
+from dotenv import load_dotenv
 from google.cloud import bigquery
 from datetime import datetime, timedelta
+
+
 warnings.filterwarnings("ignore")
+
+load_dotenv()
+
 
 iso_format = '%Y-%m-%dT%H:%M:%S'
 
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/iklo/calibration-DAG/plugins/data_processing/dcm-prod.json'
+# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/iklo/calibration-DAG/plugins/data_processing/dcm-prod.json'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/iklo/.config/gcloud/application_default_credentials.json'
 os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
 
 client = bigquery.Client()
-table_name = 'dcm-prod-ba2f.marketdata.daily_equity_prices'
+# table_name = 'dcm-prod-ba2f.marketdata.daily_equity_prices'
+table_name = 'dcm-prod-ba2f.marketdata.daily_equity_prices_nasdaq'
+
+weekday_dict = {
+    0: 'Monday',
+    1: 'Tuesday',
+    2: 'Wednesday',
+    3: 'Thursday',
+    4: 'Friday',
+    5: 'Saturday',
+    6: 'Sunday'
+}
 
 
 def get_security_id_from_ticker_mapper(ticker):
@@ -24,7 +46,7 @@ def get_security_id_from_ticker_mapper(ticker):
             "Tickers can only be of data type str or can be put into a list if multiple Tickers apply (i.e [AAPL,"
             "GOOGL,MSFT])"
         )
-
+    ticker = ','.join([f"'{t}'" for t in ticker])
     sm_query = f"select ticker, dcm_security_id from marketdata.security_master_20230603 where ticker in ({ticker})"
     security_master_tickers = client.query(sm_query).to_dataframe()
     security_master_tickers.set_index("ticker", inplace=True)
@@ -53,7 +75,7 @@ def get_tickers_and_security_ids(date):
     return security_master_tickers
 
 
-def download_tickers(tickers, start, debug=False, n=None):
+def download_tickers_yfinance(tickers, start, debug=False, n=None):
     print('Downloading from Yahoo Finance')
     if debug or n is not None:
         tickers = tickers[:n]
@@ -64,11 +86,144 @@ def download_tickers(tickers, start, debug=False, n=None):
     return tickers_data
 
 
-def execute_query(head, query):
+def download_tickers_list_by_date(start: str, end: str = None):
+    nasdaq_api_key = os.getenv('NASDAQ_DATA_LINK_API_KEY')
+    api_url = 'https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.json'
+    start = datetime.strptime(start, '%Y-%m-%d')
+    if not end:
+        end = datetime.today()
+        print(f'[*] No end date provided. Using today: {end}')
+    else:
+        end = datetime.strptime(end, '%Y-%m-%d')
+    dates = [start + timedelta(days=x) for x in range(0, (end - start).days)]
+    dates = [x.strftime('%Y-%m-%d') for x in dates]
+    dates.sort()
+    filename_zip = f'data_{start}.zip'
+    if not os.path.exists(filename_zip):
+        print(f'[*] Downloading data from Nasdaq for {len(dates)} days. From {dates[0]} to {dates[-1]}')
+        args = {
+            'date.gte': start,
+            'date.lte': end,
+            'qopts.columns': 'ticker,date,open,close,high,low,volume',
+            'qopts.export': 'true',
+            'api_key': nasdaq_api_key,
+        }
+        r = requests.get(api_url, params=args)
+        if r.status_code != 200:
+            print(f'[!] Error: {r.status_code}')
+            return None
+        file_status = r.json().get('datatable_bulk_download').get('file').get('status')
+        while file_status.lower() == 'creating':
+            print(f'[*] Waiting for file to be created for {start}. Status: "{file_status}"')
+            r = requests.get(api_url, params=args)
+            file_status = r.json().get('datatable_bulk_download').get('file').get('status')
+            time.sleep(1)
+        file_to_download_link = r.json().get('datatable_bulk_download').get('file').get('link')
+        if file_to_download_link is None:
+            print(f'[!] No download link for {start}: \n{r.json()}')
+            return None
+        file_content = requests.get(file_to_download_link, allow_redirects=True, timeout=10).content
+        if file_content == b'':
+            print(f'[!] No bin content for {start}')
+            return None
+        with open(filename_zip, 'wb') as f:
+            f.write(file_content)
+
+    with zipfile.ZipFile(filename_zip, 'r') as zip_ref:
+        zip_ref.extractall()
+        csv_files = zip_ref.namelist()
+    if len(csv_files) == 0:
+        print(f'[!] No csv file for {start}')
+        return None
+    for csv_file in csv_files:
+        df = pd.read_csv(csv_file)
+        if 'No Data' in str(df.head()):
+            print(f'    No data for {start}')
+            os.remove(csv_file)
+            continue
+        yield df
+        os.remove(csv_file)
+        print(f'[*] Removed {csv_file}')
+    os.remove(filename_zip)
+    print(f'[*] Removed {filename_zip}')
+
+
+def download_tickers_by_date(start: str, end: str = None):
+    nasdaq_api_key = os.getenv('NASDAQ_DATA_LINK_API_KEY')
+    api_url = 'https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.json'
+    start = datetime.strptime(start, '%Y-%m-%d')
+    if not end:
+        end = datetime.today()
+        print(f'[*] No end date provided. Using today: {end}')
+    else:
+        end = datetime.strptime(end, '%Y-%m-%d')
+    dates = [start + timedelta(days=x) for x in range(0, (end - start).days)]
+    dates = [x.strftime('%Y-%m-%d') for x in dates]
+    dates.sort()
+    print(f'[*] Downloading data from Nasdaq for {len(dates)} days. From {dates[0]} to {dates[-1]}')
+    for d in dates:
+        filename_zip = f'data_{d}.zip'
+        if not os.path.exists(filename_zip):
+            day_of_week = datetime.strptime(d, '%Y-%m-%d').weekday()
+            day_of_week = weekday_dict.get(day_of_week)
+            if day_of_week in ['Saturday', 'Sunday']:
+                print(f'[*] Skipping {d}: {day_of_week}')
+                continue
+            print(f'[*] Downloading data for {d}: {day_of_week}')
+            args = {
+                'date': d,
+                'qopts.columns': 'ticker,date,open,close,high,low,volume',
+                'qopts.export': 'true',
+                'api_key': nasdaq_api_key
+            }
+            r = requests.get(api_url, params=args)
+            if r.status_code != 200:
+                print(f'[!] Error: {r.status_code}')
+                continue
+            file_status = r.json().get('datatable_bulk_download').get('file').get('status')
+            while file_status.lower() == 'creating':
+                print(f'[*] Waiting for file to be created for {d}. Status: "{file_status}"')
+                r = requests.get(api_url, params=args)
+                file_status = r.json().get('datatable_bulk_download').get('file').get('status')
+                time.sleep(1)
+            file_to_download_link = r.json().get('datatable_bulk_download').get('file').get('link')
+            if file_to_download_link is None:
+                print(f'[!] No download link for {d}: \n{r.json()}')
+                continue
+            file_content = requests.get(file_to_download_link, allow_redirects=True, timeout=10).content
+            if file_content == b'':
+                print(f'[!] No bin content for {d}')
+                continue
+            with open(filename_zip, 'wb') as f:
+                f.write(file_content)
+        with zipfile.ZipFile(filename_zip, 'r') as zip_ref:
+            zip_ref.extractall()
+            csv_files = zip_ref.namelist()
+        if len(csv_files) == 0:
+            print(f'[!] No csv file for {d}')
+            continue
+        for csv_file in csv_files:
+            df = pd.read_csv(csv_file)
+            if 'No Data' in str(df.head()):
+                print(f'    No data for {d}')
+                os.remove(csv_file)
+                continue
+            yield df
+            os.remove(csv_file)
+            print(f'[*] Removed {csv_file}')
+        os.remove(filename_zip)
+        print(f'[*] Removed {filename_zip}')
+
+
+def execute_query(head: str, queries: list, batch_size=1_000):
     try:
-        q = head + ', '.join(query)
-        query_job = client.query(q)
-        query_job.result()
+        print(f'[*] Total rows to execute: {len(queries)}')
+        for i in range(0, len(queries), batch_size):
+            batch = queries[i:i + batch_size]
+            q = head + ', '.join(batch)
+            query_job = client.query(q)
+            result = query_job.result()
+            print(f'[*] Executed rows {len(batch)}')
     except Exception as e:
         print('[!] Error:', type(e), e)
 
@@ -76,36 +231,32 @@ def execute_query(head, query):
 def main():
     queries = []
 
-    def create_insert_query(tkr, r, sec_id):
-        aos = (datetime.strptime(r['date'], iso_format) + timedelta(days=1)).isoformat()
-        aoe = delta_date_to_isoformat(aos)
+    def create_insert_query(r):
+        tkr = r['ticker']
+        sec_id = r['dcm_security_id']
+        aoe = (datetime.strptime(r['date'], iso_format)).isoformat()
+        aos = delta_date_to_isoformat(aoe)
         return f"('{tkr}','{r['date']}', {r['open']}, {r['close']}, {r['high']}, {r['low']}, {r['volume']}, '{aos}', '{aoe}', '{tkr}', {sec_id})"
 
-    tickers_data = get_tickers_to_carry_forward('2023-07-18T00:00:00')
-    available_tickers = tickers_data['ticker'].tolist()
-    all_ticker_data = download_tickers(available_tickers, start='2023-07-19')
+    # yesterday = (datetime.today() - timedelta(days=1)).isoformat()
+    start_date = '2000-01-03'
+    # end_date = '2023-07-14'
+    for ticker_df in download_tickers_list_by_date(start_date):
+        ticker_df = ticker_df[ticker_df['ticker'].notna()]
+        tickers_list = ticker_df['ticker'].unique().tolist()
+        sec_id_df = get_security_id_from_ticker_mapper(tickers_list)
+        ticker_df = ticker_df.merge(sec_id_df, left_on='ticker', right_index=True)
+        ticker_df['date'] = ticker_df['date'].map(lambda x: datetime.strptime(x, '%Y-%m-%d').isoformat())
 
-    for ticker in available_tickers:
-        try:
-            ticker_data = all_ticker_data.get(ticker)
-            if ticker_data is None:
-                raise KeyError(f'No data for {ticker}')
-            ticker_data = ticker_data.reset_index()
-            ticker_data.columns = ticker_data.columns.str.lower()
-            sec_id_value = int(tickers_data.loc[tickers_data['ticker'] == ticker, 'dcm_security_id'].values[0])
-        except KeyError as e:
-            print(e, type(e))
-            continue
-
-        for _, row in ticker_data.iterrows():
-            insert_query = create_insert_query(ticker, row, sec_id_value)
-            print(f'Ticker: {ticker}, Date: {row["date"]}, Query: {insert_query}')
+        for _, row in ticker_df.iterrows():
+            insert_query = create_insert_query(row)
             queries.append(insert_query)
 
-        if queries:
-            q_head = f"INSERT INTO {table_name} (ticker, date, open, close, high, low, volume, as_of_start, as_of_end, symbol_asof, dcm_security_id) VALUES "
-            execute_query(q_head, queries)
-            queries = []
+            if len(queries) >= 1_000_000:
+                q_head = (f"INSERT INTO {table_name} (ticker, date, open, close, high, low, volume, as_of_start, "
+                          f"as_of_end, symbol_asof, dcm_security_id) VALUES")
+                execute_query(q_head, queries)  # , batch_size=500)
+                queries = []
 
 
 if __name__ == '__main__':
