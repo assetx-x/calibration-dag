@@ -137,6 +137,7 @@ def download_tickers_list_by_date(start: str, end: str = None):
             f.write(file_content)
 
     with zipfile.ZipFile(filename_zip, 'r') as zip_ref:
+        print(f'[*] Extracting {filename_zip}')
         zip_ref.extractall()
         csv_files = zip_ref.namelist()
     if len(csv_files) == 0:
@@ -151,8 +152,6 @@ def download_tickers_list_by_date(start: str, end: str = None):
         yield df
         os.remove(csv_file)
         print(f'[*] Removed {csv_file}')
-    os.remove(filename_zip)
-    print(f'[*] Removed {filename_zip}')
 
 
 def download_tickers_by_date(start: str, end: str = None):
@@ -204,6 +203,7 @@ def download_tickers_by_date(start: str, end: str = None):
             with open(filename_zip, 'wb') as f:
                 f.write(file_content)
         with zipfile.ZipFile(filename_zip, 'r') as zip_ref:
+            print(f'[*] Extracting {filename_zip}')
             zip_ref.extractall()
             csv_files = zip_ref.namelist()
         if len(csv_files) == 0:
@@ -230,9 +230,10 @@ def execute_query(head: str, queries: list, batch_size=1_000):
             q = head + ', '.join(batch)
             query_job = client.query(q)
             result = query_job.result()
-            print(f'[*] Executed rows {len(batch)}')
+            print(f'[*] Executed rows {len(batch)}.', end=' ')
     except Exception as e:
         print('[!] Error:', type(e), e)
+    print()
 
 
 def main():
@@ -249,6 +250,7 @@ def main():
     start_date = '2000-01-03'
     # end_date = '2023-07-14'
     for ticker_df in download_tickers_list_by_date(start_date):
+        print(f'[*] Processing {ticker_df.shape} rows')
         ticker_df = ticker_df[ticker_df['ticker'].notna()]
         tickers_list = ticker_df['ticker'].unique().tolist()
         sec_id_df = get_security_id_from_ticker_mapper(tickers_list)
@@ -259,11 +261,13 @@ def main():
             insert_query = create_insert_query(row)
             queries.append(insert_query)
 
-            if len(queries) >= 10_000_000:
+            if len(queries) >= 1_000_000:
+                print(f'[*] Executing {len(queries)} rows')
                 q_head = (f"INSERT INTO {table_name} (ticker, date, open, close, high, low, volume, as_of_start, "
                           f"as_of_end, symbol_asof, dcm_security_id) VALUES")
                 execute_query(q_head, queries)  # , batch_size=500)
                 queries = []
+                print(f'[*] Queries len now {len(queries)}')
 
 
 if __name__ == '__main__':
