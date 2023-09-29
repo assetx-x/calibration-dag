@@ -21,6 +21,11 @@ load_dotenv()
 iso_format = '%Y-%m-%dT%H:%M:%S'
 
 if sys.platform in ['darwin', 'linux']:
+    """
+    To log in into GCP locally use the following command:
+    $ gcloud auth application-default login
+    and follow the instructions, then the json will be created automatically
+    """
     home_path = os.getenv('HOME')
     credentials_path = os.path.join(home_path, '.config/gcloud/application_default_credentials.json')
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
@@ -31,7 +36,6 @@ else:
 os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
 
 client = bigquery.Client()
-# table_name = 'dcm-prod-ba2f.marketdata.daily_equity_prices'
 table_name = 'dcm-prod-ba2f.marketdata.daily_equity_prices_nasdaq'
 
 weekday_dict = {
