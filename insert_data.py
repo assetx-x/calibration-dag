@@ -17,9 +17,6 @@ warnings.filterwarnings("ignore")
 
 load_dotenv()
 
-
-iso_format = '%Y-%m-%dT%H:%M:%S'
-
 if sys.platform in ['darwin', 'linux']:
     """
     To log in into GCP locally use the following command:
@@ -37,6 +34,9 @@ os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
 
 client = bigquery.Client()
 table_name = 'dcm-prod-ba2f.marketdata.daily_equity_prices_nasdaq'
+
+
+iso_format = '%Y-%m-%dT%H:%M:%S'
 
 weekday_dict = {
     0: 'Monday',
