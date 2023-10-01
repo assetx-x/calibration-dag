@@ -129,7 +129,8 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         QuantamentalMerge = PythonOperator(
             task_id="QuantamentalMerge",
             python_callable=airflow_wrapper,
-            op_kwargs=QuantamentalMerge_params
+            op_kwargs=QuantamentalMerge_params,
+            execution_timeout=timedelta(minutes=150)
         )
 
     with TaskGroup("FilterDatesSingleNames", tooltip="FilterDatesSingleNames") as FilterDatesSingleNames:
