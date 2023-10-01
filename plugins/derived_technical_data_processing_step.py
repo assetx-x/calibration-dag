@@ -6,7 +6,7 @@ from core_classes import StatusType
 from commonlib import talib_STOCHRSI, MA,talib_PPO
 import talib
 current_date = datetime.now().date()
-RUN_DATE = '2023-06-28' #current_date.strftime('%Y-%m-%d')
+RUN_DATE = current_date.strftime('%Y-%m-%d')
 from core_classes import construct_required_path,construct_destination_path
 
 

@@ -185,7 +185,7 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             task_id="SQLMinuteToDailyEquityPrices",
             python_callable=airflow_wrapper,
             op_kwargs=SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS,
-            execution_timeout=timedelta(minutes=50)
+            execution_timeout=timedelta(minutes=150)
         )
 
         CalibrationDatesJump >> S3SecurityMasterReader >> S3GANUniverseReader >> S3IndustryMappingReader >> S3EconTransformationReader >> YahooDailyPriceReader >> S3RussellComponentReader >> S3RawQuandlDataReader >> SQLMinuteToDailyEquityPrices
@@ -324,68 +324,6 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             op_kwargs=QuantamentalMerge_params
         )
 
-    with TaskGroup("FilterDatesSingleNames", tooltip="FilterDatesSingleNames") as FilterDatesSingleNames:
-        FilterMonthlyDatesFullPopulationWeekly = PythonOperator(
-            task_id="FilterMonthlyDatesFullPopulationWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=FilterMonthlyDatesFullPopulationWeekly_params
-        )
 
-        CreateMonthlyDataSingleNamesWeekly = PythonOperator(
-            task_id="CreateMonthlyDataSingleNamesWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=CreateMonthlyDataSingleNamesWeekly_params
-        )
 
-        FilterMonthlyDatesFullPopulationWeekly >> CreateMonthlyDataSingleNamesWeekly
-
-    with TaskGroup("Transformation", tooltip="Transformation") as Transformation:
-        CreateYahooDailyPriceRolling = PythonOperator(
-            task_id="CreateYahooDailyPriceRolling",
-            python_callable=airflow_wrapper,
-            op_kwargs=CreateYahooDailyPriceRolling_params
-        )
-
-        TransformEconomicDataWeekly = PythonOperator(
-            task_id="TransformEconomicDataWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=TransformEconomicDataWeekly_params
-        )
-
-        CreateIndustryAverageWeekly = PythonOperator(
-            task_id="CreateIndustryAverageWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=CreateIndustryAverageWeekly_params
-        )
-
-        CreateYahooDailyPriceRolling >> TransformEconomicDataWeekly >> CreateIndustryAverageWeekly
-
-    with TaskGroup("MergeEcon", tooltip="MergeEcon") as MergeEcon:
-        QuantamentalMergeEconIndustryWeekly = PythonOperator(
-            task_id="QuantamentalMergeEconIndustryWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=QuantamentalMergeEconIndustryWeekly_params
-        )
-
-    with TaskGroup("Standarization", tooltip="Standarization") as Standarization:
-        FactorStandardizationFullPopulationWeekly = PythonOperator(
-            task_id="FactorStandardizationFullPopulationWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=FactorStandardizationFullPopulationWeekly_params
-        )
-
-    with TaskGroup("ActiveMatrix", tooltip="ActiveMatrix") as ActiveMatrix:
-        GenerateActiveMatrixWeekly = PythonOperator(
-            task_id="GenerateActiveMatrixWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=GenerateActiveMatrixWeekly_params
-        )
-
-    with TaskGroup("AdditionalGanFeatures", tooltip="AdditionalGanFeatures") as AdditionalGanFeatures:
-        GenerateBMEReturnsWeekly = PythonOperator(
-            task_id="GenerateBMEReturnsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=GenerateBMEReturnsWeekly_params
-        )
-
-    DataPull >> EconData >> FundamentalCleanup >> Targets >> DerivedFundamentalDataProcessing >> DerivedTechnicalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> Standarization >> ActiveMatrix >> AdditionalGanFeatures
+    DataPull >> EconData >> FundamentalCleanup >> Targets >> DerivedFundamentalDataProcessing >> DerivedTechnicalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep

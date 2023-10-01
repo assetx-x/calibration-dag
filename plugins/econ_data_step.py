@@ -21,7 +21,7 @@ from core_classes import construct_required_path,construct_destination_path
 
 
 current_date = datetime.now().date()
-RUN_DATE = '2023-06-28' #current_date.strftime('%Y-%m-%d')
+RUN_DATE = current_date.strftime('%Y-%m-%d')
 
 class DownloadEconomicData(DataReaderClass):
     '''

@@ -7,7 +7,7 @@ from market_timeline import pick_trading_week_dates,pick_trading_month_dates
 from commonlib import factor_standarization
 import talib
 current_date = datetime.now().date()
-RUN_DATE = '2023-06-28' #current_date.strftime('%Y-%m-%d')
+RUN_DATE = current_date.strftime('%Y-%m-%d')
 from core_classes import construct_required_path,construct_destination_path
 
 

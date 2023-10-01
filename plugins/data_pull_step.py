@@ -26,7 +26,7 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(data_processing_fold
 os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
 JUMP_DATES_CSV = os.path.join(data_processing_folder,'intervals_for_jump.csv')
 current_date = datetime.now().date()
-RUN_DATE = '2023-06-28' #current_date.strftime('%Y-%m-%d')
+RUN_DATE = current_date.strftime('%Y-%m-%d')
 
 
 class S3SecurityMasterReader(GCPReader):
@@ -312,6 +312,47 @@ class SQLMinuteToDailyEquityPrices(DataReaderClass):
         return data
 
 
+
+class SQLMinuteToDailyEquityPrices_2_0(DataReaderClass):
+    '''
+
+    Creates daily bars from minute data (with dcm_security_id identifier)
+
+    '''
+
+    # PROVIDES_FIELDS = ["daily_price_data"]
+    # REQUIRES_FIELDS = ["security_master"]
+
+    def __init__(self, start_date, end_date):
+        self.start_date = start_date
+        self.end_date = end_date
+
+    def _prepare_to_pull_data(self, **kwargs):
+        self.query_client = bigquery.Client()
+
+    def _get_data_lineage(self, **kwargs):
+        pass
+
+    def do_step_action(self, security_master, **kwargs):
+        base_query = """
+
+        select date,ticker,dcm_security_id, open, high,low,close,volume from marketdata.daily_equity_prices where date >'{}' and date < '{}' and ticker in {}
+
+        """.format(self.start_date, self.end_date, tuple(security_master['ticker'].values))
+
+        self._prepare_to_pull_data()
+        data = self.query_client.query(base_query).to_dataframe()
+        data = data.drop_duplicates().sort_values(['date'])
+        data = data.groupby(['ticker', 'date']).mean()[
+            ['open', 'high', 'low', 'close', 'volume', 'dcm_security_id']].reset_index().sort_values(by=['date'])
+
+        data = data[data['dcm_security_id'].notna()]
+        data['dcm_security_id'] = data['dcm_security_id'].astype(int)
+        data['date'] = data['date'].apply(pd.Timestamp)
+
+        return data
+
+
 class CalibrationDates(DataReaderClass):
 
     def __init__(self, cache_file=None, read_csv_kwargs=None, force_recalculation=False, save_intervals_to=None):
@@ -535,8 +576,8 @@ S3_RAW_SQL_READER_PARAMS = {"params": {"bucket": "dcm-prod-ba2f-us-dcm-data-temp
                      }
 
 
-SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS = {'params':{"start_date" : "2000-01-03","end_date" : "2023-06-28"},
-                                            'class':SQLMinuteToDailyEquityPrices,
+SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS = {'params':{"start_date" : "2000-01-03","end_date" : RUN_DATE},
+                                            'class':SQLMinuteToDailyEquityPrices_2_0,
                                       'start_date':RUN_DATE,
                                         'provided_data': {'daily_price_data': construct_destination_path('data_pull')},
                                             'required_data': {'security_master': construct_required_path('data_pull','security_master')}

@@ -8,7 +8,7 @@ import talib
 import gc
 from market_timeline import marketTimeline
 current_date = datetime.now().date()
-RUN_DATE = '2023-06-28' #current_date.strftime('%Y-%m-%d')
+RUN_DATE = current_date.strftime('%Y-%m-%d')
 from core_classes import construct_required_path,construct_destination_path
 
 
@@ -124,7 +124,7 @@ QM_datasets = {'daily_price_data': construct_required_path('data_pull', 'daily_p
 
 QM_configs = {'apply_log_vol': True,
               'start_date': "2001-01-02",
-              'end_date': "2023-07-31"
+              'end_date': RUN_DATE
               }
 
 QuantamentalMerge_params = {'params':QM_configs,
