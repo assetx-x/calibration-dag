@@ -111,7 +111,7 @@ class QuandlDataCleanup(DataReaderClass):
         # Old version
         # dates = pd.date_range(raw['date'].min(), max(raw['date'].max(), pd.datetime.today()), freq='B', name='date')
         # New Version
-        dates = pd.date_range(raw['date'].min(), max(raw['date'].max(), pd.to_datetime(datetime.datetime.today())),
+        dates = pd.date_range(raw['date'].min(), max(raw['date'].max(), pd.to_datetime(datetime.today())),
                               freq='B', name='date')
         months = raw['date'].drop_duplicates().sort_values()
         close, volume, filing_periods = self._get_close_volume_filing_periods(raw, price, dates)
