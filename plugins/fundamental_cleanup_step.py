@@ -2,7 +2,7 @@ from core_classes import GCPReader,download_yahoo_data,DataReaderClass
 from market_timeline import marketTimeline
 import pandas as pd
 from fredapi import Fred
-import datetime
+from datetime import datetime
 
 current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
