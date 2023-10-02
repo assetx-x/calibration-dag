@@ -502,6 +502,39 @@ class CalibrationDatesJump(CalibrationDates):
         return {self.__class__.PROVIDES_FIELDS[0]: self.data}
 
 
+class SQLMinuteToDailyEquityPrices_2_0_edit(DataReaderClass):
+    '''
+
+    Creates daily bars from minute data (with dcm_security_id identifier)
+
+    '''
+
+    # PROVIDES_FIELDS = ["daily_price_data"]
+    REQUIRES_FIELDS = ["security_master"]
+
+    def __init__(self, start_date, end_date):
+        self.start_date = start_date
+        self.end_date = end_date
+
+    def _prepare_to_pull_data(self, **kwargs):
+        self.query_client = bigquery.Client()
+
+    def _get_data_lineage(self, **kwargs):
+        pass
+
+    def do_step_action(self, **kwargs):
+        security_master = kwargs[self.__class__.REQUIRES_FIELDS[0]]
+        base_query = """
+
+        select date,ticker,dcm_security_id, open, high,low,close,volume from marketdata.daily_equity_prices where date >'{}' and date < '{}' and ticker in {}
+
+        """.format(self.start_date, self.end_date, tuple(security_master['ticker'].values))
+
+        self._prepare_to_pull_data()
+        data = self.query_client.query(base_query).to_dataframe()
+        return data
+
+
 
 
 ############ AIRFLOW FUNCTIONS ############
@@ -607,6 +640,23 @@ SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS = {'params':{"start_date" : "2000-01-03
                                             }
 
 
+
+SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS_PART2 = {'params':{"start_date" : "2000-01-03","end_date" : RUN_DATE},
+                                            'class':SQLMinuteToDailyEquityPrices_2_0_edit,
+                                      'start_date':RUN_DATE,
+                                        'provided_data': {'daily_price_data_part2': construct_destination_path('data_pull')},
+                                            'required_data': {'security_master': construct_required_path('data_pull','security_master_part2')}
+
+                                            }
+
+
+SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS_PART3 = {'params':{"start_date" : "2000-01-03","end_date" : RUN_DATE},
+                                            'class':SQLMinuteToDailyEquityPrices_2_0_edit,
+                                      'start_date':RUN_DATE,
+                                        'provided_data': {'daily_price_data_part3': construct_destination_path('data_pull')},
+                                            'required_data': {'security_master': construct_required_path('data_pull','security_master_part3')}
+
+                                            }
 
 
 
