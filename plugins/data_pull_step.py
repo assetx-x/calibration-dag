@@ -16,7 +16,7 @@ from google.cloud import bigquery
 import gc
 import numpy as np
 from datetime import datetime
-from core_classes import construct_required_path,construct_destination_path
+from core_classes import construct_required_path,construct_destination_path,convert_date_to_string
 
 
 parent_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
@@ -369,6 +369,8 @@ class SQLMinuteToDailyEquityPrices_2_0(DataReaderClass):
         data = data[data['dcm_security_id'].notna()]
         data['dcm_security_id'] = data['dcm_security_id'].astype(int)
         data['date'] = data['date'].apply(pd.Timestamp)
+        data['date'] = data['date'].apply(convert_date_to_string)
+
 
         return data
 

@@ -177,3 +177,6 @@ def pick_trading_month_dates(start_date, end_date, mode="bme"):
         dates = pd.Series(trading_days).groupby(trading_days.to_period('M')).first()
     dates = dates[(dates>=start_date) & (dates<=end_date)]
     return dates
+
+def convert_date_to_string(date):
+    return date.strftime('%Y-%m-%d')
