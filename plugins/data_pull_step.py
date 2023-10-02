@@ -55,8 +55,12 @@ class S3SecurityMasterReader(GCPReader):
                                          'AXP', 'JPM', 'TXN', 'ABNB', 'ULTA', 'TWLO', 'EB', 'GLW', 'TJX',
                                          'ILMN', 'LYFT', 'MU', 'BKNG', 'VIEW', 'CMCSA', 'OSCR', 'SHOP', 'SPY']
 
-        test_list = list(data['ticker'].unique()[0:50])
-        full_test_universe = list(set(tenere_list + test_list))
+        recent_1k = pd.read_csv('recent_r1k.csv')
+        r1k_sec_id = recent_1k['dcm_security_id'].tolist()
+        rk1_tickers = data[(data['dcm_security_id'].isin(r1k_sec_id))].drop_duplicates()['ticker'].tolist()
+
+
+        full_test_universe = list(set(tenere_list + rk1_tickers))
         data = data[data['ticker'].isin(full_test_universe)]
 
         """if self.task_params.run_mode==TaskflowPipelineRunMode.Test:

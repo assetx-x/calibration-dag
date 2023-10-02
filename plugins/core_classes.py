@@ -150,10 +150,10 @@ class GCPReader(DataReaderClass):
 
 
 def construct_required_path(step,file_name):
-    return "gs://{}/calibration_data/testing_universe" + "/{}/".format(step) + "{}.csv".format(file_name)
+    return "gs://{}/calibration_data/live" + "/{}/".format(step) + "{}.csv".format(file_name)
 
 def construct_destination_path(step):
-    return "gs://{}/calibration_data/testing_universe" +"/{}/".format(step) +"{}.csv"
+    return "gs://{}/calibration_data/live" +"/{}/".format(step) +"{}.csv"
 
 
 
