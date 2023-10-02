@@ -125,8 +125,13 @@ class QuandlDataCleanup(DataReaderClass):
         dummy_date = pd.Timestamp("2040-12-31")
         dummy_security_id = 9999999
         if "ART" in filing_periods:
-            art = raw[raw['dcm_security_id'].isin(filing_periods['ART'])].drop('dimension', axis=1) \
-                .set_index(['date', 'dcm_security_id'])
+            try:
+                art = raw[raw['dcm_security_id'].isin(filing_periods['ART'])].drop('dimension', axis=1) \
+                    .set_index(['date', 'dcm_security_id'])
+
+            except Exception:
+                art = raw[raw['dcm_security_id'] == filing_periods['ART']].drop('dimension', axis=1) \
+                    .set_index(['date', 'dcm_security_id'])
         else:
             art = pd.DataFrame(columns=arq_temp.columns)
             art.loc[0, "dcm_security_id"] = dummy_security_id
