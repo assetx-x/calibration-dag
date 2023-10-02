@@ -1,3 +1,4 @@
+import logging
 from dotenv import load_dotenv
 
 from derived_simple_price_step import ComputeBetaQuantamental_params, CalculateMACD_params, CalcualteCorrelation_params, \
@@ -27,6 +28,9 @@ plugins_folder = os.path.join(parent_directory, "plugins")
 data_processing_folder = os.path.join(plugins_folder, "data_processing")
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(data_processing_folder, 'dcm-prod.json')
 os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
+
+logger = logging.getLogger(__name__)
+
 
 ##### DATA PULL STEP INSTRUCTIONS #####
 from data_pull_step import CALIBRATIONDATEJUMP_PARAMS, S3_SECURITY_MASTER_READER_PARAMS, \
@@ -86,7 +90,7 @@ def read_csv_in_chunks(gcs_path, batch_size=10000):
 
     # Open the GCS file for reading
     with fs.open(gcs_path, 'r') as f:
-        # Iterate through the CSV in chunks
+        logger.info(f"Reading {gcs_path} in chunks of {batch_size} rows...")
         for batch in pd.read_csv(f, chunksize=batch_size, index_col=0):
             dfs.append(batch)
 
@@ -98,26 +102,24 @@ def read_csv_in_chunks(gcs_path, batch_size=10000):
 
 def airflow_wrapper(**kwargs):
     params = kwargs['params']
+    logger.info(f"Running {kwargs} with params: {params}")
 
-    # Read all required data into step_action_args dictionary
     step_action_args = {k: pd.read_csv(v.format(os.environ['GCS_BUCKET']), index_col=0) for k, v in kwargs['required_data'].items()}
+    logger.info(f"step_action_args: {step_action_args}")
 
-
-    # Execute do_step_action method
     data_outputs = kwargs['class'](**params).do_step_action(**step_action_args)
+    logger.info(f"data_outputs: {data_outputs}")
 
-    # If the method doesn't return a dictionary (for classes returning just a single DataFrame)
-    # convert it into a dictionary for consistency
     if not isinstance(data_outputs, dict):
         data_outputs = {list(kwargs['provided_data'].keys())[0]: data_outputs}
 
-
-    # Save each output data to its respective path on GCS
     for data_key, data_value in data_outputs.items():
         if data_key in kwargs['provided_data']:
             gcs_path = kwargs['provided_data'][data_key].format(os.environ['GCS_BUCKET'], data_key)
-            print(gcs_path)
+            logger.info(f"Writing {data_key} to {gcs_path}...")
             data_value.to_csv(gcs_path)
+
+    logger.info(f"Finished running {kwargs} with params: {params}")
 
 
 """ Calibration Process"""
