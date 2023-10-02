@@ -28,6 +28,8 @@ JUMP_DATES_CSV = os.path.join(data_processing_folder,'intervals_for_jump.csv')
 current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
 
+recent_1k_path = os.path.join(data_processing_folder,'recent_r1k.csv')
+
 
 class S3SecurityMasterReader(GCPReader):
     '''
@@ -55,7 +57,7 @@ class S3SecurityMasterReader(GCPReader):
                                          'AXP', 'JPM', 'TXN', 'ABNB', 'ULTA', 'TWLO', 'EB', 'GLW', 'TJX',
                                          'ILMN', 'LYFT', 'MU', 'BKNG', 'VIEW', 'CMCSA', 'OSCR', 'SHOP', 'SPY']
 
-        recent_1k = pd.read_csv('recent_r1k.csv')
+        recent_1k = pd.read_csv(recent_1k_path)
         r1k_sec_id = recent_1k['dcm_security_id'].tolist()
         rk1_tickers = data[(data['dcm_security_id'].isin(r1k_sec_id))].drop_duplicates()['ticker'].tolist()
 
