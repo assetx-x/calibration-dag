@@ -180,3 +180,13 @@ def pick_trading_month_dates(start_date, end_date, mode="bme"):
 
 def convert_date_to_string(date):
     return date.strftime('%Y-%m-%d')
+
+
+def create_directory_if_does_not_exists(dir_path):
+    try:
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
+

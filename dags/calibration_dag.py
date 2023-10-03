@@ -6,6 +6,8 @@ from derived_simple_price_step import ComputeBetaQuantamental_params, CalculateM
 from transformation_step import CreateYahooDailyPriceRolling_params, TransformEconomicDataWeekly_params, \
     CreateIndustryAverageWeekly_params
 
+from save_gan_inputs_step import GenerateDataGANWeekly_params
+
 load_dotenv()
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
@@ -127,20 +129,12 @@ def airflow_wrapper(**kwargs):
 """ Calibration Process"""
 
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
-    with TaskGroup("Part1", tooltip="Part1") as MergeStep:
-        DailyP_Part1 = PythonOperator(
-            task_id="DailyP_Part1",
+
+    with TaskGroup("SaveGANInputs", tooltip="SaveGANInputs") as SaveGANInputs:
+        GenerateDataGAN = PythonOperator(
+            task_id="GenerateDataGAN",
             python_callable=airflow_wrapper,
-            op_kwargs=SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS_PART2,
-            execution_timeout=timedelta(minutes=150)
+            op_kwargs=GenerateDataGANWeekly_params
         )
 
-    with TaskGroup("Part2", tooltip="Part2") as MergeStep:
-        DailyP_Part2 = PythonOperator(
-            task_id="DailyP_Part2",
-            python_callable=airflow_wrapper,
-            op_kwargs=SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS_PART3,
-            execution_timeout=timedelta(minutes=150)
-        )
-
-    DailyP_Part1 >> DailyP_Part2
+    SaveGANInputs
