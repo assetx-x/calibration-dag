@@ -59,7 +59,7 @@ class GenerateDataGAN(DataReaderClass):
         company_data = self.melt_merge(future_return_data,
                                        df)  # Merging in this direction ensures that it conforms to the rest of the GAN data
 
-        base_dir = 'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/save_gan_inputs/company_data.h5'
+        base_dir = 'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/save_gan_inputs'
 
         # full_path = get_local_dated_dir(base_dir, self.task_params.end_dt, self.data_dir)
         full_path = base_dir
@@ -103,7 +103,7 @@ class GenerateDataGANWeekly(GenerateDataGAN):
         company_data_monthly = self.melt_merge(future_return_data, monthly_df)
         company_data_weekly = self.melt_merge(future_return_weekly, weekly_df)
 
-        base_dir = 'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/save_gan_inputs/company_data.h5'
+        base_dir = 'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/save_gan_inputs'
 
         # full_path = get_local_dated_dir(base_dir, self.task_params.end_dt, self.data_dir)
         full_path = base_dir
