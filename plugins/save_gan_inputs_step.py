@@ -103,19 +103,19 @@ class GenerateDataGANWeekly(GenerateDataGAN):
         company_data_monthly = self.melt_merge(future_return_data, monthly_df)
         company_data_weekly = self.melt_merge(future_return_weekly, weekly_df)
 
-        base_dir = 'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/save_gan_inputs'
+        base_dir = 'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/live/save_gan_inputs/save_gan_inputs'
 
         # full_path = get_local_dated_dir(base_dir, self.task_params.end_dt, self.data_dir)
         full_path = base_dir
-        create_directory_if_does_not_exists(full_path)
-        company_data_monthly.to_hdf(os.path.join(full_path, "company_data.h5"), key="df", format="table")
-        company_data_weekly.to_hdf(os.path.join(full_path, "company_data_weekly.h5"), key="df", format="table")
-        econ_data.to_hdf(os.path.join(full_path, "econ_data_final.h5"), key="df", format="table")
-        econ_data_weekly.to_hdf(os.path.join(full_path, "econ_data_final_weekly.h5"), key="df", format="table")
-        future_return_data.to_hdf(os.path.join(full_path, "future_returns.h5"), key="df", format="fixed")
-        future_return_weekly.to_hdf(os.path.join(full_path, "future_returns_weekly.h5"), key="df", format="fixed")
-        active_matrix.to_hdf(os.path.join(full_path, "active_matrix.h5"), key="df", format="fixed")
-        active_matrix_weekly.to_hdf(os.path.join(full_path, "active_matrix_weekly.h5"), key="df", format="fixed")
+        # create_directory_if_does_not_exists(full_path)
+        company_data_monthly.to_csv(os.path.join(full_path, "company_data.csv"))
+        company_data_weekly.to_csv(os.path.join(full_path, "company_data_weekly.csv"))
+        econ_data.to_csv(os.path.join(full_path, "econ_data_final.csv"))
+        econ_data_weekly.to_csv(os.path.join(full_path, "econ_data_final_weekly.csv"))
+        future_return_data.to_csv(os.path.join(full_path, "future_returns.csv"))
+        future_return_weekly.to_csv(os.path.join(full_path, "future_returns_weekly.csv"))
+        active_matrix.to_csv(os.path.join(full_path, "active_matrix.csv"))
+        active_matrix_weekly.to_csv(os.path.join(full_path, "active_matrix_weekly.csv"))
 
         print("****************************************************")
         print("****************************************************")
@@ -134,7 +134,7 @@ class GenerateDataGANWeekly(GenerateDataGAN):
 
 
 
-GDGW_params2 = {'data_dir':construct_destination_path('save_gan_inputs_h5').format(os.environ['GCS_BUCKET'],'holding').split('/holding')[0]}
+GDGW_params2 = {'data_dir':construct_destination_path('save_gan_inputs').format(os.environ['GCS_BUCKET'],'holding').split('/holding')[0]}
 
 GenerateDataGANWeekly_params = {'params': GDGW_params2,
                                 'class': GenerateDataGANWeekly,
