@@ -3,14 +3,13 @@ import time
 import sys
 
 import requests
-import yfinance as yf
 import pandas as pd
 import warnings
 import zipfile
 
 from dotenv import load_dotenv
 from google.cloud import bigquery
-from datetime import datetime, timedelta, date
+from datetime import datetime, date
 
 warnings.filterwarnings("ignore")
 
@@ -63,21 +62,21 @@ def get_security_id_from_ticker_mapper(ticker):
     return security_master_tickers
 
 
-def delta_date_to_isoformat(date):
-    pd_date = pd.to_datetime(date)
+def delta_date_to_isoformat(d):
+    pd_date = pd.to_datetime(d)
     return pd_date.isoformat()
 
 
-def get_tickers_to_carry_forward(date):
-    if isinstance(date, str):
-        date = datetime.strptime(date, iso_format)
-        date = date.date()
-    sm_query = f"select distinct ticker, dcm_security_id from marketdata.daily_equity_prices where date(date)='{date}'"
+def get_tickers_to_carry_forward(d):
+    if isinstance(d, str):
+        d = datetime.strptime(d, iso_format)
+        d = d.date()
+    sm_query = f"select distinct ticker, dcm_security_id from marketdata.daily_equity_prices where date(date)='{d}'"
     return client.query(sm_query).to_dataframe()
 
 
-def get_tickers_and_security_ids(date):
-    sm_query = f"select distinct ticker from marketdata.daily_equity_prices where date='{date}'"
+def get_tickers_and_security_ids(d):
+    sm_query = f"select distinct ticker from marketdata.daily_equity_prices where date='{d}'"
     security_master_tickers = (
         client.query(sm_query).to_dataframe()
     )
