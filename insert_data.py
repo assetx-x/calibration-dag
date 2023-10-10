@@ -10,8 +10,7 @@ import zipfile
 
 from dotenv import load_dotenv
 from google.cloud import bigquery
-from datetime import datetime, timedelta
-
+from datetime import datetime, timedelta, date
 
 warnings.filterwarnings("ignore")
 
@@ -33,8 +32,7 @@ else:
 os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
 
 client = bigquery.Client()
-table_name = 'dcm-prod-ba2f.marketdata.daily_equity_prices_nasdaq'
-
+table_name = 'dcm-prod-ba2f.marketdata.daily_equity_prices'
 
 iso_format = '%Y-%m-%dT%H:%M:%S'
 
@@ -86,32 +84,17 @@ def get_tickers_and_security_ids(date):
     return security_master_tickers
 
 
-def download_tickers_yfinance(tickers, start, debug=False, n=None):
-    print('Downloading from Yahoo Finance')
-    if debug or n is not None:
-        tickers = tickers[:n]
-        print(f'Downloading only {n} tickers: {tickers}')
-    tickers_data = yf.download(tickers, start=start)
-    tickers_data.columns = tickers_data.columns.swaplevel(0, 1)
-    tickers_data.index = tickers_data.index.map(lambda x: x.isoformat())
-    return tickers_data
+def get_last_date_in_table():
+    return (
+        client.query(f"select max(date) as max_date from marketdata.daily_equity_prices").to_dataframe()
+    )
 
 
 def download_tickers_list_by_date(start: str, end: str = None):
     nasdaq_api_key = os.getenv('NASDAQ_DATA_LINK_API_KEY')
     api_url = 'https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.json'
-    start = datetime.strptime(start, '%Y-%m-%d')
-    if not end:
-        end = datetime.today()
-        print(f'[*] No end date provided. Using today: {end}')
-    else:
-        end = datetime.strptime(end, '%Y-%m-%d')
-    dates = [start + timedelta(days=x) for x in range(0, (end - start).days)]
-    dates = [x.strftime('%Y-%m-%d') for x in dates]
-    dates.sort()
-    filename_zip = f'data_{start}.zip'
+    filename_zip = f'data_{start}.zip'.replace(" ", "")
     if not os.path.exists(filename_zip):
-        print(f'[*] Downloading data from Nasdaq for {len(dates)} days. From {dates[0]} to {dates[-1]}')
         args = {
             'date.gte': start,
             'date.lte': end,
@@ -139,6 +122,8 @@ def download_tickers_list_by_date(start: str, end: str = None):
             return None
         with open(filename_zip, 'wb') as f:
             f.write(file_content)
+    else:
+        print(f'[*] File {filename_zip} already exists')
 
     with zipfile.ZipFile(filename_zip, 'r') as zip_ref:
         print(f'[*] Extracting {filename_zip}')
@@ -158,74 +143,6 @@ def download_tickers_list_by_date(start: str, end: str = None):
         print(f'[*] Removed {csv_file}')
 
 
-def download_tickers_by_date(start: str, end: str = None):
-    nasdaq_api_key = os.getenv('NASDAQ_DATA_LINK_API_KEY')
-    api_url = 'https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.json'
-    start = datetime.strptime(start, '%Y-%m-%d')
-    if not end:
-        end = datetime.today()
-        print(f'[*] No end date provided. Using today: {end}')
-    else:
-        end = datetime.strptime(end, '%Y-%m-%d')
-    dates = [start + timedelta(days=x) for x in range(0, (end - start).days)]
-    dates = [x.strftime('%Y-%m-%d') for x in dates]
-    dates.sort()
-    print(f'[*] Downloading data from Nasdaq for {len(dates)} days. From {dates[0]} to {dates[-1]}')
-    for d in dates:
-        filename_zip = f'data_{d}.zip'
-        if not os.path.exists(filename_zip):
-            day_of_week = datetime.strptime(d, '%Y-%m-%d').weekday()
-            day_of_week = weekday_dict.get(day_of_week)
-            if day_of_week in ['Saturday', 'Sunday']:
-                print(f'[*] Skipping {d}: {day_of_week}')
-                continue
-            print(f'[*] Downloading data for {d}: {day_of_week}')
-            args = {
-                'date': d,
-                'qopts.columns': 'ticker,date,open,close,high,low,volume',
-                'qopts.export': 'true',
-                'api_key': nasdaq_api_key
-            }
-            r = requests.get(api_url, params=args)
-            if r.status_code != 200:
-                print(f'[!] Error: {r.status_code}')
-                continue
-            file_status = r.json().get('datatable_bulk_download').get('file').get('status')
-            while file_status.lower() == 'creating':
-                print(f'[*] Waiting for file to be created for {d}. Status: "{file_status}"')
-                r = requests.get(api_url, params=args)
-                file_status = r.json().get('datatable_bulk_download').get('file').get('status')
-                time.sleep(1)
-            file_to_download_link = r.json().get('datatable_bulk_download').get('file').get('link')
-            if file_to_download_link is None:
-                print(f'[!] No download link for {d}: \n{r.json()}')
-                continue
-            file_content = requests.get(file_to_download_link, allow_redirects=True, timeout=10).content
-            if file_content == b'':
-                print(f'[!] No bin content for {d}')
-                continue
-            with open(filename_zip, 'wb') as f:
-                f.write(file_content)
-        with zipfile.ZipFile(filename_zip, 'r') as zip_ref:
-            print(f'[*] Extracting {filename_zip}')
-            zip_ref.extractall()
-            csv_files = zip_ref.namelist()
-        if len(csv_files) == 0:
-            print(f'[!] No csv file for {d}')
-            continue
-        for csv_file in csv_files:
-            df = pd.read_csv(csv_file)
-            if 'No Data' in str(df.head()):
-                print(f'    No data for {d}')
-                os.remove(csv_file)
-                continue
-            yield df
-            os.remove(csv_file)
-            print(f'[*] Removed {csv_file}')
-        os.remove(filename_zip)
-        print(f'[*] Removed {filename_zip}')
-
-
 def execute_query(head: str, queries: list, batch_size=1_000):
     try:
         print(f'[*] Total rows to execute: {len(queries)}')
@@ -240,8 +157,19 @@ def execute_query(head: str, queries: list, batch_size=1_000):
     print()
 
 
+def is_updated(*args):
+    args = list(args)
+    for ix, d in enumerate(args):
+        if isinstance(d, datetime):
+            args[ix] = d.date()
+    r = date.today() <= max(args)
+    return r
+
+
 def main():
     queries = []
+    last_date_df = get_last_date_in_table()
+    last_date = last_date_df['max_date'].iloc[0].date()
 
     def create_insert_query(r):
         tkr = r['ticker']
@@ -250,10 +178,15 @@ def main():
         aos = delta_date_to_isoformat(aoe)
         return f"('{tkr}','{r['date']}', {r['open']}, {r['close']}, {r['high']}, {r['low']}, {r['volume']}, '{aos}', '{aoe}', '{tkr}', {sec_id})"
 
-    # yesterday = (datetime.today() - timedelta(days=1)).isoformat()
-    start_date = '2000-01-03'
-    # end_date = '2023-07-14'
-    for ticker_df in download_tickers_list_by_date(start_date):
+    start_date = last_date
+    end_date = datetime.today()
+    if is_updated(last_date, end_date):
+        print(f'[*] Already updated to {end_date}')
+        return
+    start_date = start_date.strftime('%Y-%m-%d')
+    end_date = end_date.strftime('%Y-%m-%d')
+    print(f'[*] Getting data from {start_date} to {end_date}')
+    for ticker_df in download_tickers_list_by_date(start_date, end_date):
         print(f'[*] Processing {ticker_df.shape} rows')
         ticker_df = ticker_df[ticker_df['ticker'].notna()]
         tickers_list = ticker_df['ticker'].unique().tolist()
@@ -265,13 +198,13 @@ def main():
             insert_query = create_insert_query(row)
             queries.append(insert_query)
 
-            if len(queries) >= 1_000_000:
-                print(f'[*] Executing {len(queries)} rows')
-                q_head = (f"INSERT INTO {table_name} (ticker, date, open, close, high, low, volume, as_of_start, "
-                          f"as_of_end, symbol_asof, dcm_security_id) VALUES")
-                execute_query(q_head, queries)  # , batch_size=500)
-                queries = []
-                print(f'[*] Queries len now {len(queries)}')
+        if queries:
+            print(f'[*] Executing {len(queries)} rows into: {table_name}')
+            q_head = (f"INSERT INTO {table_name} (ticker, date, open, close, high, low, volume, as_of_start, "
+                      f"as_of_end, symbol_asof, dcm_security_id) VALUES")
+            execute_query(q_head, queries)  # , batch_size=500)
+            queries = []
+            print(f'[*] Queries len now {len(queries)}')
 
 
 if __name__ == '__main__':
