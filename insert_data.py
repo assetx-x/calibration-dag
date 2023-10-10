@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 import sys
@@ -24,7 +25,7 @@ if sys.platform in ['darwin', 'linux']:
     home_path = os.getenv('HOME')
     credentials_path = os.path.join(home_path, '.config/gcloud/application_default_credentials.json')
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
-    print(f'Credentials set to {os.environ["GOOGLE_APPLICATION_CREDENTIALS"]}')
+    logging.info(f'Credentials set to {os.environ["GOOGLE_APPLICATION_CREDENTIALS"]}')
 else:
     raise ValueError('Only Linux is supported')
 
@@ -103,57 +104,56 @@ def download_tickers_list_by_date(start: str, end: str = None):
         }
         r = requests.get(api_url, params=args)
         if r.status_code != 200:
-            print(f'[!] Error: {r.status_code}')
+            logging.info(f'[!] Error: {r.status_code}')
             return None
         file_status = r.json().get('datatable_bulk_download').get('file').get('status')
         while file_status.lower() == 'creating':
-            print(f'[*] Waiting for file to be created for {start}. Status: "{file_status}"')
+            logging.info(f'[*] Waiting for file to be created for {start}. Status: "{file_status}"')
             r = requests.get(api_url, params=args)
             file_status = r.json().get('datatable_bulk_download').get('file').get('status')
             time.sleep(45)
         file_to_download_link = r.json().get('datatable_bulk_download').get('file').get('link')
         if file_to_download_link is None:
-            print(f'[!] No download link for {start}: \n{r.json()}')
+            logging.info(f'[!] No download link for {start}: \n{r.json()}')
             return None
         file_content = requests.get(file_to_download_link, allow_redirects=True, timeout=10).content
         if file_content == b'':
-            print(f'[!] No bin content for {start}')
+            logging.info(f'[!] No bin content for {start}')
             return None
         with open(filename_zip, 'wb') as f:
             f.write(file_content)
     else:
-        print(f'[*] File {filename_zip} already exists')
+        logging.info(f'[*] File {filename_zip} already exists')
 
     with zipfile.ZipFile(filename_zip, 'r') as zip_ref:
-        print(f'[*] Extracting {filename_zip}')
+        logging.info(f'[*] Extracting {filename_zip}')
         zip_ref.extractall()
         csv_files = zip_ref.namelist()
     if len(csv_files) == 0:
-        print(f'[!] No csv file for {start}')
+        logging.info(f'[!] No csv file for {start}')
         return None
     for csv_file in csv_files:
         df = pd.read_csv(csv_file)
         if 'No Data' in str(df.head()):
-            print(f'    No data for {start}')
+            logging.info(f'    No data for {start}')
             os.remove(csv_file)
             continue
         yield df
         os.remove(csv_file)
-        print(f'[*] Removed {csv_file}')
+        logging.info(f'[*] Removed {csv_file}')
 
 
 def execute_query(head: str, queries: list, batch_size=1_000):
     try:
-        print(f'[*] Total rows to execute: {len(queries)}')
+        logging.info(f'[*] Total rows to execute: {len(queries)}')
         for i in range(0, len(queries), batch_size):
             batch = queries[i:i + batch_size]
             q = head + ', '.join(batch)
             query_job = client.query(q)
             result = query_job.result()
-            print(f'[*] Executed rows {len(batch)}.', end=' ')
+            logging.info(f'[*] Executed rows {len(batch)}.')
     except Exception as e:
-        print('[!] Error:', type(e), e)
-    print()
+        logging.error('[!] Error:', type(e), e)
 
 
 def is_updated(*args):
@@ -180,13 +180,13 @@ def main():
     start_date = last_date
     end_date = datetime.today()
     if is_updated(last_date, end_date):
-        print(f'[*] Already updated to {end_date}')
+        logging.info(f'[*] Already updated to {end_date}')
         return
     start_date = start_date.strftime('%Y-%m-%d')
     end_date = end_date.strftime('%Y-%m-%d')
-    print(f'[*] Getting data from {start_date} to {end_date}')
+    logging.info(f'[*] Getting data from {start_date} to {end_date}')
     for ticker_df in download_tickers_list_by_date(start_date, end_date):
-        print(f'[*] Processing {ticker_df.shape} rows')
+        logging.info(f'[*] Processing {ticker_df.shape} rows')
         ticker_df = ticker_df[ticker_df['ticker'].notna()]
         tickers_list = ticker_df['ticker'].unique().tolist()
         sec_id_df = get_security_id_from_ticker_mapper(tickers_list)
@@ -198,16 +198,16 @@ def main():
             queries.append(insert_query)
 
         if queries:
-            print(f'[*] Executing {len(queries)} rows into: {table_name}')
+            logging.info(f'[*] Executing {len(queries)} rows into: {table_name}')
             q_head = (f"INSERT INTO {table_name} (ticker, date, open, close, high, low, volume, as_of_start, "
                       f"as_of_end, symbol_asof, dcm_security_id) VALUES")
             execute_query(q_head, queries)  # , batch_size=500)
             queries = []
-            print(f'[*] Queries len now {len(queries)}')
+            logging.info(f'[*] Queries len now {len(queries)}')
 
 
 if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print('Interrupted')
+        logging.error('Interrupted')
