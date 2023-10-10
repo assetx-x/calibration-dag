@@ -10,7 +10,7 @@ default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
     'retries': 1,
-    'start_date': datetime(2023, 1, 1),
+    'start_date': datetime(2023, 10, 10),
     'schedule_interval': '0 1 * * *',  # Schedule to everyday at 1AM
 }
 
