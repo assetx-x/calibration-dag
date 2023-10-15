@@ -1,9 +1,25 @@
+import os
+import sys
 from datetime import datetime
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
 from insert_data import main
+
+
+if sys.platform in ['darwin', 'linux']:
+    """
+    To log in into GCP locally use the following command:
+    $ gcloud auth application-default login
+    and follow the instructions, then the json will be created automatically
+    """
+    home_path = os.getenv('HOME')
+    credentials_path = os.path.join(home_path, '.config/gcloud/application_default_credentials.json')
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
+    print(f'Credentials set to {os.environ["GOOGLE_APPLICATION_CREDENTIALS"]}')
+else:
+    raise ValueError('Only Linux is supported')
 
 
 default_args = {
