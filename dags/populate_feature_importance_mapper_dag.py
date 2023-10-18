@@ -82,7 +82,7 @@ def main():
 
 
 
-with DAG(dag_id="populate_feature_importance_mapper") as dag:
+with DAG(dag_id="populate_feature_importance_mapper",start_date=days_ago(1)) as dag:
 
     tart_task = PythonOperator(
         task_id="mapper",
