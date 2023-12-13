@@ -1,16 +1,15 @@
 import os
 from datetime import datetime
-from pprint import pprint
-
 import requests
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.providers.google.cloud.sensors.gcs import GCSObjectExistenceSensor, GCSUploadSessionCompleteSensor
 from google.cloud import storage
 
 from plugins.DataCalculations.strategies.main import PerformanceCalculator
 
 GS_BUCKET_NAME = 'api_v2_storage'
-
+DEFAULT_FILE_PREFIX = 'csv'
 
 default_args = {
     'owner': 'airflow',
@@ -18,10 +17,10 @@ default_args = {
 }
 
 dag = DAG(
-    'calculate_strategy_performance_dag',
+    'sensor_strategy_dag',
     default_args=default_args,
-    description='List Google Cloud Storage files',
-    schedule='@once',
+    description='Calculate strategy performance when a new file is uploaded',
+    schedule_interval=None,  # Set to None to trigger manually or through external events
     catchup=False,
 )
 
@@ -42,7 +41,7 @@ def authenticate():
     return jwt_token
 
 
-def list_files_in_bucket(bucket_name, **kwargs):
+def execute(bucket_name, **kwargs):
     client = storage.Client()
     bucket = client.get_bucket(bucket_name)
     blobs = bucket.list_blobs()
@@ -74,15 +73,49 @@ def list_files_in_bucket(bucket_name, **kwargs):
         return response
 
 
-list_files_task = PythonOperator(
-    task_id='list_files_task',
-    python_callable=list_files_in_bucket,
-    op_kwargs={'bucket_name': GS_BUCKET_NAME},
-    dag=dag,
+def check_for_files(**kwargs):
+    client = storage.Client()
+    bucket = client.get_bucket(GS_BUCKET_NAME)
+    blobs = bucket.list_blobs(prefix=DEFAULT_FILE_PREFIX)
+
+    return len(list(blobs)) > 0
+
+
+list_files_sensor = GCSUploadSessionCompleteSensor(
+    bucket=GS_BUCKET_NAME,
+    prefix=DEFAULT_FILE_PREFIX,
+    inactivity_period=2,
+    min_objects=1,
+    allow_delete=False,
+    previous_objects=set(),
+    task_id="execute",
 )
 
-list_files_task
+list_files_sensor
 
+# check_for_files_task = PythonOperator(
+#     task_id='check_for_files_task',
+#     python_callable=check_for_files,
+#     provide_context=True,
+#     dag=dag,
+# )
+#
+# list_files_task = PythonOperator(
+#     task_id='list_files_task',
+#     python_callable=execute,
+#     op_kwargs={'bucket_name': GS_BUCKET_NAME},
+#     dag=dag,
+# )
+#
+# # Additional PythonOperator for calculation task
+# calculate_task = PythonOperator(
+#     task_id='calculate_task',
+#     python_callable=execute,  # Replace this with the calculation function
+#     op_kwargs={'bucket_name': GS_BUCKET_NAME},
+#     dag=dag,
+# )
+#
+# list_files_sensor >> check_for_files_task >> list_files_task >> calculate_task
 
 if __name__ == '__main__':
     dag.run()
