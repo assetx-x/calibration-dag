@@ -36,11 +36,12 @@ def authenticate():
     print(f'[*] Endpoint: {API_ENDPOINT}')
     response = requests.post(
         f'{API_ENDPOINT}/auth/token/',
-        json={'username': 'string', 'password': 'string'},
+        json={'username': 'gcloud', 'password': 'gcloud'},
         headers={'Content-Type': 'application/json'},
     )
     jwt_token = response.json()['access']
     print(f'[*] Response: {response} - {response.text} - {response.status_code}')
+    print(f'[*] JWT Token: {jwt_token}')
     return jwt_token
 
 
@@ -60,17 +61,24 @@ def list_files_in_bucket(bucket_name, **kwargs):
         s_performance = PerformanceCalculator(data['file_name'], data['file_content']).run()
         print(f'[*] Result: {s_performance}')
         token = authenticate()
-        s_performance_json = json.dumps({'data': s_performance})
+        s_performance_json = {
+                'strategy': data['file_name'],
+                'data': s_performance
+            }
+        print(f'[*] JSON: {s_performance_json}')
         response = requests.post(
             f'{API_ENDPOINT}/strategy_performance/',
-            json=s_performance_json,
+            json={
+                'strategy': data['file_name'],
+                'data': s_performance
+            },
             headers={
                 'Content-Type': 'application/json',
+                'accept': 'application/json',
                 'Authorization': f'Bearer {token}',
             },
         )
-        print(f'[*] Response: {response} - {response.text} - {response.status_code}')
-        return response
+        print(f'[*] Response: {response.content}')
 
 
 list_files_task = PythonOperator(
