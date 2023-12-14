@@ -1,9 +1,11 @@
+import json
 import os
 from datetime import datetime
 from pprint import pprint
 
 import requests
 from airflow import DAG
+from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 from google.cloud import storage
 
@@ -21,7 +23,7 @@ dag = DAG(
     'calculate_strategy_performance_dag',
     default_args=default_args,
     description='List Google Cloud Storage files',
-    schedule='@once',
+    schedule='@hourly',
     catchup=False,
 )
 
@@ -49,7 +51,6 @@ def list_files_in_bucket(bucket_name, **kwargs):
 
     print("Files in bucket '{}':".format(bucket_name))
     for blob in blobs:
-        print(blob.name)
         file_content = blob.download_as_string()
         data = {
             'file_name': blob.name,
@@ -59,12 +60,10 @@ def list_files_in_bucket(bucket_name, **kwargs):
         s_performance = PerformanceCalculator(data['file_name'], data['file_content']).run()
         print(f'[*] Result: {s_performance}')
         token = authenticate()
+        s_performance_json = json.dumps({'data': s_performance})
         response = requests.post(
             f'{API_ENDPOINT}/strategy_performance/',
-            json={
-                'name': data['file_name'],
-                'performance': s_performance,
-            },
+            json=s_performance_json,
             headers={
                 'Content-Type': 'application/json',
                 'Authorization': f'Bearer {token}',
@@ -81,7 +80,9 @@ list_files_task = PythonOperator(
     dag=dag,
 )
 
-list_files_task
+empty_operator = EmptyOperator(task_id='empty_operator', dag=dag)
+
+empty_operator >> list_files_task
 
 
 if __name__ == '__main__':
