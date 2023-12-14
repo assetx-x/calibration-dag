@@ -73,6 +73,7 @@ def list_files_in_bucket(bucket_name, **kwargs):
                 'data': s_performance
             },
             headers={
+                'X-User-Agent': f'airflow-task-{data["file_name"]}',
                 'Content-Type': 'application/json',
                 'accept': 'application/json',
                 'Authorization': f'Bearer {token}',
