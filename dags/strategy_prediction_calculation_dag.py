@@ -23,7 +23,7 @@ dag = DAG(
     'calculate_strategy_performance_dag',
     default_args=default_args,
     description='List Google Cloud Storage files',
-    schedule='@hourly',
+    schedule_interval='@daily',
     catchup=False,
 )
 
