@@ -1,8 +1,7 @@
 import unittest
-from pandas import DataFrame
 from unittest.mock import MagicMock, patch
 
-from DataCalculations.strategies.base_metrics_abc import BaseMetrics
+from plugins.DataCalculations.strategies.base_metrics_abc import BaseMetrics
 
 
 class TestBaseMetrics(unittest.TestCase):

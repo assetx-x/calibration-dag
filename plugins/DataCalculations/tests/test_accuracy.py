@@ -1,7 +1,7 @@
 import unittest
 from pandas import DataFrame
 
-from DataCalculations.strategies.accuracy_metrics import AccuracyMetrics
+from plugins.DataCalculations.strategies.accuracy_metrics import AccuracyMetrics
 
 
 class TestAccuracyMetrics(unittest.TestCase):
