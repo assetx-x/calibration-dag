@@ -13,8 +13,14 @@ def save_on_database(func):
 
 
 class BaseMetrics(ABC):
+
     def _validate(self):
         raise NotImplementedError(
+            f'Please implement this method in your subclass {self.__class__.__name__}'
+        )
+
+    def _normalize(self):
+        return NotImplementedError(
             f'Please implement this method in your subclass {self.__class__.__name__}'
         )
 
