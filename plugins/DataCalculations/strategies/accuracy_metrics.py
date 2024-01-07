@@ -78,3 +78,4 @@ class AccuracyMetrics(BaseMetrics):
         up_periods = self.calculate_up_periods()
         down_periods = self.calculate_down_periods()
         return up_periods / down_periods if down_periods != 0 else up_periods if up_periods != 0 else 0
+

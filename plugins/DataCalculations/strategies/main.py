@@ -1,17 +1,22 @@
+import pandas as pd
 import io
 
-import pandas as pd
-from pandas import read_csv
-
 from plugins.DataCalculations.strategies.accuracy_metrics import AccuracyMetrics
-from plugins.DataCalculations.strategies.return_summary import ReturnSummary
+from plugins.DataCalculations.strategies.return_quantile_metrics import ReturnQuantileMetrics
+from plugins.DataCalculations.strategies.volatility_metrics import VolatilityMetrics
 
 
 class PerformanceCalculator:
     calculators = [
         AccuracyMetrics,
         # ReturnSummary,
+        ReturnQuantileMetrics,
+        VolatilityMetrics,
     ]
+
+    @classmethod
+    def get_name(cls):
+        return cls.__name__
 
     def __init__(self, strategy_name, file_content):
         self.strategy_name = strategy_name
@@ -24,12 +29,8 @@ class PerformanceCalculator:
         :return: dataframe with the data to be calculated
         """
         try:
-            return read_csv(io.BytesIO(file_content), index_col=[0])
-        except (
-            pd.errors.EmptyDataError,
-            pd.errors.ParserError,
-            FileNotFoundError,
-        ) as e:
+            return pd.read_csv(io.BytesIO(file_content), index_col=[0])
+        except (pd.errors.EmptyDataError, pd.errors.ParserError) as e:
             print(f"Error reading strategy CSV file. {e}")  # {file_path.name} - {e}")
             raise ValueError(f"Error reading strategy CSV file. {e}")  # {file_path.name}") from e
 
@@ -38,7 +39,6 @@ class PerformanceCalculator:
         Calculates every calculate_* method from every calculator class in the calculators list
         and returns a dictionary with the results
         :return: dictionary with the results
-
         Example output:
         {
             'AccuracyMetrics': {
@@ -47,6 +47,6 @@ class PerformanceCalculator:
         }
         """
         return {
-            Calculator.__name__: Calculator(self.dataframe).calculate()
+            Calculator.get_name(): Calculator(self.dataframe).calculate()
             for Calculator in self.calculators
         }

@@ -5,15 +5,13 @@ import logging
 def save_on_database(func):
     def wrapper(self, *args, **kwargs):
         results = func(self, *args, **kwargs)
-        # logging.info(f'[MOCK] Saving {self.__class__.__name__} results on database here ...')
-        # TODO save results on database
+        self._save_results(results)
         return results
 
     return wrapper
 
 
 class BaseMetrics(ABC):
-
     def _validate(self):
         raise NotImplementedError(
             f'Please implement this method in your subclass {self.__class__.__name__}'
@@ -24,23 +22,37 @@ class BaseMetrics(ABC):
             f'Please implement this method in your subclass {self.__class__.__name__}'
         )
 
+    @classmethod
+    def get_name(cls):
+        return cls.__name__
+
     @save_on_database
     def calculate(self):
-        methods = [
+        calculation_methods = self._get_calculation_methods()
+        results = self._calculate_results(calculation_methods)
+        return results
+
+    def _get_calculation_methods(self):
+        return [
             method
             for method in dir(self)
             if method.startswith('calculate_') and callable(getattr(self, method))
         ]
-        results = {}
 
+    def _calculate_results(self, methods):
+        results = {}
         for method_name in methods:
             logging.info(
                 f'[*] Calculating {method_name} from {self.__class__.__name__}'
             )
             method = getattr(self, method_name)
             results[method_name] = method()
-
         return results
+
+    def _save_results(self, results):
+        # logging.info(f'[MOCK] Saving {self.__class__.__name__} results on database here ...')
+        # TODO save results on database
+        pass
 
 
 """
