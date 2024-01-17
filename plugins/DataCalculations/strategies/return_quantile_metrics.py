@@ -22,4 +22,4 @@ class ReturnQuantileMetrics(BaseMetrics):
 
     def calculate_quantiles(self):
         self.dataframe['quantiles'] = qcut(self.dataframe['future_ret_5B'], 5, labels=False) + 1
-        return self.dataframe
+        return self.dataframe.to_dict()

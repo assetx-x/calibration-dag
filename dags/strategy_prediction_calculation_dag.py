@@ -5,13 +5,16 @@ from pprint import pprint
 
 import requests
 from airflow import DAG
+from airflow.models import Variable
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 from google.cloud import storage
 
 from plugins.DataCalculations.strategies.main import PerformanceCalculator
 
-GS_BUCKET_NAME = 'api_v2_storage'
+
+GS_BUCKET_NAME = Variable.get('GS_BUCKET_NAME')
+API_ENDPOINT = Variable.get('API_ENDPOINT')
 
 
 default_args = {
@@ -28,7 +31,6 @@ dag = DAG(
 )
 
 
-API_ENDPOINT = 'https://ax-api-v2-2dywgqiasq-uk.a.run.app/'
 
 
 def authenticate():
@@ -45,32 +47,58 @@ def authenticate():
     return jwt_token
 
 
+def recursive_str(data):
+    """Function to recursively convert all values in a structure to string"""
+    if isinstance(data, dict):
+        return {key: recursive_str(value) for key, value in data.items()}
+    if isinstance(data, list):
+        return [recursive_str(element) for element in data]
+    return str(data)
+
+
+# def process_blob(data):
+#     s_performance = PerformanceCalculator(data['file_name'], data['file_content']).run()
+#     parsed_s_performance = recursive_str(s_performance)
+#     token = authenticate()
+#     response = requests.post(
+#         f'{API_ENDPOINT}/strategy_performance/',
+#         json={
+#             'strategy': data['file_name'],
+#             'data': parsed_s_performance
+#         },
+#         headers={
+#             'X-User-Agent': f'airflow-task-{data["file_name"]}',
+#             'Content-Type': 'application/json',
+#             'accept': 'application/json',
+#             'Authorization': f'Bearer {token}',
+#         },
+#     )
+#     print(f'[*] API POST response: {response.content}')
+
+
 def list_files_in_bucket(bucket_name, **kwargs):
     client = storage.Client()
     bucket = client.get_bucket(bucket_name)
     blobs = bucket.list_blobs()
 
-    print("Files in bucket '{}':".format(bucket_name))
+    print(f"Files in bucket '{bucket_name}':")
     for blob in blobs:
         file_content = blob.download_as_string()
+        blob_name = blob.name
+        print(f' name: {blob_name}')
         data = {
             'file_name': blob.name,
             'file_content': file_content,
         }
         print(f'[*] Calculating performance for {data["file_name"]}')
         s_performance = PerformanceCalculator(data['file_name'], data['file_content']).run()
-        print(f'[*] Result: {s_performance}')
+        parsed_s_performance = recursive_str(s_performance)
         token = authenticate()
-        s_performance_json = {
-                'strategy': data['file_name'],
-                'data': s_performance
-            }
-        print(f'[*] JSON: {s_performance_json}')
         response = requests.post(
             f'{API_ENDPOINT}/strategy_performance/',
             json={
                 'strategy': data['file_name'],
-                'data': s_performance
+                'data': parsed_s_performance
             },
             headers={
                 'X-User-Agent': f'airflow-task-{data["file_name"]}',
@@ -79,7 +107,7 @@ def list_files_in_bucket(bucket_name, **kwargs):
                 'Authorization': f'Bearer {token}',
             },
         )
-        print(f'[*] Response: {response.content}')
+        print(f'[*] API POST response: {response.content}')
 
 
 list_files_task = PythonOperator(

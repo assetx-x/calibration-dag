@@ -9,7 +9,7 @@ class VolatilityMetrics(BaseMetrics):
 
     def calculate_correlation(self):
         correlation = self.dataframe.corr()
-        return correlation
+        return correlation.to_dict()
 
     def calculate_std_dev_portfolio(self):
         std_dev_portfolio = np.std(self.dataframe)

@@ -47,6 +47,6 @@ class PerformanceCalculator:
         }
         """
         return {
-            Calculator.get_name(): Calculator(self.dataframe).calculate()
+            Calculator.__name__: Calculator(self.dataframe).calculate()
             for Calculator in self.calculators
         }
