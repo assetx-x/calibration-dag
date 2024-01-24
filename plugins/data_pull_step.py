@@ -46,24 +46,15 @@ class S3SecurityMasterReader(GCPReader):
     def _post_process_pulled_data(self, data, **kwargs):
         data.drop(data.columns[self.index_col], axis=1, inplace=True)
         data["dcm_security_id"] = data["dcm_security_id"].astype(int)
-        tenere_list = ['NKE', 'PANW', 'BDX', 'EL', 'CP', 'INTC', 'SNOW', 'MSFT', 'AMD',
-                                         'DHR', 'YUM', 'PLD', 'TMUS', 'MDB', 'AMZN', 'BSX', 'SBUX', 'AAPL',
-                                         'NVDA', 'TMO', 'V', 'UNP', 'META', 'UNH', 'GOOGL', 'NOW', 'ISRG',
-                                         'SLB', 'TSM', 'TEAM', 'INTU', 'SPGI', 'CHTR', 'LULU', 'DLTR',
-                                         'NOC', 'BA', 'IDXX', 'DDOG', 'SBAC', 'ZTS', 'LNG', 'WMG', 'BX',
-                                         'MA', 'MCK', 'TTWO', 'HLT', 'FIS', 'VMC', 'JCI', 'ROK', 'DIS',
-                                         'ADI', 'LIN', 'BBWI', 'NET', 'BLK', 'MTCH', 'NFLX', 'ADBE', 'CRM',
-                                         'NYT', 'SQSP', 'DISH', 'SPLK', 'COUP', 'CSCO', 'UBER', 'VMEO',
-                                         'AXP', 'JPM', 'TXN', 'ABNB', 'ULTA', 'TWLO', 'EB', 'GLW', 'TJX',
-                                         'ILMN', 'LYFT', 'MU', 'BKNG', 'VIEW', 'CMCSA', 'OSCR', 'SHOP', 'SPY']
+
 
         recent_1k = pd.read_csv(recent_1k_path)
         r1k_sec_id = recent_1k['dcm_security_id'].tolist()
         rk1_tickers = data[(data['dcm_security_id'].isin(r1k_sec_id))].drop_duplicates()['ticker'].tolist()
 
 
-        full_test_universe = list(set(tenere_list + rk1_tickers))
-        data = data[data['ticker'].isin(full_test_universe)]
+
+        data = data[data['ticker'].isin(rk1_tickers)]
 
         """if self.task_params.run_mode==TaskflowPipelineRunMode.Test:
             query = "select ticker from whitelist where run_dt in ('{0}') and as_of_end is null"\

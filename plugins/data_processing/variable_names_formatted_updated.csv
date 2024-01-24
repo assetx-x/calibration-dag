@@ -1,0 +1,197 @@
+variable_names,interpretable_names
+AAAFFM,AAA Credit
+ADX_14,Avg Directional Index (MT)
+ADX_14_MA_3,Avg Directional Index (ST) MA
+ADX_5,Avg Directional Index (ST)
+ADX_5_MA_3,Avg Directional Index (ST) MA
+ADX_63,Avg Directional Index (LT)
+ADX_63_MA_3,Avg Directional Index (LT) MA
+ANDENOx,"New Orders, Nondefense Capital Goods"
+COMPAPFFx,Commercial Paper
+CONSPI,Nonrevolving Credit to Personal Income
+CP3Mx,3-Month AA Comm. Paper Rate
+CPITRNSL,CPI Transport
+CUSR0000SA0L2,CPI Less Shelter
+CUSR0000SA0L5,CPI: All items less medical care
+CUSR0000SAC,CPI Commodities
+DNDGRG3M086SBEA,Personal Cons. Nondurable Goods
+EWG_close,German Equity Momentum
+EWJ_close,Japan ETF Momentum (Close)
+EWJ_volume,Japan ETF Momentum (Volume)
+EXSZUSx,Switzerland/U.S ForEx Rate
+EXUSUKx,GBP
+FASTD_5_3,Fast D Stoch. Oscillator (ST)
+FASTK_5_3,Fast K Stoch. Oscillator (ST)
+GS10,UST 10Y
+GS5,UST 5Y
+HOUSTS,"Housing Starts, South"
+HWI,Temp Employment
+INDPRO,IP Index
+IPDCONGD,IndProd Durable
+IPDMAT,IP: Durable Materials
+IPNMAT,IP: Nondurable Materials
+IndustryGroup,Industry Group
+MANEMP,All Employees: Manufacturing
+NDMANEMP,All Employees: Nondurable Goods
+OILPRICEx,Crude Oil Prices
+PERMIT,New Private Housing Permits
+PERMITMW,"New Private Housing Permits, Midwest"
+PERMITW,"New Private Housing Permits, West"
+PPO_12_26,Momentum (MT)
+PPO_12_26_indgrp,Pct Price Oscillator (All Sector)(MT)
+PPO_21_126,Momentum (LT)
+PPO_21_126_ConsumerDiscretionary,Pct Price Oscillator (ConsDisc)(LT)
+PPO_21_126_Energy,Pct Price Oscillator (Energy)(LT)
+PPO_21_126_Financials,Pct Price Oscillator (Financial)(LT)
+PPO_21_126_Industrials,Pct Price Oscillator (Industrials)(LT)
+PPO_21_126_InformationTechnology,Pct Price Oscillator (Inf. Tech)(LT)
+PPO_21_126_indgrp,Pct Price Oscillator (All Sector)(LT)
+PPO_3_14,Momentum (ST)
+RETAILx,Retail Sales
+RPI,Real Personal Income
+SLOWD_5_3_3,Slow D Stoch. Oscillator (5)
+SLOWK_5_3_3,Slow K Stoch. Oscillator (5)
+SPY_beta,Market Beta
+SPY_close,US Equity Momentum
+SPY_correl,SPY Correlation
+STOCHRSI_FASTD_14_5_3,Stoch. RSI Fast D Osc. (ST)
+STOCHRSI_FASTD_30_10_5,Stoch. RSI Fast D Osc. (MT)
+STOCHRSI_FASTD_63_15_10,Stoch. RSI Fast D Osc. (LT)
+STOCHRSI_FASTK_14_5_3,Stoch. RSI Fast K Osc. (ST)
+STOCHRSI_FASTK_30_10_5,Stoch. RSI Fast K Osc. (MT)
+STOCHRSI_FASTK_63_15_10,Stoch. RSI Fast K Osc. (LT)
+Sector,Sector
+T10YFFM,UST 10Y FFM
+T1YFFM,UST 1Y FFM
+T5YFFM,UST 5Y FFM
+TRIX_30,Triple Exponential Avg (MT)
+ULTOSC_7_14_28,Ultimate Oscillator (ST)
+ULTOSC_7_14_28_MA_3,Ultimate Oscillator MA (ST)
+USGOOD,All Employees: Goods-Producing Ind.
+USTPU,"All Employees: Trade,Transportation,Utils."
+USTRADE,"Retail,Trade Employment"
+USWTRADE,All Employees: Wholesale Trade
+VXOCLSx,SP100 Vol
+W875RX1,Pers. Income ex Transfer Receipts
+WILLR_14,Will %R (MT)
+WILLR_14_MA_3,Will %R MA (MT)
+WILLR_5,Will %R (ST)
+WILLR_5_MA_3,Will %R MA (ST)
+WILLR_63,Will %R (LT)
+WILLR_63_MA_3,Will %R MA (LT)
+WPSID62,PPI
+amihud,Liquidity
+asset_growth,Asset Growth
+asset_growth_qoq,Asset Growth Q/Q
+assets,Assets
+assetsc,Current Asset
+assetturnover,Asset Turnover
+avg_dollar_volume,Avg Dollar Vol.
+avg_price,Avg Price
+bm,Industry Momentum (ST)
+bm_Financials,Momentum (Financials) (ST)
+bm_Utilities,Momentum (Utilities) (ST)
+bm_ia_indgrp,Momentum (Industrials) (ST)
+bm_ia_sector,Momentum (All Sectors) (ST)
+bm_indgrp,Momentum v2 (All Sectors) (ST)
+capex,Capital Expenditure
+capex_yield,Capital Expenditure (Yield)
+chcsho,Chcsho
+current_to_total_assets,Current-to-Total Assets Ratio
+currentratio,Current Ratio
+debt2equity,Debt-to-Equity Ratio
+debt2equity_indgrp,Debt-to-Equity Ratio (Sector)
+delta_capex,"% Change, CapEx"
+delta_inventory,"% Change, Inventory"
+divyield,DivYield
+divyield_ConsumerStaples,Dividend Yield (ConsumerStaples)
+divyield_Industrials,Dividend Yield (Industrials)
+divyield_Utilities,"Dividend Yield, (Utilities)"
+divyield_indgrp,"Dividend Yield, (All Sectors)"
+dolvol,Dollar Volume
+ebitda,EBITDA
+ebitda_to_ev,EBITDA-to-EV
+ebitda_to_ev_indgrp,"EBITDA-to-EV, (All Sectors)"
+ebitdamargin,EBITDA Margin
+eps,Earning per Share
+epsdil,Earning per Share (Diluted)
+equityusd,Equity (USD)
+ev,Enterprise Value
+f_t,Stochastic Discount Factor
+fcf,Free Cash Flow
+fcf_yield,Free Cash Flow (Yield)
+fq,fq
+gp,Gross Profit
+gp2assets,Gross Profit-to-Assets
+grossmargin,Gross Margin
+hidden_state_0,macro_state_0
+hidden_state_1,macro_state_1
+hidden_state_2,macro_state_2
+hidden_state_3,macro_state_3
+invcap,Inventory Cap
+inventory,Inventory
+inventory_to_revenue,Inventory-to-Revenue
+investments_yield,Investments Yield
+log_avg_dollar_volume,Avg Dollar Volume
+log_dollar_volume,Dollar Volume Change
+log_mktcap,Marketcap
+macd,MACD
+macd_centerline,MACD Centerline
+macd_diff,MACD Momentum Change (ST)
+macd_diff_ConsumerStaples,MACD Momentum Change (ConsStaples) (ST)
+macd_diff_Financials,MACD Momentum Change (Financials) (ST)
+macd_diff_indgrp,MACD Momentum Change (All Sectors) (ST)
+maxret,52-Week Max Return
+momentum,Momentum 12M
+ncf,Net Cash Flow
+ncf_yield,Net Cash Flow Yield
+ncfcommon,Net Cash Flow (Common)
+ncfcommon_yield,Net Cash Flow Yield(Common)
+ncfdebt,Net Cash Flow/Debt
+ncfdebt_yield,Net Cash Flow/Debt (Yield)
+ncfdiv,ncfdiv
+ncfdiv_yield,Cash Flow to MK-Cap Ratio
+ncff,Cash Flow from Financing
+ncff_yield,Cash Flow from Financing to MK-Cap Ratio
+ncfi,Cash Flow from Operations
+ncfi_yield,Cash Flow from Operations to MK-Cap Ratio
+ncfinv,Cash Flow from Investing
+netmargin,Net Margin
+netmargin_indgrp,Net Margin (Sector)
+overnight_return,Overnight Return
+payoutratio,Payout Ratio
+pb,Price-to-Book
+pe,Price-to-Earning
+pe1,PE Ratio
+pe_indgrp,PE Ratio Sector
+ps,ps
+ps1,Price-to-Sales
+rel_to_high,rel_to_high
+ret_10B,10D Rolling Returns
+ret_126B,126D Rolling Returns
+ret_1B,1D Rolling Returns
+ret_252B,252D Rolling Returns
+ret_2B,2D Rolling Returns
+ret_63B,63D Rolling Returns
+ret_63B_indgrp,63D Rolling Returns (Sector)
+retearn,Retained Earnings
+retearn_to_liabilitiesc,Ret Earnings to Liabiliites
+retearn_to_total_assets,retearn_to_total_assets
+retvol,retvol
+revenue,Revenue
+revenue_growth,Revenue Growth
+revenue_yield,Revenue to Total Assets Ratio
+rnd,Research & Development
+rnd_to_revenue,Research & Development to Revenue
+roa,Roa
+roe,Roe
+ros,Ros
+shareswa_growth,Shares Growth
+sharey,sharey
+sps,sps
+std_turn,Std. Turnover
+volatility_126,Volatility (LT)
+volatility_126_indgrp,Volatility (LT) (Sector)
+volatility_21,volatility (ST)
+volatility_63,Volatility (MT)
+zerodays,Zerodays
