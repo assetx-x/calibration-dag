@@ -47,15 +47,6 @@ class S3SecurityMasterReader(GCPReader):
         data.drop(data.columns[self.index_col], axis=1, inplace=True)
         data["dcm_security_id"] = data["dcm_security_id"].astype(int)
 
-
-        recent_1k = pd.read_csv(recent_1k_path)
-        r1k_sec_id = recent_1k['dcm_security_id'].tolist()
-        rk1_tickers = data[(data['dcm_security_id'].isin(r1k_sec_id))].drop_duplicates()['ticker'].tolist()
-
-
-
-        data = data[data['ticker'].isin(rk1_tickers)]
-
         """if self.task_params.run_mode==TaskflowPipelineRunMode.Test:
             query = "select ticker from whitelist where run_dt in ('{0}') and as_of_end is null"\
                 .format(self.task_params.universe_dt)
