@@ -1,12 +1,26 @@
 from dotenv import load_dotenv
 
-from derived_simple_price_step import ComputeBetaQuantamental_params, CalculateMACD_params, CalcualteCorrelation_params, \
-    CalculateDollarVolume_params, CalculateOvernightReturn_params, CalculatePastReturnEquity_params, \
-    CalculateTaLibSTOCH_params, CalculateTaLibSTOCHF_params, CalculateTaLibTRIX_params, CalculateTaLibULTOSC_params
-from transformation_step import CreateYahooDailyPriceRolling_params, TransformEconomicDataWeekly_params, \
-    CreateIndustryAverageWeekly_params
+from derived_simple_price_step import (
+    ComputeBetaQuantamental_params,
+    CalculateMACD_params,
+    CalcualteCorrelation_params,
+    CalculateDollarVolume_params,
+    CalculateOvernightReturn_params,
+    CalculatePastReturnEquity_params,
+    CalculateTaLibSTOCH_params,
+    CalculateTaLibSTOCHF_params,
+    CalculateTaLibTRIX_params,
+    CalculateTaLibULTOSC_params,
+)
+from transformation_step import (
+    CreateYahooDailyPriceRolling_params,
+    TransformEconomicDataWeekly_params,
+    CreateIndustryAverageWeekly_params,
+)
 
 from save_gan_inputs_step import GenerateDataGANWeekly_params
+
+from plugins.extract_gan_factors_step import ExtractGANFactors_params
 
 load_dotenv()
 from airflow import DAG
@@ -27,15 +41,23 @@ import sys
 parent_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 plugins_folder = os.path.join(parent_directory, "plugins")
 data_processing_folder = os.path.join(plugins_folder, "data_processing")
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(data_processing_folder, 'dcm-prod.json')
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
+    data_processing_folder, 'dcm-prod.json'
+)
 os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
 
 ##### DATA PULL STEP INSTRUCTIONS #####
-from data_pull_step import CALIBRATIONDATEJUMP_PARAMS, S3_SECURITY_MASTER_READER_PARAMS, \
-    S3_INDUSTRY_MAPPER_READER_PARAMS, \
-    S3_ECON_TRANSFORMATION_PARAMS, YAHOO_DAILY_PRICE_READER_PARAMS, S3_RUSSELL_COMPONENT_READER_PARAMS, \
-    S3_RAW_SQL_READER_PARAMS, \
-    SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS,current_gan_universe_params
+from data_pull_step import (
+    CALIBRATIONDATEJUMP_PARAMS,
+    S3_SECURITY_MASTER_READER_PARAMS,
+    S3_INDUSTRY_MAPPER_READER_PARAMS,
+    S3_ECON_TRANSFORMATION_PARAMS,
+    YAHOO_DAILY_PRICE_READER_PARAMS,
+    S3_RUSSELL_COMPONENT_READER_PARAMS,
+    S3_RAW_SQL_READER_PARAMS,
+    SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS,
+    current_gan_universe_params,
+)
 
 ### ECON DATA STEP INSTRUCTIONS ####
 from econ_data_step import DOWNLOAD_ECONOMIC_DATA_PARAMS
@@ -50,14 +72,20 @@ from targets_step import TARGETS_PARAMS
 from derived_fundamental_data_process_step import CalculateDerivedQuandlFeatures_PARAMS
 
 ######## DerivedTechnicalDataProcessing #######
-from derived_technical_data_processing_step import CalculateTaLibSTOCHRSIMultiParam_PARAMS, \
-    CalculateVolatilityMultiParam_params, CalculateTaLibWILLRMultiParam_params, CalculateTaLibPPOMultiParam_params, \
-    CalculateTaLibADXMultiParam_params
+from derived_technical_data_processing_step import (
+    CalculateTaLibSTOCHRSIMultiParam_PARAMS,
+    CalculateVolatilityMultiParam_params,
+    CalculateTaLibWILLRMultiParam_params,
+    CalculateTaLibPPOMultiParam_params,
+    CalculateTaLibADXMultiParam_params,
+)
 
 from merge_step import QuantamentalMerge_params
 
-from filter_dates_single_names import FilterMonthlyDatesFullPopulationWeekly_params, \
-    CreateMonthlyDataSingleNamesWeekly_params
+from filter_dates_single_names import (
+    FilterMonthlyDatesFullPopulationWeekly_params,
+    CreateMonthlyDataSingleNamesWeekly_params,
+)
 
 from merge_econ_step import QuantamentalMergeEconIndustryWeekly_params
 from standarization_step import FactorStandardizationFullPopulationWeekly_params
@@ -66,9 +94,11 @@ from additional_gan_features_step import GenerateBMEReturnsWeekly_params
 
 ## edits
 
-from data_pull_step import SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS_PART2, SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS_PART3
+from data_pull_step import (
+    SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS_PART2,
+    SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS_PART3,
+)
 
-from extract_gan_factors_step import ExtractGANFactors_params
 
 # PARAMS
 
@@ -108,8 +138,10 @@ def airflow_wrapper(**kwargs):
     params = kwargs['params']
 
     # Read all required data into step_action_args dictionary
-    step_action_args = {k: pd.read_csv(v.format(os.environ['GCS_BUCKET']), index_col=0) for k, v in kwargs['required_data'].items()}
-
+    step_action_args = {
+        k: pd.read_csv(v.format(os.environ['GCS_BUCKET']), index_col=0)
+        for k, v in kwargs['required_data'].items()
+    }
 
     # Execute do_step_action method
     data_outputs = kwargs['class'](**params).do_step_action(**step_action_args)
@@ -119,11 +151,12 @@ def airflow_wrapper(**kwargs):
     if not isinstance(data_outputs, dict):
         data_outputs = {list(kwargs['provided_data'].keys())[0]: data_outputs}
 
-
     # Save each output data to its respective path on GCS
     for data_key, data_value in data_outputs.items():
         if data_key in kwargs['provided_data']:
-            gcs_path = kwargs['provided_data'][data_key].format(os.environ['GCS_BUCKET'], data_key)
+            gcs_path = kwargs['provided_data'][data_key].format(
+                os.environ['GCS_BUCKET'], data_key
+            )
             print(gcs_path)
             data_value.to_csv(gcs_path)
 
@@ -131,13 +164,13 @@ def airflow_wrapper(**kwargs):
 """ Calibration Process"""
 
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
-
-
-    with TaskGroup("GenerateGANResults", tooltip="GenerateGANResults") as GenerateGANResults:
+    with TaskGroup(
+        "GenerateGANResults", tooltip="GenerateGANResults"
+    ) as GenerateGANResults:
         ExtractGANFactors = PythonOperator(
             task_id="ExtractGANFactors",
             python_callable=airflow_wrapper,
-            op_kwargs=ExtractGANFactors_params
+            op_kwargs=ExtractGANFactors_params,
         )
 
     GenerateGANResults
