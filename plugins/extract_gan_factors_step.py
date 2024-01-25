@@ -86,8 +86,8 @@ extract_gan_factors_params = {
     'epochs_discriminator': 50,
     'gan_iterations': 2,
     'retrain': False,
-    'bucket':'gcs://dcm-prod-ba2f-us-dcm-data-test',
-    'key':'generate_gan_results'
+    'bucket': 'dcm-prod-ba2f-us-dcm-data-test',
+    'key': 'generate_gan_results'
 }
 
 ExtractGANFactors_params = {
