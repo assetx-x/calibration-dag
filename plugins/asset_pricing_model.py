@@ -7,20 +7,20 @@ import pyhocon
 from numpy.random import normal, seed
 from numpy import sqrt, sin, pi, linspace, sign, roll, ones, asarray, expand_dims
 
-from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
-from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
-from tensorflow.keras.models import Sequential, Model
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras import losses
-from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
-from tensorflow.keras.utils import plot_model
-from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
+# from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
+# from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+# from tensorflow.keras.models import Sequential, Model
+# from tensorflow.keras.optimizers import Adam
+# from tensorflow.keras import losses
+# from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+# from tensorflow.keras.utils import plot_model
+# from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
 
 import pandas as pd
 import numpy as np
 from numpy import inf, ceil
 
-from tqdm import tnrange, tqdm_notebook
+# from tqdm import tnrange, tqdm_notebook
 from pathlib import Path
 
 __config = None
@@ -155,6 +155,7 @@ def load_data(data_dir):
 
 def build_timeseries_modified(econ_data, company_data, return_data, per_moment_time_weights, per_company_time_weights,
                               average_weights, time_steps):
+    from tqdm import tnrange, tqdm_notebook
     dim_time = company_data.shape[0] - time_steps  # time
     n_assets = company_data.shape[1]  # comapny
     n_company_features = company_data.shape[2]  # characteristic
@@ -181,8 +182,20 @@ def build_timeseries_modified(econ_data, company_data, return_data, per_moment_t
 
 
 class DataGeneratorMultiBatchFast(object):
+
+    def imports(self):
+        from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
+        from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+        from tensorflow.keras.models import Sequential, Model
+        from tensorflow.keras.optimizers import Adam
+        from tensorflow.keras import losses
+        from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+        from tensorflow.keras.utils import plot_model
+        from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
+
     def __init__(self, data, x_cols, econ_cols, y_col, batch_size, time_steps, data_splits=None,
                  data_split_integer_override=None):
+        self.imports()
         data_splits = data_splits or [0.7, 0.1, 0.2]
         company_data, econ_data, return_data, active_matrix = data
         nobs = company_data.shape[0]  # - time_steps
