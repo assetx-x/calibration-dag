@@ -20,7 +20,7 @@ from transformation_step import (
 
 from save_gan_inputs_step import GenerateDataGANWeekly_params
 
-from plugins.extract_gan_factors_step import ExtractGANFactors_params
+#from plugins.extract_gan_factors_step import ExtractGANFactors_params
 
 load_dotenv()
 from airflow import DAG
