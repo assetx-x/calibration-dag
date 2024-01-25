@@ -105,33 +105,24 @@ from data_pull_step import (
 JUMP_DATES_CSV = os.path.join(data_processing_folder, 'intervals_for_jump.csv')
 
 
-def read_csv_in_chunks(gcs_path, batch_size=10000):
+def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='dcm-prod-ba2f'):
     """
-    Reads a CSV file from Google Cloud Storage in chunks and returns a concatenated DataFrame.
-
+    Reads a CSV file from Google Cloud Storage in chunks.
     Parameters:
     - gcs_path (str): The path to the CSV file on GCS.
     - batch_size (int, optional): The number of rows per chunk. Default is 10,000.
-
-    Returns:
-    - pd.DataFrame: The concatenated DataFrame.
+    - project_id (str, optional): The GCP project id. Default is 'dcm-prod-ba2f'.
+    Yields:
+    - pd.DataFrame: The data chunk as a DataFrame.
     """
     # Create GCS file system object
-    fs = gcsfs.GCSFileSystem(project='dcm-prod-ba2f')
-
-    # Use a list to store each chunk as a DataFrame
-    dfs = []
+    fs = gcsfs.GCSFileSystem(project=project_id)
 
     # Open the GCS file for reading
     with fs.open(gcs_path, 'r') as f:
-        # Iterate through the CSV in chunks
-        for batch in pd.read_csv(f, chunksize=batch_size, index_col=0):
-            dfs.append(batch)
-
-    # Concatenate all the chunks into a single DataFrame
-    final_df = pd.concat(dfs, ignore_index=True)
-
-    return final_df
+        # Yield chunks from the CSV
+        for chunk in pd.read_csv(f, chunksize=batch_size, index_col=0):
+            yield chunk
 
 
 def airflow_wrapper(**kwargs):
@@ -142,6 +133,7 @@ def airflow_wrapper(**kwargs):
         k: pd.read_csv(v.format(os.environ['GCS_BUCKET']), index_col=0)
         for k, v in kwargs['required_data'].items()
     }
+    print(f'Executing step action with args {step_action_args}')
 
     # Execute do_step_action method
     data_outputs = kwargs['class'](**params).do_step_action(**step_action_args)
