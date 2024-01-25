@@ -119,9 +119,9 @@ class FactorStandardizationFullPopulationWeekly(FactorStandardization):
 
 
 FSFPW_params = {'all_features':True,
-                'exclude_from_standardization':["fq", "divyield_Industrials", "PPO_21_126_ConsumerDiscretionary", "DNDGRG3M086SBEA", "EXUSUKx", "GS10", "IPDCONGD", "T5YFFM",
-                                        "USTRADE", "CUSR0000SA0L2", "RETAILx", "bm_Financials", "OILPRICEx", "T10YFFM", "CPITRNSL", "CP3Mx", "CUSR0000SAC", "EWJ_volume",
-                                        "SPY_close", "VXOCLSx", "PPO_21_126_InformationTechnology", "WPSID62", "GS5", "COMPAPFFx", "CUSR0000SA0L5", "T1YFFM", "PPO_21_126_Energy",
+                'exclude_from_standardization':["fq", "divyield_Industrials", "PPO_21_126_ConsumerDiscretionary", "DNDGRG3M086SBEA", "DEXUSUK", "GS10", "IPDCONGD", "T5YFFM",
+                                        "USTRADE", "CUSR0000SA0L2", "RETAILx", "bm_Financials", "DCOILWTICO", "T10YFFM", "CPITRNSL", "CP3Mx", "CUSR0000SAC", "EWJ_volume",
+                                        "SPY_close", "VIXCLS", "PPO_21_126_InformationTechnology", "WPSID62", "GS5", "CPFF", "CUSR0000SA0L5", "T1YFFM", "PPO_21_126_Energy",
                                         "bm_Utilities", "PPO_21_126_Financials", "HWI", "RPI", "PPO_21_126_Industrials", "divyield_ConsumerStaples", "EWG_close", "macd_diff_ConsumerStaples",
                                         "AAAFFM", "fold_id", "Sector", "IndustryGroup"],
                 'target_columns':["future_asset_growth_qoq", "future_ret_10B", "future_ret_1B", "future_ret_21B", "future_ret_42B", "future_ret_5B", "future_revenue_growth_qoq"],

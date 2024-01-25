@@ -200,15 +200,15 @@ WMEIW_params = {'industry_cols':["volatility_126", "PPO_12_26", "PPO_21_126", "n
  'security_master_cols':["ticker", "Sector", "IndustryGroup"],
  'sector_cols':["volatility_126", "PPO_21_126", "macd_diff", "divyield", "bm"],
  'key_sectors':["Energy", "Information Technology", "Financials", "Utilities", "Consumer Discretionary", "Industrials", "Consumer Staples"],
- 'econ_cols':["RETAILx", "USTRADE", "SPY_close", "bm_Financials", "T10YFFM", "T5YFFM", "CPITRNSL", "EWJ_volume", "HWI", "CUSR0000SA0L2", "CUSR0000SA0L5",
-              "T1YFFM", "DNDGRG3M086SBEA", "AAAFFM", "RPI", "macd_diff_ConsumerStaples", "PPO_21_126_Industrials", "PPO_21_126_Financials", "CP3Mx", "divyield_ConsumerStaples",
-               "GS10", "bm_Utilities", "EWG_close", "CUSR0000SAC", "GS5", "divyield_Industrials", "WPSID62", "IPDCONGD", "PPO_21_126_InformationTechnology", "PPO_21_126_Energy",
+ 'econ_cols':["RETAILx", "USTRADE", "SPY_close", "bm_Financials", "T10YFFM", "T5YFFM", "CPITRNSL", "DCOILWTICO", "EWJ_volume", "HWI",
+              "CUSR0000SA0L2", "CUSR0000SA0L5", "T1YFFM", "DNDGRG3M086SBEA", "AAAFFM", "RPI", "macd_diff_ConsumerStaples", "DEXUSUK",
+              "CPFF", "PPO_21_126_Industrials", "PPO_21_126_Financials", "CP3Mx", "divyield_ConsumerStaples", "VIXCLS", "GS10", "bm_Utilities",
+              "EWG_close", "CUSR0000SAC", "GS5", "divyield_Industrials", "WPSID62", "IPDCONGD", "PPO_21_126_InformationTechnology", "PPO_21_126_Energy",
               "PPO_21_126_ConsumerDiscretionary"],
  'start_date': "1997-12-15",
  'end_date': RUN_DATE,
  'normalize_econ':False
     }
-
 
 
 QuantamentalMergeEconIndustryWeekly_params = {'params':WMEIW_params,
