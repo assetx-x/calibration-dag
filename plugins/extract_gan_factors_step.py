@@ -95,5 +95,8 @@ ExtractGANFactors_params = {
     'provided_data': {
         'gan_factors': construct_destination_path('generate_gan_results'),
     },
-    'required_data': {},
+    'required_data': {
+        'bucket': '',
+        'key': ''
+    },
 }
