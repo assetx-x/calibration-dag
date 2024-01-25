@@ -184,14 +184,14 @@ def build_timeseries_modified(econ_data, company_data, return_data, per_moment_t
 class DataGeneratorMultiBatchFast(object):
 
     def _imports(self):
-        from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
-        from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
-        from tensorflow.keras.models import Sequential, Model
-        from tensorflow.keras.optimizers import Adam
-        from tensorflow.keras import losses
-        from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
-        from tensorflow.keras.utils import plot_model
-        from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
+        # from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
+        # from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+        # from tensorflow.keras.models import Sequential, Model
+        # from tensorflow.keras.optimizers import Adam
+        # from tensorflow.keras import losses
+        # from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+        # from tensorflow.keras.utils import plot_model
+        # from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
         print(f'[DataGeneratorMultiBatchFast] imports')
 
     def __init__(self, data, x_cols, econ_cols, y_col, batch_size, time_steps, data_splits=None,

@@ -21,20 +21,56 @@ current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
 
 
+def dynamic_imports():
+    module_names = [
+        'tensorflow.keras.layers.Input',
+        'tensorflow.keras.layers.Dense',
+        'tensorflow.keras.layers.Reshape',
+        'tensorflow.keras.layers.Flatten',
+        'tensorflow.keras.layers.Dropout',
+        'tensorflow.keras.layers.LSTM',
+        'tensorflow.keras.layers.TimeDistributed',
+        'tensorflow.keras.layers.Lambda',
+        'tensorflow.keras.layers.concatenate',
+        'tensorflow.keras.layers.multiply',
+        'tensorflow.keras.layers.Dot',
+        'tensorflow.keras.layers.subtract',
+        'tensorflow.keras.layers.Multiply',
+        'tensorflow.keras.models.Sequential',
+        'tensorflow.keras.models.Model',
+        'tensorflow.keras.optimizers.Adam',
+        'tensorflow.keras.losses',
+        'tensorflow.keras.backend.sum',
+        'tensorflow.keras.backend.tile',
+        'tensorflow.keras.backend.stack',
+        'tensorflow.keras.backend.expand_dims',
+        'tensorflow.keras.backend.square',
+        'tensorflow.keras.backend.constant',
+        'tensorflow.keras.utils.plot_model',
+        'tensorflow.keras.callbacks.TensorBoard',
+        'tensorflow.keras.callbacks.ModelCheckpoint',
+        'tensorflow.keras.callbacks.ReduceLROnPlateau'
+    ]
+
+    modules = map(__import__, module_names)
+    print(f'Imported {len(module_names)} modules')
+
+
 @task.external_python(
     task_id="external_python",
     python='/home/dcmadmin/calibration_ml_training/bin/python',
 )
-def _do_step_action(self):
+def _do_step_action(insample_cut_date):
+    dynamic_imports()
+
     full_path = 'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/live/save_gan_inputs/save_gan_inputs'
     factor_file = os.path.join(full_path, "all_factors.h5")
 
     # Call the extract_factors function directly
-    extract_factors(full_path, self.insample_cut_date)
+    extract_factors(full_path, insample_cut_date)
     print('finished extracting factors')
     all_factors = pd.read_hdf(factor_file)
-    self.data = all_factors
-    return {'gan_factors': self.data}
+    return {'gan_factors': all_factors}
 
 
 class ExtractGANFactors(DataReaderClass):
@@ -67,7 +103,9 @@ class ExtractGANFactors(DataReaderClass):
         self._data = val
 
     def do_step_action(self, **kwargs):
-        _do_step_action(self)
+        data = _do_step_action(self)
+        self.data = data.get('gan_factors')
+        return data
 
 
 extract_gan_factors_params = {
