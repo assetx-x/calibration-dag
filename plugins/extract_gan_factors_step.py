@@ -73,6 +73,12 @@ class ExtractGANFactors(DataReaderClass):
         self.data = data.get('gan_factors')
         return data
 
+    def _prepare_to_pull_data(self):
+        print(f'[>] Preparing to pull data mock')
+
+    def _get_data_lineage(self):
+        print(f'[>] Getting data lineage mock')
+
 
 extract_gan_factors_params = {
     'insample_cut_date': "2023-02-03",
