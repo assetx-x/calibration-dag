@@ -96,7 +96,7 @@ ExtractGANFactors_params = {
         'gan_factors': construct_destination_path('generate_gan_results'),
     },
     'required_data': {
-        'bucket': '',
-        'key': ''
+        'bucket': 'gcs://dcm-prod-ba2f-us-dcm-data-test',
+        'key': 'ExtractGANFactors'
     },
 }
