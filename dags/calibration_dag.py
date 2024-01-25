@@ -68,6 +68,8 @@ from additional_gan_features_step import GenerateBMEReturnsWeekly_params
 
 from data_pull_step import SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS_PART2, SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS_PART3
 
+from extract_gan_factors_step import ExtractGANFactors_params
+
 # PARAMS
 
 JUMP_DATES_CSV = os.path.join(data_processing_folder, 'intervals_for_jump.csv')
@@ -402,4 +404,11 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             op_kwargs=GenerateDataGANWeekly_params
         )
 
-    DataPull >> EconData >> FundamentalCleanup >> Targets >> DerivedFundamentalDataProcessing >> DerivedTechnicalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> Standarization >> ActiveMatrix >> AdditionalGanFeatures >> SaveGANInputs
+    with TaskGroup("GenerateGANResults", tooltip="GenerateGANResults") as GenerateGANResults:
+        ExtractGANFactors = PythonOperator(
+            task_id="ExtractGANFactors",
+            python_callable=airflow_wrapper,
+            op_kwargs=ExtractGANFactors_params
+        )
+
+    DataPull >> EconData >> FundamentalCleanup >> Targets >> DerivedFundamentalDataProcessing >> DerivedTechnicalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> Standarization >> ActiveMatrix >> AdditionalGanFeatures >> SaveGANInputs >> GenerateGANResults
