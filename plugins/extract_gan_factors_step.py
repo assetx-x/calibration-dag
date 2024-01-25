@@ -21,6 +21,22 @@ current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
 
 
+@task.external_python(
+    task_id="external_python",
+    python='/home/dcmadmin/calibration_ml_training/bin/python',
+)
+def _do_step_action(self):
+    full_path = 'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/live/save_gan_inputs/save_gan_inputs'
+    factor_file = os.path.join(full_path, "all_factors.h5")
+
+    # Call the extract_factors function directly
+    extract_factors(full_path, self.insample_cut_date)
+    print('finished extracting factors')
+    all_factors = pd.read_hdf(factor_file)
+    self.data = all_factors
+    return {'gan_factors': self.data}
+
+
 class ExtractGANFactors(DataReaderClass):
     def __init__(
         self,
@@ -50,20 +66,8 @@ class ExtractGANFactors(DataReaderClass):
         print(f'[>] Setting data to {val}!')
         self._data = val
 
-    @task.external_python(
-        task_id="external_python",
-        python='/home/dcmadmin/calibration_ml_training/bin/python',
-    )
     def do_step_action(self, **kwargs):
-        full_path = 'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/live/save_gan_inputs/save_gan_inputs'
-        factor_file = os.path.join(full_path, "all_factors.h5")
-
-        # Call the extract_factors function directly
-        extract_factors(full_path, self.insample_cut_date)
-        print('finished extracting factors')
-        all_factors = pd.read_hdf(factor_file)
-        self.data = all_factors
-        return {'gan_factors': self.data}
+        _do_step_action(self)
 
 
 extract_gan_factors_params = {

@@ -183,7 +183,7 @@ def build_timeseries_modified(econ_data, company_data, return_data, per_moment_t
 
 class DataGeneratorMultiBatchFast(object):
 
-    def imports(self):
+    def _imports(self):
         from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
         from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
         from tensorflow.keras.models import Sequential, Model
@@ -192,10 +192,11 @@ class DataGeneratorMultiBatchFast(object):
         from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
         from tensorflow.keras.utils import plot_model
         from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
+        print(f'[DataGeneratorMultiBatchFast] imports')
 
     def __init__(self, data, x_cols, econ_cols, y_col, batch_size, time_steps, data_splits=None,
                  data_split_integer_override=None):
-        self.imports()
+        self._imports()
         data_splits = data_splits or [0.7, 0.1, 0.2]
         company_data, econ_data, return_data, active_matrix = data
         nobs = company_data.shape[0]  # - time_steps
