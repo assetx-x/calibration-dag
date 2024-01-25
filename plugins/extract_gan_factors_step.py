@@ -73,11 +73,11 @@ class ExtractGANFactors(DataReaderClass):
         self.data = data.get('gan_factors')
         return data
 
-    def _prepare_to_pull_data(self):
-        print(f'[>] Preparing to pull data mock')
-
     def _get_data_lineage(self):
-        print(f'[>] Getting data lineage mock')
+        pass
+
+    def _prepare_to_pull_data(self):
+        pass
 
 
 extract_gan_factors_params = {
@@ -86,6 +86,8 @@ extract_gan_factors_params = {
     'epochs_discriminator': 50,
     'gan_iterations': 2,
     'retrain': False,
+    'bucket':'gcs://dcm-prod-ba2f-us-dcm-data-test',
+    'key':'generate_gan_results'
 }
 
 ExtractGANFactors_params = {
@@ -95,8 +97,5 @@ ExtractGANFactors_params = {
     'provided_data': {
         'gan_factors': construct_destination_path('generate_gan_results'),
     },
-    'required_data': {
-        'bucket': 'gcs://dcm-prod-ba2f-us-dcm-data-test',
-        'key': 'ExtractGANFactors'
-    },
+    'required_data': {},
 }
