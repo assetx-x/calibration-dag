@@ -1,7 +1,7 @@
 from airflow.decorators import task
 
 from core_classes import DataReaderClass
-from plugins.asset_pricing_model import extract_factors
+from plugins.asset_pricing_model import SDFExtraction
 import pandas as pd
 import os
 from datetime import datetime
@@ -30,8 +30,10 @@ def _do_step_action(insample_cut_date):
     full_path = 'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/live/save_gan_inputs/save_gan_inputs'
     factor_file = os.path.join(full_path, "all_factors.h5")
 
-    # Call the extract_factors function directly
-    extract_factors(full_path, insample_cut_date)
+    sdf_network = SDFExtraction(full_path, insample_cut_date)
+    sdf_network.generate_all_factors()
+    sdf_network.save_factors()
+
     print('finished extracting factors')
     all_factors = pd.read_hdf(factor_file)
     return {'gan_factors': all_factors}

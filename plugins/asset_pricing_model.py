@@ -14,17 +14,27 @@ from pathlib import Path
 from plugins.asset_pricing_base_model import PricingBaseModel
 from plugins.market_timeline import create_directory_if_does_not_exists
 
-__config = None
-
 
 class HelperMethodsClass(PricingBaseModel):
     def __init__(self):
         super().__init__()
 
+    # @property
+    # def config(self, v):
+    #     if isinstance(v):
+    #         self.__config = v
+    #     return self.__config
+    #
+    # @config.setter
+    # def config(self, v):
+    #     self.__config = v
+    #
+    # def __getitem__(self, item):
+    #     return self.config[item]
+
     @staticmethod
     def get_config():
-        global __config
-        if not __config:
+        if not HelperMethodsClass.config:
             config_str = """
         sdf = {
            n_rnn_hidden_layers = 1
@@ -109,11 +119,11 @@ class HelperMethodsClass(PricingBaseModel):
             time_steps = 1 #60
         }
         """
-            __config = pyhocon.ConfigFactory.parse_string(config_str)
-        return __config
+            HelperMethodsClass.config = pyhocon.ConfigFactory.parse_string(config_str)
+        return HelperMethodsClass.config
 
     @staticmethod
-    def load_data(self, data_dir):
+    def load_data(data_dir):
         print("loading data with shapes.....")
         df = pd.read_csv(
             os.path.join(data_dir, "company_data.csv"), index_col=0
@@ -1054,8 +1064,3 @@ class SDFExtraction(PricingBaseModel):  # This is a complete version with data a
         print(self.all_factor_path)
         self.all_factors.to_hdf(self.all_factor_path, key="df", format="table")
 
-
-def extract_factors(data_dir, insample_cut_date):
-    sdf_network = SDFExtraction(data_dir, insample_cut_date)
-    sdf_network.generate_all_factors()
-    sdf_network.save_factors()
