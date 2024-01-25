@@ -26,6 +26,7 @@ RUN_DATE = current_date.strftime('%Y-%m-%d')
     python='/home/dcmadmin/calibration_ml_training/bin/python',
 )
 def _do_step_action(insample_cut_date):
+    print(f'Step with different python interpreter started at {insample_cut_date}')
 
     full_path = 'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/live/save_gan_inputs/save_gan_inputs'
     factor_file = os.path.join(full_path, "all_factors.h5")
