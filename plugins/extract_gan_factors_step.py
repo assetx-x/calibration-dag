@@ -1,16 +1,12 @@
-import json
-
 from airflow.decorators import task
 
 from core_classes import DataReaderClass
-from asset_pricing_model import extract_factors
+from plugins.asset_pricing_model import extract_factors
 import pandas as pd
 import os
 from datetime import datetime
 from core_classes import (
-    construct_required_path,
     construct_destination_path,
-    convert_date_to_string,
 )
 
 parent_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
