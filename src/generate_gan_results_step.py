@@ -1,7 +1,5 @@
-from airflow.decorators import task
-from plugins.asset_pricing_model import extract_factors
+from asset_pricing_model import extract_factors
 from core_classes import DataReaderClass
-from plugins.asset_pricing_model import SDFExtraction
 import pandas as pd
 import os
 from datetime import datetime
@@ -55,6 +53,7 @@ class ExtractGANFactors(DataReaderClass):
 
 
 extract_gan_factors_params = {
+    'data_dir':'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/local/save_gan_inputs',
     'insample_cut_date': "2023-02-03",
     'epochs': 150,
     'epochs_discriminator': 50,
@@ -71,3 +70,30 @@ ExtractGANFactors_params = {
     },
     'required_data': {},
 }
+
+if __name__ == "__main__":
+    data_dir = ExtractGANFactors_params['params']['data_dir']
+    insample_cut_date = ExtractGANFactors_params['params']['insample_cut_date']
+    epochs = ExtractGANFactors_params['params']['epochs']
+    epochs_discriminator = ExtractGANFactors_params['params']['epochs_discriminator']
+    gan_iterations = ExtractGANFactors_params['params']['gan_iterations']
+    mode = ExtractGANFactors_params['params']['retrain']
+
+    print("******************************************")
+    print(data_dir)
+    print("******************************************")
+
+    saved_weight_path = os.path.join(data_dir, "saved_weights.h5")
+
+    mode=1
+    if mode == 0:
+        print('Retrain Mode!!!!!!!!')
+        #train_gan_model(data_dir, insample_cut_date, epochs, epochs_discriminator, gan_iterations)
+    elif mode == 1:
+        print('Rolling Mode!!!!')
+        extract_factors(data_dir, insample_cut_date)
+    else:
+        print("Only supported modes are 0 for training and 1 for factor extraction")
+        raise Exception("Only supported modes are 0 for training and 1 for factor extraction")
+
+    print("Arguments loaded")
