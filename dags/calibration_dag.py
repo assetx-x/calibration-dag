@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 
-"""from derived_simple_price_step import (
+from derived_simple_price_step import (
     ComputeBetaQuantamental_params,
     CalculateMACD_params,
     CalcualteCorrelation_params,
@@ -18,7 +18,7 @@ from transformation_step import (
     CreateIndustryAverageWeekly_params,
 )
 
-from save_gan_inputs_step import GenerateDataGANWeekly_params"""
+from save_gan_inputs_step import GenerateDataGANWeekly_params
 
 load_dotenv()
 from airflow import DAG
@@ -27,7 +27,7 @@ from airflow.utils.task_group import TaskGroup
 from airflow.utils.dates import days_ago
 from airflow.operators.bash import BashOperator
 from airflow.operators.python_operator import PythonOperator
-from airflow.operators.python_operator import PythonVirtualenvOperator
+from airflow.operators.docker_operator import DockerOperator
 import pandas as pd
 from datetime import timedelta
 import gcsfs
@@ -45,7 +45,7 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
 )
 os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
 
-"""##### DATA PULL STEP INSTRUCTIONS #####
+##### DATA PULL STEP INSTRUCTIONS #####
 from data_pull_step import (
     CALIBRATIONDATEJUMP_PARAMS,
     S3_SECURITY_MASTER_READER_PARAMS,
@@ -95,8 +95,8 @@ from data_pull_step import (
     SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS_PART2,
     SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS_PART3,
 )
-"""
-from extract_gan_factors_step import ExtractGANFactors_params
+
+#from extract_gan_factors_step import ExtractGANFactors_params
 
 ## edits
 
@@ -154,16 +154,89 @@ def airflow_wrapper(**kwargs):
 
 """ Calibration Process"""
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
-
-    with TaskGroup("GenerateGANResults", tooltip="GenerateGANResults") as GenerateGANResults:
-        ExtractGANFactors = PythonVirtualenvOperator(
-            task_id="ExtractGANFactors",
+    with TaskGroup("MergeStep", tooltip="MergeStep") as MergeStep:
+        QuantamentalMerge = PythonOperator(
+            task_id="QuantamentalMerge",
             python_callable=airflow_wrapper,
-            op_kwargs=ExtractGANFactors_params,
-            requirements=['requirements_calibration_ml_training.txt'],
+            op_kwargs=QuantamentalMerge_params,
+            execution_timeout=timedelta(minutes=150)
+        )
+
+    with TaskGroup("FilterDatesSingleNames", tooltip="FilterDatesSingleNames") as FilterDatesSingleNames:
+        FilterMonthlyDatesFullPopulationWeekly = PythonOperator(
+            task_id="FilterMonthlyDatesFullPopulationWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=FilterMonthlyDatesFullPopulationWeekly_params
+        )
+
+        CreateMonthlyDataSingleNamesWeekly = PythonOperator(
+            task_id="CreateMonthlyDataSingleNamesWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=CreateMonthlyDataSingleNamesWeekly_params
+        )
+
+        FilterMonthlyDatesFullPopulationWeekly >> CreateMonthlyDataSingleNamesWeekly
+
+    with TaskGroup("Transformation", tooltip="Transformation") as Transformation:
+        CreateYahooDailyPriceRolling = PythonOperator(
+            task_id="CreateYahooDailyPriceRolling",
+            python_callable=airflow_wrapper,
+            op_kwargs=CreateYahooDailyPriceRolling_params
+        )
+
+        TransformEconomicDataWeekly = PythonOperator(
+            task_id="TransformEconomicDataWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=TransformEconomicDataWeekly_params
+        )
+
+        CreateIndustryAverageWeekly = PythonOperator(
+            task_id="CreateIndustryAverageWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=CreateIndustryAverageWeekly_params
+        )
+
+        CreateYahooDailyPriceRolling >> TransformEconomicDataWeekly >> CreateIndustryAverageWeekly
+
+    with TaskGroup("MergeEcon", tooltip="MergeEcon") as MergeEcon:
+        QuantamentalMergeEconIndustryWeekly = PythonOperator(
+            task_id="QuantamentalMergeEconIndustryWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=QuantamentalMergeEconIndustryWeekly_params
+        )
+
+    with TaskGroup("Standarization", tooltip="Standarization") as Standarization:
+        FactorStandardizationFullPopulationWeekly = PythonOperator(
+            task_id="FactorStandardizationFullPopulationWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=FactorStandardizationFullPopulationWeekly_params
+        )
+
+    with TaskGroup("ActiveMatrix", tooltip="ActiveMatrix") as ActiveMatrix:
+        GenerateActiveMatrixWeekly = PythonOperator(
+            task_id="GenerateActiveMatrixWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=GenerateActiveMatrixWeekly_params
+        )
+
+    with TaskGroup("AdditionalGanFeatures", tooltip="AdditionalGanFeatures") as AdditionalGanFeatures:
+        GenerateBMEReturnsWeekly = PythonOperator(
+            task_id="GenerateBMEReturnsWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=GenerateBMEReturnsWeekly_params
+        )
+
+    with TaskGroup("SaveGANInputs", tooltip="SaveGANInputs") as SaveGANInputs:
+        GenerateDataGAN = PythonOperator(
+            task_id="GenerateDataGAN",
+            python_callable=airflow_wrapper,
+            op_kwargs=GenerateDataGANWeekly_params
         )
 
 
 
-    GenerateGANResults
+    MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> Standarization >> ActiveMatrix >> AdditionalGanFeatures >> SaveGANInputs
+
+
+
 
