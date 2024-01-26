@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 
-from derived_simple_price_step import (
+"""from derived_simple_price_step import (
     ComputeBetaQuantamental_params,
     CalculateMACD_params,
     CalcualteCorrelation_params,
@@ -18,9 +18,7 @@ from transformation_step import (
     CreateIndustryAverageWeekly_params,
 )
 
-from save_gan_inputs_step import GenerateDataGANWeekly_params
-
-#from plugins.extract_gan_factors_step import ExtractGANFactors_params
+from save_gan_inputs_step import GenerateDataGANWeekly_params"""
 
 load_dotenv()
 from airflow import DAG
@@ -47,7 +45,7 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
 )
 os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
 
-##### DATA PULL STEP INSTRUCTIONS #####
+"""##### DATA PULL STEP INSTRUCTIONS #####
 from data_pull_step import (
     CALIBRATIONDATEJUMP_PARAMS,
     S3_SECURITY_MASTER_READER_PARAMS,
@@ -92,17 +90,16 @@ from merge_econ_step import QuantamentalMergeEconIndustryWeekly_params
 from standarization_step import FactorStandardizationFullPopulationWeekly_params
 from active_matrix_step import GenerateActiveMatrixWeekly_params
 from additional_gan_features_step import GenerateBMEReturnsWeekly_params
-from extract_gan_factors_step import ExtractGANFactors_params
-
-## edits
 
 from data_pull_step import (
     SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS_PART2,
     SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS_PART3,
 )
+"""
+from extract_gan_factors_step import ExtractGANFactors_params
 
+## edits
 
-# PARAMS
 
 JUMP_DATES_CSV = os.path.join(data_processing_folder, 'intervals_for_jump.csv')
 
