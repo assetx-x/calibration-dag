@@ -1,32 +1,11 @@
 from airflow.decorators import task
 from dotenv import load_dotenv
 
-from derived_simple_price_step import (
-    ComputeBetaQuantamental_params,
-    CalculateMACD_params,
-    CalcualteCorrelation_params,
-    CalculateDollarVolume_params,
-    CalculateOvernightReturn_params,
-    CalculatePastReturnEquity_params,
-    CalculateTaLibSTOCH_params,
-    CalculateTaLibSTOCHF_params,
-    CalculateTaLibTRIX_params,
-    CalculateTaLibULTOSC_params,
-)
-from transformation_step import (
-    CreateYahooDailyPriceRolling_params,
-    TransformEconomicDataWeekly_params,
-    CreateIndustryAverageWeekly_params,
-)
-
-from save_gan_inputs_step import GenerateDataGANWeekly_params
-
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.utils.task_group import TaskGroup
 from airflow.utils.dates import days_ago
 from airflow.operators.bash import BashOperator
-from airflow.operators.python_operator import PythonOperator
 from airflow.operators.docker_operator import DockerOperator
 import pandas as pd
 from datetime import timedelta
@@ -35,7 +14,7 @@ import gcsfs
 import os
 import sys
 
-from src.generate_gan_results_step import ExtractGANFactors, extract_gan_factors_params
+from plugins.generate_gan_results_step import ExtractGANFactors, extract_gan_factors_params
 
 load_dotenv()
 
@@ -50,23 +29,10 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
 os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
 
 ##### DATA PULL STEP INSTRUCTIONS #####
-from data_pull_step import (
-    CALIBRATIONDATEJUMP_PARAMS,
-    S3_SECURITY_MASTER_READER_PARAMS,
-    S3_INDUSTRY_MAPPER_READER_PARAMS,
-    S3_ECON_TRANSFORMATION_PARAMS,
-    YAHOO_DAILY_PRICE_READER_PARAMS,
-    S3_RUSSELL_COMPONENT_READER_PARAMS,
-    S3_RAW_SQL_READER_PARAMS,
-    SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS,
-    current_gan_universe_params,
-)
 
 ### ECON DATA STEP INSTRUCTIONS ####
-from econ_data_step import DOWNLOAD_ECONOMIC_DATA_PARAMS
 
 ####### FundamentalCleanup INSTRUCTIONS #####
-from fundamental_cleanup_step import QuandlDataCleanup_PARAMS
 
 ### TARTGET INSTRUCTIONS #######
 from targets_step import TARGETS_PARAMS
@@ -75,31 +41,12 @@ from targets_step import TARGETS_PARAMS
 from derived_fundamental_data_process_step import CalculateDerivedQuandlFeatures_PARAMS
 
 ######## DerivedTechnicalDataProcessing #######
-from derived_technical_data_processing_step import (
-    CalculateTaLibSTOCHRSIMultiParam_PARAMS,
-    CalculateVolatilityMultiParam_params,
-    CalculateTaLibWILLRMultiParam_params,
-    CalculateTaLibPPOMultiParam_params,
-    CalculateTaLibADXMultiParam_params,
-)
 
 from merge_step import QuantamentalMerge_params
 
-from filter_dates_single_names import (
-    FilterMonthlyDatesFullPopulationWeekly_params,
-    CreateMonthlyDataSingleNamesWeekly_params,
-)
-
 from merge_econ_step import QuantamentalMergeEconIndustryWeekly_params
-from standarization_step import FactorStandardizationFullPopulationWeekly_params
 from active_matrix_step import GenerateActiveMatrixWeekly_params
 from additional_gan_features_step import GenerateBMEReturnsWeekly_params
-
-from data_pull_step import (
-    SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS_PART2,
-    SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS_PART3,
-)
-
 
 ## edits
 
