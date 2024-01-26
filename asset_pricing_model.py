@@ -7,20 +7,10 @@ import pyhocon
 from numpy.random import normal, seed
 from numpy import sqrt, sin, pi, linspace, sign, roll, ones, asarray, expand_dims
 
-from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
-from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
-from tensorflow.keras.models import Sequential, Model
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras import losses
-from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
-from tensorflow.keras.utils import plot_model
-from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
-
 import pandas as pd
 import numpy as np
 from numpy import inf, ceil
 
-from tqdm import tnrange, tqdm_notebook
 from pathlib import Path
 
 __config = None
@@ -121,6 +111,14 @@ class TrainingMode(Enum):
     sdf = 2
 
 def linear_pred_loss(y_true, y_pred):
+    from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
+    from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+    from tensorflow.keras.models import Sequential, Model
+    from tensorflow.keras.optimizers import Adam
+    from tensorflow.keras import losses
+    from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+    from tensorflow.keras.utils import plot_model
+    from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
     return k_sum(y_pred)
 
 def create_directory_if_does_not_exists(dir_path):
@@ -179,6 +177,7 @@ def load_data(data_dir):
 
 def build_timeseries_modified(econ_data, company_data, return_data, per_moment_time_weights, per_company_time_weights,
                               average_weights, time_steps):
+    from tqdm import tnrange, tqdm_notebook
     dim_time = company_data.shape[0] - time_steps  # time
     n_assets = company_data.shape[1]  # comapny
     n_company_features = company_data.shape[2]  # characteristic
@@ -397,7 +396,14 @@ class AssetPricingGAN(object):
         self.sdf_network = self.__build_network("sdf")
         self.conditional_network = self.__build_network("conditional")
         final_loss = self.create_loss()
-
+        from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
+        from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+        from tensorflow.keras.models import Sequential, Model
+        from tensorflow.keras.optimizers import Adam
+        from tensorflow.keras import losses
+        from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+        from tensorflow.keras.utils import plot_model
+        from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
         self.gan_model = Model([self.macro_input_layer, self.company_input_layer, self.return_sequences,
                                 self.moment_weight_input_layer, self.company_weight_input_layer,
                                 self.overall_loss_weight_input_layer,
@@ -408,6 +414,14 @@ class AssetPricingGAN(object):
         print("Full model compiled")
 
     def prepare_training_callbacks(self, model_saving_period):
+        from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
+        from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+        from tensorflow.keras.models import Sequential, Model
+        from tensorflow.keras.optimizers import Adam
+        from tensorflow.keras import losses
+        from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+        from tensorflow.keras.utils import plot_model
+        from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
         tensorboard_path = "/nn_results/gan_model/model/run_3_mb/tensorboard/test"
         model_path = "/nn_results/gan_model/model/run_3_mb/model/test/gan-model-{epoch:03d}_{loss:.2f}.hdf5"
         create_directory_if_does_not_exists(tensorboard_path)
@@ -436,6 +450,14 @@ class AssetPricingGAN(object):
         print(msg)
 
     def create_loss(self):
+        from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
+        from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+        from tensorflow.keras.models import Sequential, Model
+        from tensorflow.keras.optimizers import Adam
+        from tensorflow.keras import losses
+        from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+        from tensorflow.keras.utils import plot_model
+        from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
         f_factor = Dot(2, name="f_factor")([self.return_sequences, self.sdf_network.output])
         # discount_factor = Multiply(name="negative_f_factor")([self.discount_factor_multiplier, f_factor])
         negative_f_factor = multiply([self.discount_factor_multiplier, f_factor], name="negative_f_factor")
@@ -470,6 +492,14 @@ class AssetPricingGAN(object):
         self.compile_model("Architecture of model set to train {0}".format(training_mode))
 
     def create_input_layers(self):
+        from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
+        from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+        from tensorflow.keras.models import Sequential, Model
+        from tensorflow.keras.optimizers import Adam
+        from tensorflow.keras import losses
+        from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+        from tensorflow.keras.utils import plot_model
+        from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
         self.macro_input_layer = Input(shape=(self.time_steps, self.n_macro_features), name="macro_data")
         self.company_input_layer = Input(shape=(self.time_steps, self.n_assets, self.n_company_fetures),
                                          name="company_data")
@@ -486,6 +516,14 @@ class AssetPricingGAN(object):
                                                 name="flat_company_data")(self.company_input_layer)
 
     def __build_network(self, cfg_section_name):
+        from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
+        from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+        from tensorflow.keras.models import Sequential, Model
+        from tensorflow.keras.optimizers import Adam
+        from tensorflow.keras import losses
+        from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+        from tensorflow.keras.utils import plot_model
+        from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
         cfg_section = get_config()[cfg_section_name]
         lstm_layer = self.macro_input_layer
         for k in range(cfg_section["n_rnn_hidden_layers"]):
@@ -579,6 +617,14 @@ class AssetPricingGAN(object):
 
 class SDFExtraction(object):  # This is a complete version with data and gan network
     def __init__(self, data_dir, insample_cut_date):
+        from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
+        from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+        from tensorflow.keras.models import Sequential, Model
+        from tensorflow.keras.optimizers import Adam
+        from tensorflow.keras import losses
+        from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+        from tensorflow.keras.utils import plot_model
+        from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
         self.data_dir = data_dir
         self.insample_cut_date = pd.Timestamp(insample_cut_date)
         self.saved_weight_path = os.path.join(data_dir, "saved_weights.h5")
@@ -651,6 +697,14 @@ class SDFExtraction(object):  # This is a complete version with data and gan net
         self.norm_constant = self.sdf_output[:self.data_generator.n_train, 0, :].sum(axis=1).mean()
 
     def create_input_layers(self):
+        from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
+        from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+        from tensorflow.keras.models import Sequential, Model
+        from tensorflow.keras.optimizers import Adam
+        from tensorflow.keras import losses
+        from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+        from tensorflow.keras.utils import plot_model
+        from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
         self.macro_input_layer = Input(shape=(self.time_steps, self.n_macro_features), name="macro_data")
         self.company_input_layer = Input(shape=(self.time_steps, self.n_assets, self.n_company_fetures),
                                          name="company_data")
@@ -659,6 +713,14 @@ class SDFExtraction(object):  # This is a complete version with data and gan net
                                                 name="flat_company_data")(self.company_input_layer)
 
     def __build_network(self):
+        from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
+        from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+        from tensorflow.keras.models import Sequential, Model
+        from tensorflow.keras.optimizers import Adam
+        from tensorflow.keras import losses
+        from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+        from tensorflow.keras.utils import plot_model
+        from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
         cfg_section_name = "sdf"
         cfg_section = get_config()[cfg_section_name]
         lstm_layer = self.macro_input_layer

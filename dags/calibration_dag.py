@@ -1,3 +1,4 @@
+from airflow.decorators import task
 from dotenv import load_dotenv
 
 from derived_simple_price_step import (
@@ -20,7 +21,6 @@ from transformation_step import (
 
 from save_gan_inputs_step import GenerateDataGANWeekly_params
 
-load_dotenv()
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.utils.task_group import TaskGroup
@@ -34,6 +34,10 @@ import gcsfs
 
 import os
 import sys
+
+from src.generate_gan_results_step import ExtractGANFactors, extract_gan_factors_params
+
+load_dotenv()
 
 # Add the path to the "plugins" folder to sys.path
 # Assuming the "calibration-dag" directory is the parent directory of your DAGs folder.
@@ -153,20 +157,43 @@ def airflow_wrapper(**kwargs):
 
 """ Calibration Process"""
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
-    with TaskGroup("GenerateGANResults", tooltip="GenerateGANResults") as GenerateGANResults:
-        ExtractGANFactors = DockerOperator(
-            task_id="ExtractGANFactors",
-            docker_url='unix://var/run/docker.sock',
-            api_version='auto',
-            auto_remove=True,
-            image='ax-cal-training-image:v1.0',
 
+    with TaskGroup(
+        "GenerateGANResults", tooltip="GenerateGANResults"
+    ) as GenerateGANResults:
+
+        @task.external_python(
+            task_id="external_python", python='/home/dcmadmin/.conda/envs/bigdataml/bin/python'
         )
+        def callable_external_python():
 
+            egf = ExtractGANFactors(**extract_gan_factors_params)
+            egf.do_step_action()
 
+        callable_external_python()
 
-    GenerateGANResults
+    # start_dag = DummyOperator(
+    #     task_id='start_dag'
+    # )
 
+    # ExtractGANFactors = BashOperator(
+    #     task_id="ExtractGANFactors",
+    #     # bash_command=f"echo -n 'Im alive'"
+    #     bash_command="$(pyenv shims | grep '3.6' | tail -n 1) src/generate_gan_results.py"
+    # )
 
+    # ExtractGANFactors = DockerOperator(
+    #     task_id="ExtractGANFactors",
+    #     # docker_url='unix://var/run/docker.sock',
+    #     container_name='task__generate_gan',
+    #     command='/bin/sleep 10',
+    #     # command=f"python generate_gan_results.py",
+    #     api_version='auto',
+    #     auto_remove='success',
+    #     # image='ubuntu',
+    #     image='gan_image',
+    #     network_mode='host',
+    #     # mounts=['/var/run/docker.sock:/var/run/docker.sock']
+    # )
 
-
+    # ExtractGANFactors

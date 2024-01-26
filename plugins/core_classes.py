@@ -1,4 +1,4 @@
-from abc import ABC,ABCMeta, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 from google.cloud import storage
 from enum import Enum
 import pandas as pd
@@ -9,6 +9,7 @@ from market_timeline import marketTimeline
 
 EXEMPTIONS = []
 
+
 class StatusType(Enum):
     Not_Tested = 0
     Success = 1
@@ -16,10 +17,11 @@ class StatusType(Enum):
     Fail = 3
     Not_Tested_Warn = 10
 
+
 class ReturnTypeForPermutation(Enum):
-    LogReturn=1
-    AbsReturn=2
-    Level=3
+    LogReturn = 1
+    AbsReturn = 2
+    Level = 3
     LogOU_VIX = 4
     LogOU_VXST = 5
     LogOU_VX1 = 6
@@ -35,17 +37,20 @@ class GCPInstance(ABC):
     def get_bucket(self):
         NotImplementedError()
 
+
 def grab_csv_from_gcp(bucket, data):
     return pd.read_csv(
         os.path.join('gs://{}'.format(bucket), data),
         # index_col=[0]
     )
 
+
 def instantiate_gcp_bucket(bucket):
     storage_client = storage.Client()
     # bucket_name = bucket_name
     bucket = storage_client.get_bucket(bucket)
     return storage_client, bucket
+
 
 class GCPInstanceSingleton(GCPInstance):
     __instance = None
@@ -74,8 +79,9 @@ def download_yahoo_data(ticker_list, start_dt, end_dt):
         close_col = "{0}_close".format(ticker)
         vol_col = "{0}_volume".format(ticker)
         try:
-            df = yf.download(ticker, start_dt, end_dt,progress=False)
-            df = df.fillna(method="ffill")[["Adj Close","Volume"]].rename(columns={"Adj Close": close_col, "Volume": vol_col})
+            df = yf.download(ticker, start_dt, end_dt, progress=False)
+            df = df.fillna(method="ffill")[["Adj Close", "Volume"]].rename(
+                columns={"Adj Close": close_col, "Volume": vol_col})
             df = df[~df.index.duplicated(keep='last')]
             df_1.append(df)
         except:
@@ -95,21 +101,9 @@ class DataReaderClass(ABC):
     def _prepare_to_pull_data(self, **kwargs):
         raise NotImplementedError()
 
-    # @abstractmethod
-    # def _pull_data(self,**kwargs):
-    #    raise NotImplementedError()
-
-    # @abstractmethod
-    # def _post_process_pulled_data(self,data,**kwargs):
-    #    raise NotImplementedError()
-
     @abstractmethod
     def _get_data_lineage(self):
         raise NotImplementedError()
-
-    # @abstractmethod
-    # def do_step_action(self, data, **kwargs):
-    #    raise NotImplementedError()
 
 
 class GCPReader(DataReaderClass):
@@ -149,34 +143,38 @@ class GCPReader(DataReaderClass):
         return self.data
 
 
-def construct_required_path(step,file_name):
+def construct_required_path(step, file_name):
     return "gs://{}/calibration_data/live" + "/{}/".format(step) + "{}.csv".format(file_name)
 
+
 def construct_destination_path(step):
-    return "gs://{}/calibration_data/live" +"/{}/".format(step) +"{}.csv"
+    return "gs://{}/calibration_data/live" + "/{}/".format(step) + "{}.csv"
 
 
-
-def construct_required_path_earnings(step,file_name):
+def construct_required_path_earnings(step, file_name):
     return "gs://{}/calibration_data/earnings/tenere_portfolio" + "/{}/".format(step) + "{}.csv".format(file_name)
 
+
 def construct_destination_path_earnings(step):
-    return "gs://{}/calibration_data/earnings/tenere_portfolio" +"/{}/".format(step) +"{}.csv"
+    return "gs://{}/calibration_data/earnings/tenere_portfolio" + "/{}/".format(step) + "{}.csv"
+
 
 def pick_trading_quarterly_dates(start_date, end_date, mode='BQ'):
     weekly_days = pd.date_range(start_date, end_date, freq=mode)
     trading_dates = pd.Series(weekly_days).apply(marketTimeline.get_next_trading_day_if_holiday)
-    dates = trading_dates[(trading_dates>=start_date) & (trading_dates<=end_date)]
+    dates = trading_dates[(trading_dates >= start_date) & (trading_dates <= end_date)]
     return dates
+
 
 def pick_trading_month_dates(start_date, end_date, mode="bme"):
     trading_days = marketTimeline.get_trading_days(start_date, end_date).tz_localize(None)
-    if mode=="bme":
+    if mode == "bme":
         dates = pd.Series(trading_days).groupby(trading_days.to_period('M')).last()
     else:
         dates = pd.Series(trading_days).groupby(trading_days.to_period('M')).first()
-    dates = dates[(dates>=start_date) & (dates<=end_date)]
+    dates = dates[(dates >= start_date) & (dates <= end_date)]
     return dates
+
 
 def convert_date_to_string(date):
     return date.strftime('%Y-%m-%d')
@@ -189,4 +187,3 @@ def create_directory_if_does_not_exists(dir_path):
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise
-

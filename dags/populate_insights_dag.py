@@ -516,7 +516,5 @@ def main():
                 },
                 "header_info": header_info,
             }
-
-
-
-
+        except Exception as e:
+            print(f'[!] Exception {e}')
