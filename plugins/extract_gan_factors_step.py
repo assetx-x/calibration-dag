@@ -1,5 +1,5 @@
 from airflow.decorators import task
-from asset_pricing_model import extract_factors
+from plugins.asset_pricing_model import extract_factors
 from core_classes import DataReaderClass
 from plugins.asset_pricing_model import SDFExtraction
 import pandas as pd
