@@ -123,7 +123,7 @@ QM_datasets = {'daily_price_data': construct_required_path('data_pull', 'daily_p
                }
 
 QM_configs = {'apply_log_vol': True,
-              'start_date': "2001-01-02",
+              'start_date': "2000-03-15",
               'end_date': RUN_DATE
               }
 

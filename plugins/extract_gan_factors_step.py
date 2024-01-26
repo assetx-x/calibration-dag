@@ -1,5 +1,5 @@
 from airflow.decorators import task
-
+from asset_pricing_model import extract_factors
 from core_classes import DataReaderClass
 from plugins.asset_pricing_model import SDFExtraction
 import pandas as pd
@@ -21,58 +21,19 @@ current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
 
 
-@task.external_python(
-    task_id="external_python",
-    python='/home/dcmadmin/calibration_ml_training/bin/python',
-)
-def _do_step_action(insample_cut_date):
-    print(f'Step with different python interpreter started at {insample_cut_date}')
-
-    full_path = 'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/live/save_gan_inputs/save_gan_inputs'
-    factor_file = os.path.join(full_path, "all_factors.h5")
-
-    sdf_network = SDFExtraction(full_path, insample_cut_date)
-    sdf_network.generate_all_factors()
-    sdf_network.save_factors()
-
-    print('finished extracting factors')
-    all_factors = pd.read_hdf(factor_file)
-    return {'gan_factors': all_factors}
-
+#@task.external_python(
+#    task_id="external_python",
+#    python='/home/dcmadmin/calibration_ml_training/bin/python',)
 
 class ExtractGANFactors(DataReaderClass):
-    def __init__(
-        self,
-        insample_cut_date,
-        epochs,
-        epochs_discriminator,
-        gan_iterations,
-        retrain,
-        bucket,
-        key,
-    ):
-        super().__init__(bucket, key)
+
+    def __init__(self, insample_cut_date, epochs, epochs_discriminator,gan_iterations,
+                 retrain):
         self.insample_cut_date = insample_cut_date
         self.epochs = epochs
         self.epochs_discriminator = epochs_discriminator
         self.gan_iterations = gan_iterations
         self.retrain = retrain
-        self._data = None
-
-    @property
-    def data(self):
-        print(f'[>] Extracting data from {self.key}')
-        return self._data
-
-    @data.setter
-    def data(self, val):
-        print(f'[>] Setting data to {val}!')
-        self._data = val
-
-    def do_step_action(self, **kwargs):
-        data = _do_step_action(self)
-        self.data = data.get('gan_factors')
-        return data
 
     def _get_data_lineage(self):
         pass
@@ -81,14 +42,24 @@ class ExtractGANFactors(DataReaderClass):
         pass
 
 
+    def do_step_action(self, **kwargs):
+        full_path = 'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/live/save_gan_inputs/save_gan_inputs'
+        factor_file = os.path.join(full_path, "all_factors.h5")
+
+        # Call the extract_factors function directly
+        extract_factors(full_path, self.insample_cut_date)
+        print('finished extracting factors')
+        all_factors = pd.read_hdf(factor_file)
+        self.data = all_factors
+        return {'gan_factors': self.data}
+
+
 extract_gan_factors_params = {
     'insample_cut_date': "2023-02-03",
     'epochs': 150,
     'epochs_discriminator': 50,
     'gan_iterations': 2,
     'retrain': False,
-    'bucket': 'dcm-prod-ba2f-us-dcm-data-test',
-    'key': 'generate_gan_results'
 }
 
 ExtractGANFactors_params = {
