@@ -25,7 +25,7 @@ USER airflow
 # Copy and install requirements
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements_calibration_ml_training.txt && \
+    pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir ta-lib "apache-airflow==${AIRFLOW_VERSION}"
 
 # Set environment variables
