@@ -6,7 +6,7 @@ RUN pip install -U pip && pip install -r requirements_gan.txt
 
 FROM apache/airflow:2.6.3-python3.8 as run
 
-COPY --from=python_version /usr/local/bin/py* /usr/local/bin/
+COPY --from=python_version /usr/local/bin/python /usr/local/bin/python3.6
 COPY --from=python_version /usr/local/bin/pip* /usr/local/bin/
 COPY --from=python_version /usr/local/bin/wheel /usr/local/bin/
 COPY --from=python_version /usr/local/lib/lib* /usr/local/lib/
