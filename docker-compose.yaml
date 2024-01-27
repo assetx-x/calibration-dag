@@ -80,8 +80,6 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
     - ${AIRFLOW_PROJ_DIR:-.}/includes:/opt/airflow/includes
-#    - /home/dcmadmin/.conda/envs/bigdataml/bin/python:/tmp/python
-    - /Users/iklo/gan/bin/python:/tmp/python
 
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
@@ -159,6 +157,8 @@ services:
 
   airflow-worker:
     <<: *airflow-common
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command: celery worker
     healthcheck:
       test:

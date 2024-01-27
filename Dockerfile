@@ -23,20 +23,20 @@ RUN mkdir -p /.pyenv && chown airflow /.pyenv
 USER airflow
 
 # Installs GAN requirements using pyenv
-ENV LDFLAGS ''
-RUN curl https://pyenv.run | bash && \
-    echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
-    echo 'eval "$(pyenv init --path)"' >> ~/.bashrc && \
-    echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
-
-# Set-up necessary Env vars for PyEnv
-ENV PYENV_ROOT $HOME/.pyenv
-ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
-
-# Install python 3.6.10
-RUN exec "$BASH" ; echo "[!] Exec BASH: $?" ; \
-    source ~/.bashrc ; echo "[!] Source bashrc $?" ; \
-    pyenv install 3.6.10 ; echo "[!] Pyenv install: $?"
+#ENV LDFLAGS ''
+#RUN curl https://pyenv.run | bash && \
+#    echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
+#    echo 'eval "$(pyenv init --path)"' >> ~/.bashrc && \
+#    echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
+#
+## Set-up necessary Env vars for PyEnv
+#ENV PYENV_ROOT $HOME/.pyenv
+#ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
+#
+## Install python 3.6.10
+#RUN exec "$BASH" ; echo "[!] Exec BASH: $?" ; \
+#    source ~/.bashrc ; echo "[!] Source bashrc $?" ; \
+#    pyenv install 3.6.10 ; echo "[!] Pyenv install: $?"
 
 # Copies and installs requirements
 COPY requirements.txt .
@@ -45,9 +45,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install -q --no-cache-dir ta-lib "apache-airflow==${AIRFLOW_VERSION}"
 
 # Copy GAN requirements
-COPY requirements_gan.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install -q --no-cache-dir -r requirements_gan.txt
+#COPY requirements_gan.txt .
+#RUN pip install --no-cache-dir --upgrade pip && \
+#    pip install -q --no-cache-dir -r requirements_gan.txt
 
 # Sets environment variables and creates necessary directories
 WORKDIR /app
