@@ -6,8 +6,10 @@ RUN pip install -U pip && pip install -r requirements_gan.txt
 
 FROM apache/airflow:2.6.3-python3.8 as run
 
-COPY --from=python_version /usr/local/bin/python /usr/local/bin/python3.6
-COPY --from=python_version /usr/local/lib/python3.6/site-packages /usr/local/lib/python3.6/site-packages
+COPY --from=python_version /usr/local/bin/py* /usr/local/bin/
+COPY --from=python_version /usr/local/bin/pip* /usr/local/bin/
+COPY --from=python_version /usr/local/bin/wheel /usr/local/bin/
+COPY --from=python_version /usr/local/lib/lib* /usr/local/lib/
 
 USER root
 
@@ -42,7 +44,6 @@ ENV PYTHONPATH "${PYTHONPATH}:/usr/local/airflow/:/usr/local/airflow/dags:/usr/l
 
 # Create necessary directories
 RUN mkdir -p logs/{scheduler,webserver,worker,flower,redis,postgres}
-RUN which python3.6
 
 # Copy the rest of the files
 COPY . .
