@@ -27,7 +27,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 SHELL ["/bin/bash", "-c"]
 RUN curl https://pyenv.run | bash && \
     echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
-    echo 'eval "$(pyenv init --path)"' >> ~/.bashrc && \
+    echo 'eval "$(pyenv init -)"' >> ~/.bashrc && \
     echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc && \
     source ~/.bashrc && \
     pyenv install 3.6.10 && \
