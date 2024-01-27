@@ -16,4 +16,4 @@ deploy:
 rebuild:
 	docker compose down
 	sudo git pull
-	docker compose up --build -d
+	script -q last_build.txt /bin/bash -c "docker compose up --build -d | sed 's,\x1b\[[0-9;]*[a-zA-Z],,g'"
