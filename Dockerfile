@@ -19,19 +19,24 @@ USER airflow
 
 # Installs GAN requirements using pyenv
 ENV LDFLAGS ''
-RUN curl https://pyenv.run | bash && \
-    echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
-    echo 'eval "$(pyenv init --path)"' >> ~/.bashrc && \
-    echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
+RUN git clone https://github.com/pyenv/pyenv.git /pyenv
+ENV PYENV_ROOT /pyenv
+RUN /pyenv/bin/pyenv install 3.10.10
+RUN eval "$(/pyenv/bin/pyenv init -)" && /pyenv/bin/pyenv local 3.10.10 && pip install numpy poetry setuptools wheel six auditwheel
+
+#RUN #curl https://pyenv.run | bash && \
+#    echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
+#    echo 'eval "$(pyenv init --path)"' >> ~/.bashrc && \
+#    echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
 
 # Set-up necessary Env vars for PyEnv
 ENV PYENV_ROOT $HOME/.pyenv
 ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
 
 # Install python 3.6.10
-RUN exec "$BASH"; echo "[!] Exec BASH: $?" && \
-    source ~/.bashrc; echo "[!] Source bashrc $?" && \
-    pyenv install -v 3.6.10; echo "[!] Pyenv install: $?"
+RUN exec "$BASH" ; echo "[!] Exec BASH: $?" ; \
+    source ~/.bashrc ; echo "[!] Source bashrc $?" ; \
+    pyenv install -v 3.6.10 ; echo "[!] Pyenv install: $?"
 
 # Copies and installs requirements
 COPY requirements.txt .
