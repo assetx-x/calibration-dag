@@ -11,8 +11,8 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 ## Downloads and installs TA-Lib
-#RUN curl -L http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz | tar xvz && \
-#    cd ta-lib/ && ./configure --prefix=/usr && make && make install && cd .. && rm -rf ta-lib
+RUN curl -L http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz | tar xvz && \
+    cd ta-lib/ && ./configure --prefix=/usr && make && make install && cd .. && rm -rf ta-lib
 
 # Switches user
 USER airflow
