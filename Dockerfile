@@ -3,9 +3,26 @@ FROM apache/airflow:2.6.3-python3.8 as run
 USER root
 
 # Install required system libraries
-RUN apt-get update && apt-get install -y \
-    --no-install-recommends make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev \
-    gcc git \
+RUN apt-get update \
+    && apt-get install -y \
+        build-essential \
+        libssl-dev \
+        zlib1g-dev \
+        libbz2-dev \
+        libreadline-dev \
+        libsqlite3-dev \
+        wget \
+        curl \
+        llvm \
+        libncurses5-dev \
+        libncursesw5-dev \
+        xz-utils \
+        tk-dev \
+        libffi-dev \
+        liblzma-dev \
+        python3-openssl \
+        git
+RUN apt-get install -y gcc git \
     mecab-ipadic-utf8 \
     wget \
     build-essential \
@@ -31,10 +48,15 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir ta-lib "apache-airflow==${AIRFLOW_VERSION}"
 
 # Install GAN requirements using pyenv
-RUN git clone --depth=1 https://github.com/pyenv/pyenv.git .pyenv
-ENV PYENV_ROOT="$HOME/.pyenv"
-ENV PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"
-RUN eval "$(pyenv init -)"
+RUN curl https://pyenv.run | bash \
+    && echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc \
+    && echo 'eval "$(pyenv init --path)"' >> ~/.bashrc \
+    && echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
+
+# Reload Bash Profile
+RUN exec "$BASH" && source ~/.bashrc
+
+# Install Python 3.6.10
 RUN pyenv install 3.6.10
 
 ## Set environment variables
