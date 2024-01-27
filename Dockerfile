@@ -31,7 +31,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir ta-lib "apache-airflow==${AIRFLOW_VERSION}"
 
 # Install GAN requirements using pyenv
-WORKDIR /root
 RUN git clone --depth=1 https://github.com/pyenv/pyenv.git .pyenv
 ENV PYENV_ROOT="$HOME/.pyenv"
 ENV PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"
