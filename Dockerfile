@@ -26,9 +26,9 @@ RUN curl https://pyenv.run | bash && \
 
 RUN exec "$BASH" && source ~/.bashrc && pyenv install -v 3.6.10
 
-RUN groupadd airflow && \
-    chown airflow:airflow /home/airflow/.bashrc && \
-    chmod 644 /home/airflow/.bashrc
+RUN #groupadd airflow && \
+#    chown airflow:airflow /home/airflow/.bashrc && \
+#    chmod 644 /home/airflow/.bashrc
 
 # Copies and installs requirements
 COPY requirements.txt .
