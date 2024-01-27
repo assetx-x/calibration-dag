@@ -22,8 +22,7 @@ ENV LDFLAGS ''
 RUN curl https://pyenv.run | bash && \
     echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
     echo 'eval "$(pyenv init --path)"' >> ~/.bashrc && \
-    echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc \
-    (if [ $? -eq 0 ]; then echo 'Commands succeeded'; else echo 'Commands failed'; fi)
+    echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
 
 # Set-up necessary Env vars for PyEnv
 ENV PYENV_ROOT $HOME/.pyenv
