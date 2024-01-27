@@ -16,9 +16,9 @@ RUN curl -L http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz | 
 
 # Installs GAN requirements using pyenv
 RUN curl https://pyenv.run | bash && \
-    echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
-    echo 'eval "$(pyenv init --path)"' >> ~/.bashrc && \
-    echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc && \
+    echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> /home/airflow/.bashrc && \
+    echo 'eval "$(pyenv init --path)"' >> /home/airflow/.bashrc && \
+    echo 'eval "$(pyenv virtualenv-init -)"' >> /home/airflow/.bashrc && \
     exec "$BASH" && source ~/.bashrc && pyenv install 3.6.10
 
 # Switches user
