@@ -110,7 +110,7 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     ) as GenerateGANResults:
 
         @task.external_python(
-            task_id="external_python", python='/home/airflow/.pyenv/shims/python3.6'
+            task_id="external_python", python='//home/airflow/.pyenv/versions/3.6.10/bin/python'
         )
         def callable_external_python():
 
