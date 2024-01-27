@@ -19,8 +19,7 @@ RUN curl https://pyenv.run | bash && \
     echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
     echo 'eval "$(pyenv init --path)"' >> ~/.bashrc && \
     echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc && \
-    exec "$BASH" && source ~/.bashrc
-RUN pyenv install -v 3.6.10
+    exec "$BASH" && source ~/.bashrc && pyenv install 3.6.10
 
 # Switches user
 USER airflow
