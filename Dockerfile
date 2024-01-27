@@ -18,8 +18,9 @@ RUN curl -L http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz | 
 RUN curl https://pyenv.run | bash && \
     echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> /home/airflow/.bashrc && \
     echo 'eval "$(pyenv init --path)"' >> /home/airflow/.bashrc && \
-    echo 'eval "$(pyenv virtualenv-init -)"' >> /home/airflow/.bashrc && \
-    exec "$BASH" && source /home/airflow/.bashrc && pyenv install -v 3.6.10
+    echo 'eval "$(pyenv virtualenv-init -)"' >> /home/airflow/.bashrc
+
+RUN exec "$BASH" && source /home/airflow/.bashrc && pyenv install -v 3.6.10
 
 RUN groupadd airflow && \
     chown airflow:airflow /home/airflow/.bashrc && \
