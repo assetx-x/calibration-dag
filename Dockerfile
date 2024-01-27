@@ -32,9 +32,9 @@ RUN #groupadd airflow && \
 
 # Copies and installs requirements
 COPY requirements.txt .
-RUN pip install -q --no-cache-dir --upgrade pip && \
-    pip install -q --no-cache-dir -r requirements.txt && \
-    pip install -q --no-cache-dir ta-lib "apache-airflow==${AIRFLOW_VERSION}"
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir ta-lib "apache-airflow==${AIRFLOW_VERSION}"
 
 # Sets environment variables and creates necessary directories
 WORKDIR /app
