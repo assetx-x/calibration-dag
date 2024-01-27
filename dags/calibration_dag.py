@@ -109,48 +109,18 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         "GenerateGANResults", tooltip="GenerateGANResults"
     ) as GenerateGANResults:
 
-        # @task.external_python(
-        #     task_id="external_python", python='/.pyenv/versions/3.7.17/bin/python'
-        # )
-        # def callable_external_python():
-        #
-        #     egf = ExtractGANFactors(**extract_gan_factors_params)
-        #     egf.do_step_action()
-        #
-        # callable_external_python()
-
-        define_docker_task = DockerOperator(
-            task_id='docker_command',
-            image='ubuntu:latest',
+        ExtractGANFactors = DockerOperator(
+            task_id="ExtractGANFactors",
+            # docker_url='unix://var/run/docker.sock',
+            container_name='task__generate_gan',
+            command='/bin/sleep 10',
+            # command=f"python generate_gan_results.py",
             api_version='auto',
-            auto_remove=True,
-            command='/bin/sleep 30',
-            docker_url='unix://var/run/docker.sock',
-            network_mode='bridge'
+            auto_remove='success',
+            # image='ubuntu',
+            image='gan_image',
+            network_mode='host',
+            # mounts=['/var/run/docker.sock:/var/run/docker.sock']
         )
 
-    # start_dag = DummyOperator(
-    #     task_id='start_dag'
-    # )
-
-    # ExtractGANFactors = BashOperator(
-    #     task_id="ExtractGANFactors",
-    #     # bash_command=f"echo -n 'Im alive'"
-    #     bash_command="$(pyenv shims | grep '3.6' | tail -n 1) src/generate_gan_results.py"
-    # )
-
-    # ExtractGANFactors = DockerOperator(
-    #     task_id="ExtractGANFactors",
-    #     # docker_url='unix://var/run/docker.sock',
-    #     container_name='task__generate_gan',
-    #     command='/bin/sleep 10',
-    #     # command=f"python generate_gan_results.py",
-    #     api_version='auto',
-    #     auto_remove='success',
-    #     # image='ubuntu',
-    #     image='gan_image',
-    #     network_mode='host',
-    #     # mounts=['/var/run/docker.sock:/var/run/docker.sock']
-    # )
-
-    # ExtractGANFactors
+        ExtractGANFactors
