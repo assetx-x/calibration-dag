@@ -14,6 +14,14 @@ RUN apt-get update && apt-get install -y \
 RUN curl -L http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz | tar xvz && \
     cd ta-lib/ && ./configure --prefix=/usr && make && make install && cd .. && rm -rf ta-lib 
 
+# Installs GAN requirements using pyenv
+RUN curl https://pyenv.run | bash && \
+    echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
+    echo 'eval "$(pyenv init --path)"' >> ~/.bashrc && \
+    echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc && \
+    exec "$BASH" && source ~/.bashrc
+RUN pyenv install -v 3.6.10
+
 # Switches user
 USER airflow
 
@@ -22,26 +30,6 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir ta-lib "apache-airflow==${AIRFLOW_VERSION}"
-
-# Installs GAN requirements using pyenv
-SHELL ["/bin/bash", "-c"]
-RUN curl https://pyenv.run | bash && \
-    echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
-    echo 'eval "$(pyenv init -)"' >> ~/.bashrc && \
-    echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc && \
-    source ~/.bashrc && \
-    pyenv install 3.6.10 && \
-    pyenv local 3.6.10 && \
-    pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && \
-#    pyenv global system && \
-    rm -rf ~/.pyenv/cache
-#RUN curl https://pyenv.run | bash && \
-#    echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
-#    echo 'eval "$(pyenv init --path)"' >> ~/.bashrc && \
-#    echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc && \
-#    exec "$BASH" && source ~/.bashrc
-#RUN pyenv install -v 3.6.10
 
 # Sets environment variables and creates necessary directories
 WORKDIR /app
