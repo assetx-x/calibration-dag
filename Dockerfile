@@ -19,10 +19,11 @@ USER airflow
 
 # Installs GAN requirements using pyenv
 ENV LDFLAGS ''
-RUN git clone https://github.com/pyenv/pyenv.git /pyenv
-ENV PYENV_ROOT /pyenv
-RUN /pyenv/bin/pyenv install 3.10.10
-RUN eval "$(/pyenv/bin/pyenv init -)" && /pyenv/bin/pyenv local 3.10.10 && pip install numpy poetry setuptools wheel six auditwheel
+RUN git clone https://github.com/pyenv/pyenv.git $HOME/pyenv
+ENV PYENV_ROOT $HOME/pyenv
+RUN /pyenv/bin/pyenv install 3.6.10
+RUN eval "$(/pyenv/bin/pyenv init -)" && /pyenv/bin/pyenv local 3.6.10
+#    && pip install numpy poetry setuptools wheel six auditwheel
 
 #RUN #curl https://pyenv.run | bash && \
 #    echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
@@ -30,7 +31,7 @@ RUN eval "$(/pyenv/bin/pyenv init -)" && /pyenv/bin/pyenv local 3.10.10 && pip i
 #    echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
 
 # Set-up necessary Env vars for PyEnv
-ENV PYENV_ROOT $HOME/.pyenv
+#ENV PYENV_ROOT $HOME/.pyenv
 ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
 
 # Install python 3.6.10
