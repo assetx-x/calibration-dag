@@ -1,0 +1,75 @@
+.gitignore
+.git
+
+__pycache__/
+*.pyo
+*.pyc
+*.pyd
+
+# Python egg info
+*.egg-info/
+
+# Distribution / packaging
+.Python
+.build/
+.venv/
+dist/
+sdist/
+develop-eggs/
+eggs/
+lib/
+lib64/
+parts/
+var/
+*.egg
+*.eggs
+*.tar.gz
+*.csv
+*.xlsx
+*.json
+
+# Tests and coverage
+.coverage
+.tox/
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Editors
+.vscode/
+.idea/
+
+# Database
+*.sqlite3
+
+# Dynamic files (considered to change, and not required to run the app)
+*.pdf
+
+# Docker
+docker-compose.yml
+docker-compose.*.yml
+Dockerfile
+.docker/
+
+# Other
+*.swp
+*~
+.project
+.pydevproject
+*.bak
