@@ -33,8 +33,8 @@ RUN exec "$BASH" && source ~/.bashrc && pyenv install -v 3.6.10
 # Copies and installs requirements
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir ta-lib "apache-airflow==${AIRFLOW_VERSION}"
+    pip install -q --no-cache-dir -r requirements.txt && \
+    pip install -q --no-cache-dir ta-lib "apache-airflow==${AIRFLOW_VERSION}"
 
 # Sets environment variables and creates necessary directories
 WORKDIR /app
