@@ -34,6 +34,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 RUN git clone --depth=1 https://github.com/pyenv/pyenv.git .pyenv
 ENV PYENV_ROOT="$HOME/.pyenv"
 ENV PATH="$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"
+RUN eval "$(pyenv init -)"
 RUN pyenv install 3.6.10
 
 ## Set environment variables
