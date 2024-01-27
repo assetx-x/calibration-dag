@@ -16,6 +16,9 @@ RUN apt-get update && apt-get install -y \
 RUN curl -L http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz | tar xvz && \
     cd ta-lib/ && ./configure --prefix=/usr && make && make install && cd .. && rm -rf ta-lib
 
+# Permission to airflow user to create pyenv
+RUN mkdir -p /.pyenv && chown airflow /.pyenv
+
 # Switches user
 USER airflow
 
@@ -33,13 +36,18 @@ ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
 # Install python 3.6.10
 RUN exec "$BASH" ; echo "[!] Exec BASH: $?" ; \
     source ~/.bashrc ; echo "[!] Source bashrc $?" ; \
-    pyenv install -v 3.6.10 ; echo "[!] Pyenv install: $?"
+    pyenv install 3.6.10 ; echo "[!] Pyenv install: $?"
 
 # Copies and installs requirements
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install -q --no-cache-dir -r requirements.txt && \
     pip install -q --no-cache-dir ta-lib "apache-airflow==${AIRFLOW_VERSION}"
+
+# Copy GAN requirements
+COPY requirements_gan.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install -q --no-cache-dir -r requirements_gan.txt
 
 # Sets environment variables and creates necessary directories
 WORKDIR /app

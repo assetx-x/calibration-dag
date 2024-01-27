@@ -109,15 +109,25 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         "GenerateGANResults", tooltip="GenerateGANResults"
     ) as GenerateGANResults:
 
-        @task.external_python(
-            task_id="external_python", python='/.pyenv/versions/3.7.17/bin/python'
+        # @task.external_python(
+        #     task_id="external_python", python='/.pyenv/versions/3.7.17/bin/python'
+        # )
+        # def callable_external_python():
+        #
+        #     egf = ExtractGANFactors(**extract_gan_factors_params)
+        #     egf.do_step_action()
+        #
+        # callable_external_python()
+
+        define_docker_task = DockerOperator(
+            task_id='docker_command',
+            image='ubuntu:latest',
+            api_version='auto',
+            auto_remove=True,
+            command='/bin/sleep 30',
+            docker_url='unix://var/run/docker.sock',
+            network_mode='bridge'
         )
-        def callable_external_python():
-
-            egf = ExtractGANFactors(**extract_gan_factors_params)
-            egf.do_step_action()
-
-        callable_external_python()
 
     # start_dag = DummyOperator(
     #     task_id='start_dag'
