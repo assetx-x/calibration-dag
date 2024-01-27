@@ -1,4 +1,13 @@
-FROM apache/airflow:2.6.3-python3.8
+FROM python:3.6.10 AS python_version
+
+COPY requirements_gan.txt .
+RUN pip install -U pip && pip install -r requirements_gan.txt
+
+
+FROM apache/airflow:2.6.3-python3.8 as run
+
+COPY --from=python_version /usr/local/bin/python /usr/local/bin/python3.6
+COPY --from=python_version /usr/local/lib/python3.6/site-packages /usr/local/lib/python3.6/site-packages
 
 USER root
 
@@ -10,7 +19,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Download and Install TA-Lib
+## Download and Install TA-Lib
 RUN wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz && \
     tar -xzf ta-lib-0.4.0-src.tar.gz && \
     cd ta-lib/ && \
@@ -22,23 +31,18 @@ RUN wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz && \
 
 USER airflow
 
-# Copy and install requirements
+## Copy and install requirements
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir ta-lib "apache-airflow==${AIRFLOW_VERSION}"
 
-COPY requirements_gan.txt .
-RUN unset PIP_USER \
-  && python -m venv /opt/airflow/venv1 \
-  # Provide your own requirements
-  && /opt/airflow/venv1/bin/python -m pip install -r requirements_gan.txt
-
-# Set environment variables
+## Set environment variables
 ENV PYTHONPATH "${PYTHONPATH}:/usr/local/airflow/:/usr/local/airflow/dags:/usr/local/airflow/plugins"
 
 # Create necessary directories
 RUN mkdir -p logs/{scheduler,webserver,worker,flower,redis,postgres}
+RUN which python3.6
 
 # Copy the rest of the files
 COPY . .
