@@ -1,6 +1,8 @@
 # Sets base image and role
 FROM apache/airflow:2.6.3-python3.8 as run
 
+ENV PYTHONPATH "${PYTHONPATH}:/usr/local/airflow/:/usr/local/airflow/dags:/usr/local/airflow/plugins"
+
 # Switches user
 USER root
 
@@ -41,7 +43,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Sets environment variables and creates necessary directories
 WORKDIR /app
-ENV PYTHONPATH "${PYTHONPATH}:/usr/local/airflow/:/usr/local/airflow/dags:/usr/local/airflow/plugins"
 RUN mkdir -p logs/{scheduler,webserver,worker,flower,redis,postgres}
 
 # Copies the rest of the files
