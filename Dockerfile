@@ -10,30 +10,31 @@ RUN apt-get update && apt-get install -y \
     libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl git gcc mecab-ipadic-utf8 && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Downloads and installs TA-Lib
-RUN curl -L http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz | tar xvz && \
-    cd ta-lib/ && ./configure --prefix=/usr && make && make install && cd .. && rm -rf ta-lib 
+## Downloads and installs TA-Lib
+#RUN curl -L http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz | tar xvz && \
+#    cd ta-lib/ && ./configure --prefix=/usr && make && make install && cd .. && rm -rf ta-lib
+
+# Switches user
+USER airflow
 
 # Installs GAN requirements using pyenv
+ENV LDFLAGS ''
 RUN curl https://pyenv.run | bash && \
-    echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> /home/airflow/.bashrc && \
-    echo 'eval "$(pyenv init --path)"' >> /home/airflow/.bashrc && \
-    echo 'eval "$(pyenv virtualenv-init -)"' >> /home/airflow/.bashrc
+    echo 'export PATH="$HOME/.pyenv/bin:$PATH"' >> ~/.bashrc && \
+    echo 'eval "$(pyenv init --path)"' >> ~/.bashrc && \
+    echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc
 
-RUN exec "$BASH" && source /home/airflow/.bashrc && pyenv install -v 3.6.10
+RUN exec "$BASH" && source ~/.bashrc && pyenv install -v 3.6.10
 
 RUN groupadd airflow && \
     chown airflow:airflow /home/airflow/.bashrc && \
     chmod 644 /home/airflow/.bashrc
 
-# Switches user
-USER airflow
-
 # Copies and installs requirements
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir ta-lib "apache-airflow==${AIRFLOW_VERSION}"
+RUN pip install -q --no-cache-dir --upgrade pip && \
+    pip install -q --no-cache-dir -r requirements.txt && \
+    pip install -q --no-cache-dir ta-lib "apache-airflow==${AIRFLOW_VERSION}"
 
 # Sets environment variables and creates necessary directories
 WORKDIR /app
