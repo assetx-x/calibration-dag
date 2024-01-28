@@ -8,6 +8,6 @@ RUN pip install --upgrade pip && \
 
 COPY plugins/ .
 
-ENV GOOGLE_APPLICATION_CREDENTIALS /home/dcmadmin/calibration-dag/plugins/data_processing/dcm-prod.json
+ENV GOOGLE_APPLICATION_CREDENTIALS /app/data_processing/dcm-prod.json
 
 ENTRYPOINT ["python", "generate_gan_results_step.py"]
