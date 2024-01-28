@@ -8,4 +8,4 @@ RUN pip install --upgrade pip && \
 
 COPY plugins/ .
 
-ENTRYPOINT ["python", "-m", "pip", "list"]
+ENTRYPOINT ["python", "generate_gan_results_step.py"]
