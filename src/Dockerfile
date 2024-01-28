@@ -8,4 +8,6 @@ RUN pip install --upgrade pip && \
 
 COPY plugins/ .
 
+ENV GOOGLE_APPLICATION_CREDENTIALS /Users/iklo/PycharmProjects/calibration-dag/plugins/data_processing/dcm-prod.json
+
 ENTRYPOINT ["python", "generate_gan_results_step.py"]
