@@ -111,16 +111,13 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
 
         ExtractGANFactors = DockerOperator(
             task_id="ExtractGANFactors",
-            # docker_url='unix://var/run/docker.sock',
             container_name='task__generate_gan',
-            command='/bin/sleep 10',
+            command="echo 'RUNNING GAN STEP'",
             # command=f"python generate_gan_results.py",
             api_version='auto',
             auto_remove='success',
-            # image='ubuntu',
             image='gan_image',
             network_mode='host',
-            # mounts=['/var/run/docker.sock:/var/run/docker.sock']
         )
 
         ExtractGANFactors
