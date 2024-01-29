@@ -10,7 +10,7 @@ from datetime import datetime
 #     data_processing_folder, 'dcm-prod.json'
 # )
 os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
-JUMP_DATES_CSV = os.path.join('dapta_processing', 'intervals_for_jump.csv')
+JUMP_DATES_CSV = os.path.join('data_processing', 'intervals_for_jump.csv')
 current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
 
