@@ -10,5 +10,4 @@ COPY plugins/ .
 
 ENV GOOGLE_APPLICATION_CREDENTIALS data_processing/dcm-prod.json
 
-#ENTRYPOINT ["python", "generate_gan_results_step.py"]
-CMD ["python", "-b"]
+ENTRYPOINT ["python", "generate_gan_results_step.py"]
