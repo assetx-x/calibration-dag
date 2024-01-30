@@ -6,7 +6,6 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.utils.task_group import TaskGroup
 from airflow.utils.dates import days_ago
 from airflow.operators.bash import BashOperator
-#from airflow.operators.docker_operator import DockerOperator
 from airflow.operators.python_operator import PythonOperator
 import pandas as pd
 from datetime import timedelta
