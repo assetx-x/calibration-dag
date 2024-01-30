@@ -80,9 +80,9 @@ class QuantamentalMergeEconIndustry(DataReaderClass):
 
     def _merge_data(self, monthly_merged_data, security_master, industry_average, econ_data):
 
-        merged_data = pd.merge(monthly_merged_data,
+        merged_data = pd.merge(monthly_merged_data.rename(columns={"ticker": "dcm_security_id"}),
                                security_master[self.security_master_cols],
-                               how="left", on=["ticker"])
+                               how="left", on=["dcm_security_id"])
 
 
         industry_average.set_index(['date', 'IndustryGroup'], inplace=True)
@@ -90,8 +90,8 @@ class QuantamentalMergeEconIndustry(DataReaderClass):
                                                                                                  for col in
                                                                                                  industry_average.columns}).reset_index(),
                                how="left", on=["date", "IndustryGroup"])
-        # merged_data["dcm_security_id"] = merged_data["dcm_security_id"].astype(int)
-        # merged_data = merged_data.rename(columns={"dcm_security_id" : "ticker"})
+        merged_data["dcm_security_id"] = merged_data["dcm_security_id"].astype(int)
+        merged_data = merged_data.rename(columns={"dcm_security_id" : "ticker"})
 
         merged_data = pd.merge(merged_data, econ_data, how="left", on=["date"])
         merged_data = merged_data.set_index(["date", "ticker"])
