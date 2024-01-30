@@ -20,6 +20,15 @@ dag = DAG('your_dag', default_args=default_args, schedule_interval=timedelta(min
 
 
 def create_gcs_file_sensor(obj):
+    """
+    Creates a Google Cloud Storage (GCS) file sensor.
+
+    :param obj: The name of the GCS object to monitor.
+    :type obj: str
+
+    :return: A GCSObjectExistenceSensor instance.
+    :rtype: GCSObjectExistenceSensor
+    """
     task_id = 'gcs_file_sensor_' + obj.split(".")[0]
     return GCSObjectExistenceSensor(
         task_id=task_id,

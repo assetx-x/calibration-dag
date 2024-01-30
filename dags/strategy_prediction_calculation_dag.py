@@ -32,6 +32,20 @@ dag = DAG(
 
 
 def authenticate():
+    """
+    Authenticate to the specified API endpoint.
+
+    This method sends a POST request to the authentication endpoint with the provided username and password to obtain a JWT token.
+
+    Parameters:
+    None
+
+    Returns:
+    str: The JWT token obtained from the authentication response.
+
+    Example Usage:
+    jwt_token = authenticate()
+    """
     print('Authenticating...')
     print(f'[*] Endpoint: {API_ENDPOINT}')
     response = requests.post(
@@ -46,7 +60,16 @@ def authenticate():
 
 
 def recursive_str(data):
-    """Function to recursively convert all values in a structure to string"""
+    """
+    Transforms the dictionary into a strings values
+
+    :param data: The data to be converted to a recursive string representation
+    :type data: dict, list, or any other data type
+
+    :return: The data converted to a recursive string representation
+    :rtype: dict, list, or str
+
+    """
     if isinstance(data, dict):
         return {key: recursive_str(value) for key, value in data.items()}
     if isinstance(data, list):
@@ -55,6 +78,20 @@ def recursive_str(data):
 
 
 def post_data_recursively(f_name, to_iterate_dict, t):
+    """
+    Recursively post data to an API endpoint with given parameters.
+
+    Parameters:
+    - f_name (str): The name of the strategy.
+    - to_iterate_dict (dict): The dictionary containing the data to be posted.
+    - t (str): The authorization token.
+
+    Returns:
+    None
+
+    Example usage:
+    post_data_recursively("my_strategy", {"key1": "value", "key2": "value2"}, "my_token")
+    """
     for key, value in to_iterate_dict.items():
         if isinstance(value, dict):
             post_data_recursively(f_name, value, t)
@@ -74,6 +111,27 @@ def post_data_recursively(f_name, to_iterate_dict, t):
 
 
 def list_files_in_bucket(bucket_name, **kwargs):
+    """
+    Open the method documentation for list_files_in_bucket.
+
+    Parameters:
+    - bucket_name (str): The name of the bucket to list files from.
+    - **kwargs: Additional keyword arguments that may be passed.
+
+    Returns:
+    None
+
+    Description:
+    This method retrieves a list of files in the specified bucket. It prints the names of the files and then performs performance calculations on each file. Finally, it sends the calculated
+    * performance data to a server using an authentication token.
+
+    Note:
+    - The method assumes that the necessary dependencies are already installed and imported.
+    - The method requires valid credentials and permissions to access the selected bucket and perform the necessary operations.
+
+    Example usage:
+    list_files_in_bucket("my-bucket")
+    """
     client = storage.Client()
     bucket = client.get_bucket(bucket_name)
     blobs = bucket.list_blobs()
