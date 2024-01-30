@@ -92,6 +92,8 @@ class QuantamentalMerge(DataReaderClass):
             lcl = globals()
             for k in self.REQUIRES_FIELDS:
                 lcl.pop(k, None)
+        # ALEX EDIT
+        self.data.drop_duplicates(subset=['date', 'ticker'], inplace=True)
         return self.data
 
 
