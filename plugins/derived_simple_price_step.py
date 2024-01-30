@@ -549,7 +549,7 @@ class CalculateTaLibULTOSC(DataReaderClass):
 ########## AIRFLOW FUNCTIONS #########
 
 
-CBQ_params = {"benchmark_names": ['SPY'], "beta_lookback": 63,
+CBQ_params = {"benchmark_names": [8554], "beta_lookback": 63,
                 "offset_unit": "B", "price_column": "close", "dropna_pctg": 0.15,
                 "use_robust": False, "epsilon": 1.35, "alpha": 0.0001, "fit_intercept": False}
 ComputeBetaQuantamental_params = {'params':CBQ_params,
@@ -571,7 +571,7 @@ CalculateMACD_params ={'params':CMACD_params,
 
 #############
 
-CC_params ={"benchmark_names": ["SPY"], "correlation_lookback": 63, "price_column": "close"}
+CC_params ={"benchmark_names": [8554], "correlation_lookback": 63, "price_column": "close"}
 
 
 CalcualteCorrelation_params ={'params':CC_params,

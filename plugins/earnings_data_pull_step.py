@@ -48,18 +48,7 @@ class S3SecurityMasterReader(GCPReader):
         data.drop(data.columns[self.index_col], axis=1, inplace=True)
         data["dcm_security_id"] = data["dcm_security_id"].astype(int)
         # TODO : Preselecting the Universe to Tenere's Holding
-        data = data[data['ticker'].isin(['NKE', 'PANW', 'BDX', 'EL', 'CP', 'INTC', 'SNOW', 'MSFT', 'AMD',
-                                         'DHR', 'YUM', 'PLD', 'TMUS', 'MDB', 'AMZN', 'BSX', 'SBUX', 'AAPL',
-                                         'NVDA', 'TMO', 'V', 'UNP', 'META', 'UNH', 'GOOGL', 'NOW', 'ISRG',
-                                         'SLB', 'TSM', 'TEAM', 'INTU', 'SPGI', 'CHTR', 'LULU', 'DLTR',
-                                         'NOC', 'BA', 'IDXX', 'DDOG', 'SBAC', 'ZTS', 'LNG', 'WMG', 'BX',
-                                         'MA', 'MCK', 'TTWO', 'HLT', 'FIS', 'VMC', 'JCI', 'ROK', 'DIS',
-                                         'ADI', 'LIN', 'BBWI', 'NET', 'BLK', 'MTCH', 'NFLX', 'ADBE', 'CRM',
-                                         'NYT', 'SQSP', 'DISH', 'SPLK', 'COUP', 'CSCO', 'UBER', 'VMEO',
-                                         'AXP', 'JPM', 'TXN', 'ABNB', 'ULTA', 'TWLO', 'EB', 'GLW', 'TJX',
-                                         'ILMN', 'LYFT', 'MU', 'BKNG', 'VIEW', 'CMCSA', 'OSCR', 'SHOP', 'SPY'])]
 
-        #data = data[data['ticker'].isin(['NKE','AAPL','MSFT','JPM','SPY'])]
 
         """if self.task_params.run_mode==TaskflowPipelineRunMode.Test:
             query = "select ticker from whitelist where run_dt in ('{0}') and as_of_end is null"\

@@ -107,8 +107,8 @@ class QuandlDataCleanup(DataReaderClass):
 
     def do_step_action(self, **kwargs):
         price = kwargs['daily_price_data'].copy(deep=True)
-        price = price.drop(['ticker'], axis=1)
-        # price.rename(columns={"ticker": "dcm_security_id"}, inplace=True)
+        #price = price.drop(['ticker'], axis=1)
+        price.rename(columns={"ticker": "dcm_security_id"}, inplace=True)
         raw = kwargs['raw_quandl_data'].copy(deep=True)
 
         raw = self._resolve_duplicates(raw)

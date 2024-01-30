@@ -143,7 +143,7 @@ class CalculateDerivedQuandlFeatures(DataReaderClass):
         sector = kwargs[self.__class__.REQUIRES_FIELDS[0]]
         price = kwargs[self.__class__.REQUIRES_FIELDS[1]].copy(deep=True)
         # price = price.drop(['ticker'],axis=1)
-        # price.rename(columns={"ticker": "dcm_security_id"}, inplace=True)
+        price.rename(columns={"ticker": "dcm_security_id"}, inplace=True)
         quandl = kwargs[self.__class__.REQUIRES_FIELDS[2]].copy(deep=True)
         quarterly = kwargs[self.__class__.REQUIRES_FIELDS[3]].copy(deep=True)
 

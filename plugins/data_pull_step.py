@@ -253,111 +253,67 @@ class S3RawQuandlDataReader(GCPReader):
         return data
 
 
-class SQLMinuteToDailyEquityPrices(DataReaderClass):
+class SQLMinuteToDailyEquityPrices(GCPReader):
     '''
 
     Creates daily bars from minute data (with dcm_security_id identifier)
 
     '''
+    PROVIDES_FIELDS = ["daily_price_data"]
+    REQUIRES_FIELDS = ["security_master"]
 
-    # PROVIDES_FIELDS = ["daily_price_data"]
-    # REQUIRES_FIELDS = ["security_master"]
-
-    def __init__(self, start_date, end_date):
+    def __init__(self,start_date,end_date):
+        base_query = """select date,ticker,dcm_security_id, open, high,low,close,volume from marketdata.daily_equity_prices where date > date('{}') and date < date('{}') and ticker in {}"""
+        self.base_query = base_query
         self.start_date = start_date
         self.end_date = end_date
 
-    def _prepare_to_pull_data(self, **kwargs):
+    def _prepare_to_pull_data(self,**kwargs):
+
         self.query_client = bigquery.Client()
 
-    def _get_data_lineage(self, **kwargs):
-        pass
+    def _pull_data(self,**kwargs):
 
-    def do_step_action(self, security_master, **kwargs):
-        base_query = """
-        with equity_data_with_minute_indicator as
-           (
-           select distinct
-            dcm_security_id,
-            ticker, cob, date(cob) as date,
-            datetime_diff(datetime_sub(marketdata.convert_timezone('UTC','US/Eastern',cob), interval (9 * 60 + 30) minute), date(cob), minute) as minute_in_day,
-            close, open, high, low, volume
-           from
-            marketdata.equity_prices
-           where
-            as_of_end is null
-            and date(cob)>=date('{0}')
-            and date(cob)<=date('{1}')
-            and dcm_security_id in {2}
-           ),
-           open_quotes as
-           (
-             select dcm_security_id, ticker, date, open from equity_data_with_minute_indicator where minute_in_day =1
-           ),
-           close_quotes as
-           (
-             select dcm_security_id, ticker, date, close from equity_data_with_minute_indicator where minute_in_day =390
-           ),
-           misc_quotes as
-           (
-             select dcm_security_id, ticker, date, sum(volume) as volume, max(high) as high, min(low) as low
-             from equity_data_with_minute_indicator group by dcm_security_id, ticker, date
-           )
-            select o.dcm_security_id, o.ticker, cast(o.date as datetime) as date, o.open, c.close, m.high, m.low, m.volume
-            from open_quotes o
-            left join close_quotes c
-            on o.dcm_security_id=c.dcm_security_id and o.ticker=c.ticker and o.date=c.date
-            left join misc_quotes m
-            on o.dcm_security_id=m.dcm_security_id and  o.ticker=m.ticker and o.date=m.date
-            order by dcm_security_id, ticker, date
-        """.format(self.start_date, self.end_date, tuple(security_master['dcm_security_id'].values))
-
-        self._prepare_to_pull_data()
-        data = self.query_client.query(base_query).to_dataframe()
+        job_config = bigquery.QueryJobConfig(allow_large_results=True)
+        final_query = self.compose_query(**kwargs)
+        data = self.query_client.query(final_query, job_config=job_config)
+        data = data.to_dataframe()
         return data
 
 
+    def compose_query(self, **kwargs):
 
-class SQLMinuteToDailyEquityPrices_2_0(DataReaderClass):
-    '''
+        sec_master = kwargs["security_master"]
+        start_dt = self.start_date
+        end_dt = self.end_date
+        universe = tuple(sec_master['ticker'].values)
+        final_query = self.base_query.format(start_dt, end_dt, universe)
+        return final_query
 
-    Creates daily bars from minute data (with dcm_security_id identifier)
-
-    '''
-
-    # PROVIDES_FIELDS = ["daily_price_data"]
-    # REQUIRES_FIELDS = ["security_master"]
-
-    def __init__(self, start_date, end_date):
-        self.start_date = start_date
-        self.end_date = end_date
-
-    def _prepare_to_pull_data(self, **kwargs):
-        self.query_client = bigquery.Client()
-
-    def _get_data_lineage(self, **kwargs):
+    def _get_return_types_for_permutations(self, data, **kwargs):
         pass
 
-    def do_step_action(self, security_master, **kwargs):
-        base_query = """
-
-        select date,ticker,dcm_security_id, open, high,low,close,volume from marketdata.daily_equity_prices where date >'{}' and date < '{}' and ticker in {}
-
-        """.format(self.start_date, self.end_date, tuple(security_master['ticker'].values))
-
-        self._prepare_to_pull_data()
-        data = self.query_client.query(base_query).to_dataframe()
-        data = data.drop_duplicates().sort_values(['date'])
-        data = data.groupby(['ticker', 'date']).mean()[
+    def _post_process_pulled_data(self, price, **kwargs):
+        # import pdb; pdb.set_trace()
+        print(self.__class__.REQUIRES_FIELDS[0])
+        sec_master = kwargs[self.__class__.REQUIRES_FIELDS[0]]
+        price = price.drop_duplicates().sort_values(['date'])
+        price = price.groupby(['ticker', 'date']).mean()[
             ['open', 'high', 'low', 'close', 'volume', 'dcm_security_id']].reset_index().sort_values(by=['date'])
 
-        data = data[data['dcm_security_id'].notna()]
-        data['dcm_security_id'] = data['dcm_security_id'].astype(int)
-        data['date'] = data['date'].apply(pd.Timestamp)
-        data['date'] = data['date'].apply(convert_date_to_string)
+        price = price[price['dcm_security_id'].notna()]
+        price['dcm_security_id'] = price['dcm_security_id'].astype(int)
+        price['date'] = price['date'].apply(pd.Timestamp)
+        price['date'] = price['date'].dt.normalize()
+
+        price.drop_duplicates(subset=['date', 'ticker'], inplace=True)
+        price.drop('ticker', axis=1, inplace=True)
+        price.rename(columns={"dcm_security_id": "ticker"}, inplace=True)
+
+        return price
 
 
-        return data
+
 
 
 class CalibrationDates(DataReaderClass):
