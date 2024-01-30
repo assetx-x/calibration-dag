@@ -63,15 +63,12 @@ class QuantamentalMerge(DataReaderClass):
                     current_df = current_df.reset_index()
                 current_df["date"] = pd.DatetimeIndex(current_df["date"]).normalize()
 
-                # merged_data["ticker"] = merged_data["ticker"].astype(int)
-                # current_df["ticker"] = current_df["ticker"].astype(int)
+                merged_data["ticker"] = merged_data["ticker"].astype(int)
+                current_df["ticker"] = current_df["ticker"].astype(int)
                 merged_data = pd.merge(merged_data, current_df, how="left", on=["date", "ticker"])
             # TODO: chang eback to spy
             merged_data = merged_data.drop(["8554_correl_rank"], axis=1)
             merged_data = merged_data.drop(["8554_beta_rank"], axis=1)
-
-            #merged_data = merged_data.drop(["SPY_correl_rank"], axis=1)
-            #merged_data = merged_data.drop(["SPY_beta_rank"], axis=1)
 
 
             if self.apply_log_vol:
@@ -79,15 +76,14 @@ class QuantamentalMerge(DataReaderClass):
                     merged_data[col] = np.log(merged_data[col])
             merged_data["log_avg_dollar_volume"] = np.log(merged_data["avg_dollar_volume"])
 
-            # merged_data["ticker"] = merged_data["ticker"].astype(int)
+            merged_data["ticker"] = merged_data["ticker"].astype(int)
             merged_data["momentum"] = merged_data["ret_252B"] - merged_data["ret_21B"]
             index_cols = [c for c in merged_data.columns if str(c).startswith("index")]
             good_cols = list(set(merged_data.columns) - set(index_cols))
             merged_data = merged_data[good_cols]
             # TODO: change back to SPY
             merged_data.columns = map(lambda x:x.replace("8554", "SPY"), merged_data.columns)
-            #merged_data["SPY_beta"] = merged_data["SPY_beta"].astype(float)
-            #merged_data["ABCB_beta"] = merged_data["ABCB_beta"].astype(float)
+            merged_data["SPY_beta"] = merged_data["SPY_beta"].astype(float)
             # TODO: added by Jack 2020/04/30 for Live mode. Live mode should use the latest available data without date shift
             # if self.task_params.run_mode==TaskflowPipelineRunMode.Calibration:
             merged_data["date"] = merged_data["date"].apply(lambda x: marketTimeline.get_trading_day_using_offset(x, 1))
