@@ -152,28 +152,12 @@ def airflow_wrapper(**kwargs):
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
 
 
-    with TaskGroup("DataPull", tooltip="DataPull") as DataPull:
+    with TaskGroup("Transformation", tooltip="Transformation") as Transformation:
 
-
-        S3EconTransformationReader = PythonOperator(
-            task_id="S3EconTransformationReader",
+        TransformEconomicDataWeekly = PythonOperator(
+            task_id="TransformEconomicDataWeekly",
             python_callable=airflow_wrapper,
-            op_kwargs=S3_ECON_TRANSFORMATION_PARAMS,
-            execution_timeout=timedelta(minutes=25)
+            op_kwargs=TransformEconomicDataWeekly_params
         )
 
 
-
-
-    with TaskGroup("EconData", tooltip="EconData") as EconData:
-        DownloadEconomicData = PythonOperator(
-            task_id="DownloadEconomicData",
-            python_callable=airflow_wrapper,
-            op_kwargs=DOWNLOAD_ECONOMIC_DATA_PARAMS
-        )
-
-
-
-
-
-    DataPull >> EconData
