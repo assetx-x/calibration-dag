@@ -7,9 +7,9 @@ class VolatilityMetrics(BaseMetrics):
     def __init__(self, dataframe: DataFrame):
         self.dataframe = dataframe
 
-    def calculate_correlation(self):
-        correlation = self.dataframe.corr()
-        return correlation.to_dict()
+    # def calculate_correlation(self):
+    #     correlation = self.dataframe.corr()
+    #     return correlation.to_dict()
 
     def calculate_std_dev_portfolio(self):
         std_dev_portfolio = np.std(self.dataframe)
@@ -21,6 +21,7 @@ class VolatilityMetrics(BaseMetrics):
         return upside_beta
 
     def calculate_downside_beta(self):
-        mask = self.dataframe["returns"] < 0
-        downside_beta = self.dataframe[mask].std() / self.dataframe['returns'].std()
-        return downside_beta
+        # mask = self.dataframe["returns"] < 0
+        # downside_beta = self.dataframe[mask].std() / self.dataframe['returns'].std()
+        # return downside_beta
+        return {}
