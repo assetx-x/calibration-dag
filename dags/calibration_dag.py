@@ -150,28 +150,7 @@ def airflow_wrapper(**kwargs):
 
 """ Calibration Process"""
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
-    with TaskGroup("MergeStep", tooltip="MergeStep") as MergeStep:
-        QuantamentalMerge = PythonOperator(
-            task_id="QuantamentalMerge",
-            python_callable=airflow_wrapper,
-            op_kwargs=QuantamentalMerge_params,
-            execution_timeout=timedelta(minutes=150)
-        )
 
-    with TaskGroup("FilterDatesSingleNames", tooltip="FilterDatesSingleNames") as FilterDatesSingleNames:
-        FilterMonthlyDatesFullPopulationWeekly = PythonOperator(
-            task_id="FilterMonthlyDatesFullPopulationWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=FilterMonthlyDatesFullPopulationWeekly_params
-        )
-
-        CreateMonthlyDataSingleNamesWeekly = PythonOperator(
-            task_id="CreateMonthlyDataSingleNamesWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=CreateMonthlyDataSingleNamesWeekly_params
-        )
-
-        FilterMonthlyDatesFullPopulationWeekly >> CreateMonthlyDataSingleNamesWeekly
 
     with TaskGroup("Transformation", tooltip="Transformation") as Transformation:
         CreateYahooDailyPriceRolling = PythonOperator(
@@ -231,4 +210,4 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
 
 
 
-    MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> Standarization >> ActiveMatrix >> AdditionalGanFeatures >> SaveGANInputs
+    Transformation >> MergeEcon >> Standarization >> ActiveMatrix >> AdditionalGanFeatures >> SaveGANInputs
