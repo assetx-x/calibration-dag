@@ -344,6 +344,16 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
 
         ComputeBetaQuantamental >> CalculateMACD >> CalcualteCorrelation >> CalculateDollarVolume >> CalculateOvernightReturn >> CalculatePastReturnEquity >> CalculateTaLibSTOCH >> CalculateTaLibSTOCHF >> CalculateTaLibULTOSC
 
+    with TaskGroup("MergeStep", tooltip="MergeStep") as MergeStep:
+        QuantamentalMerge = PythonOperator(
+            task_id="QuantamentalMerge",
+            python_callable=airflow_wrapper,
+            op_kwargs=QuantamentalMerge_params,
+            execution_timeout=timedelta(minutes=150)
+        )
 
 
-    DataPull >> EconData >> FundamentalCleanup >> Targets >> DerivedFundamentalDataProcessing >> DerivedTechnicalDataProcessing >> DerivedSimplePriceFeatureProcessing
+
+
+
+    DataPull >> EconData >> FundamentalCleanup >> Targets >> DerivedFundamentalDataProcessing >> DerivedTechnicalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep
