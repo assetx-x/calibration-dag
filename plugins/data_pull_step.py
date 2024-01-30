@@ -573,7 +573,7 @@ S3_RAW_SQL_READER_PARAMS = {"params": {"bucket": "dcm-prod-ba2f-us-dcm-data-temp
 
 
 SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS = {'params':{"start_date" : "2000-01-03","end_date" : RUN_DATE},
-                                            'class':SQLMinuteToDailyEquityPrices_2_0,
+                                            'class':SQLMinuteToDailyEquityPrices,
                                       'start_date':RUN_DATE,
                                         'provided_data': {'daily_price_data': construct_destination_path('data_pull')},
                                             'required_data': {'security_master': construct_required_path('data_pull','security_master')}
