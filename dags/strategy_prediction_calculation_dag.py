@@ -12,10 +12,10 @@ from google.cloud import storage
 
 from plugins.DataCalculations.strategies.main import PerformanceCalculator
 
-
-GS_BUCKET_NAME = Variable.get('GS_BUCKET_NAME')
-API_ENDPOINT = Variable.get('API_ENDPOINT')
-
+GS_BUCKET_NAME = Variable.get('GS_BUCKET_NAME', 'api_v2_storage')
+API_ENDPOINT = Variable.get(
+    'API_ENDPOINT', 'https://ax-api-v2-2dywgqiasq-uk.a.run.app/'
+)
 
 default_args = {
     'owner': 'airflow',
@@ -29,8 +29,6 @@ dag = DAG(
     schedule_interval='@daily',
     catchup=False,
 )
-
-
 
 
 def authenticate():
@@ -56,24 +54,23 @@ def recursive_str(data):
     return str(data)
 
 
-# def process_blob(data):
-#     s_performance = PerformanceCalculator(data['file_name'], data['file_content']).run()
-#     parsed_s_performance = recursive_str(s_performance)
-#     token = authenticate()
-#     response = requests.post(
-#         f'{API_ENDPOINT}/strategy_performance/',
-#         json={
-#             'strategy': data['file_name'],
-#             'data': parsed_s_performance
-#         },
-#         headers={
-#             'X-User-Agent': f'airflow-task-{data["file_name"]}',
-#             'Content-Type': 'application/json',
-#             'accept': 'application/json',
-#             'Authorization': f'Bearer {token}',
-#         },
-#     )
-#     print(f'[*] API POST response: {response.content}')
+def post_data_recursively(f_name, to_iterate_dict, t):
+    for key, value in to_iterate_dict.items():
+        if isinstance(value, dict):
+            post_data_recursively(f_name, value, t)
+        else:
+            response = requests.post(
+                f'{API_ENDPOINT}/strategy_performance/',
+                json={'strategy': f_name, 'data': {key: value}},
+                headers={
+                    'X-User-Agent': f'airflow-task-{f_name}',
+                    'Content-Type': 'application/json',
+                    'accept': 'application/json',
+                    'Authorization': f'Bearer {t}',
+                },
+            )
+            print(f'[*] API POST response: {response.content}')
+            print(f' calculator {key}')
 
 
 def list_files_in_bucket(bucket_name, **kwargs):
@@ -91,23 +88,13 @@ def list_files_in_bucket(bucket_name, **kwargs):
             'file_content': file_content,
         }
         print(f'[*] Calculating performance for {data["file_name"]}')
-        s_performance = PerformanceCalculator(data['file_name'], data['file_content']).run()
+        s_performance = PerformanceCalculator(
+            data['file_name'], data['file_content']
+        ).run()
         parsed_s_performance = recursive_str(s_performance)
         token = authenticate()
-        response = requests.post(
-            f'{API_ENDPOINT}/strategy_performance/',
-            json={
-                'strategy': data['file_name'],
-                'data': parsed_s_performance
-            },
-            headers={
-                'X-User-Agent': f'airflow-task-{data["file_name"]}',
-                'Content-Type': 'application/json',
-                'accept': 'application/json',
-                'Authorization': f'Bearer {token}',
-            },
-        )
-        print(f'[*] API POST response: {response.content}')
+
+        post_data_recursively(data["file_name"], parsed_s_performance, token)
 
 
 list_files_task = PythonOperator(
@@ -121,6 +108,5 @@ empty_operator = EmptyOperator(task_id='empty_operator', dag=dag)
 
 empty_operator >> list_files_task
 
-
 if __name__ == '__main__':
-    dag.run()
+    dag.test()
