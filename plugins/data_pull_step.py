@@ -69,10 +69,10 @@ class S3GANUniverseReader(GCPReader):
 
     def _post_process_pulled_data(self, data, **kwargs):
         data["dcm_security_id"] = data["dcm_security_id"].astype(int)
-        security_master = kwargs['security_master']
-        secm = security_master[(security_master['dcm_security_id'].isin(data['dcm_security_id'].tolist()))]['ticker'].to_frame()
-        secm.rename(columns={'ticker':'dcm_security_id'},inplace=True)
-        return secm
+        #security_master = kwargs['security_master']
+        #secm = security_master[(security_master['dcm_security_id'].isin(data['dcm_security_id'].tolist()))]['ticker'].to_frame()
+        #secm.rename(columns={'ticker':'dcm_security_id'},inplace=True)
+        return data
 
 
 class S3IndustryMappingReader(GCPReader):

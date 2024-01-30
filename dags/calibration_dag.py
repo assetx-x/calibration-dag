@@ -150,21 +150,14 @@ def airflow_wrapper(**kwargs):
 
 """ Calibration Process"""
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
-
-
-    with TaskGroup("MergeEcon", tooltip="MergeEcon") as MergeEcon:
-        QuantamentalMergeEconIndustryWeekly = PythonOperator(
-            task_id="QuantamentalMergeEconIndustryWeekly",
+    with TaskGroup("DataPull", tooltip="DataPull") as DataPull:
+        S3GANUniverseReader = PythonOperator(
+            task_id="S3GANUniverseReader",
             python_callable=airflow_wrapper,
-            op_kwargs=QuantamentalMergeEconIndustryWeekly_params
+            op_kwargs=current_gan_universe_params,
+            execution_timeout=timedelta(minutes=25)
         )
 
-    with TaskGroup("Standarization", tooltip="Standarization") as Standarization:
-        FactorStandardizationFullPopulationWeekly = PythonOperator(
-            task_id="FactorStandardizationFullPopulationWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=FactorStandardizationFullPopulationWeekly_params
-        )
 
     with TaskGroup("ActiveMatrix", tooltip="ActiveMatrix") as ActiveMatrix:
         GenerateActiveMatrixWeekly = PythonOperator(
@@ -189,7 +182,7 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
 
 
 
-    MergeEcon >> Standarization >> ActiveMatrix >> AdditionalGanFeatures >> SaveGANInputs
+    DataPull >> ActiveMatrix >> AdditionalGanFeatures >> SaveGANInputs
 
 
 

@@ -139,9 +139,9 @@ GDGW_params2 = {'data_dir':construct_destination_path('save_gan_inputs').format(
 GenerateDataGANWeekly_params = {'params': GDGW_params2,
                                 'class': GenerateDataGANWeekly,
                                 'start_date': RUN_DATE,
-                                'provided_data': {'company_data': construct_destination_path('save_gan_inputs_v2'),
-                                                  'company_data_weekly': construct_destination_path('save_gan_inputs_v2'),
-                                                  'gan_data_info': construct_destination_path('save_gan_inputs_v2')
+                                'provided_data': {'company_data': construct_destination_path('save_gan_inputs'),
+                                                  'company_data_weekly': construct_destination_path('save_gan_inputs'),
+                                                  'gan_data_info': construct_destination_path('save_gan_inputs')
                                                   },
                                 'required_data': {
                                     'normalized_data_full_population': construct_required_path('standarization',
