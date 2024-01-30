@@ -175,7 +175,7 @@ class CalculateDerivedQuandlFeatures(DataReaderClass):
         daily['date'] = daily['date'].apply(pd.Timestamp)
         daily = pd.merge(daily, extra_features, how="left", on=["date", "dcm_security_id"]) \
             .rename(columns={"dcm_security_id": "ticker"})
-        daily['ticker'] = daily['ticker'].map(mapper)
+        #daily['ticker'] = daily['ticker'].map(mapper)
         self.data = daily
         return self.data
 
