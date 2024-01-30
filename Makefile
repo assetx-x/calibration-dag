@@ -14,7 +14,7 @@ web:
 
 build:
 	$(docker_build) -t $(image) .
-	$(docker_build) -f $(docker_file_src) -t $(image_gan) .
+# 	$(docker_build) -f $(docker_file_src) -t $(image_gan) .
 
 deploy:
 	$(get_credentials)
@@ -25,5 +25,5 @@ rebuild:
 	$(docker_compose) down
 	sudo git pull
 	echo -n y | docker system prune -a --volumes
-	$(docker_build) -f $(docker_file_src) -t $(image_gan) .
+# 	$(docker_build) -f $(docker_file_src) -t $(image_gan) .
 	script -q last_build.txt /bin/bash -c "$(docker_compose) up --build -d | sed 's,\x1b\[[0-9;]*[a-zA-Z],,g'"
