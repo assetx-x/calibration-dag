@@ -72,6 +72,10 @@ class FactorStandardizationFullPopulationWeekly(FactorStandardization):
         all_features = self._select_features(weekly_df) # should be same with both monthly and weekly df
         self.data = factor_standarization(monthly_df, all_features, self.target_columns, self.exclude_from_standardization)
         self.weekly_data = factor_standarization(weekly_df, all_features, self.target_columns, self.exclude_from_standardization)
+
+        self.data.drop_duplicates(subset=['date', 'ticker'], inplace=True)
+        self.weekly_data.drop_duplicates(subset=['date', 'ticker'], inplace=True)
+
         return self.data,self.weekly_data
 
     @classmethod

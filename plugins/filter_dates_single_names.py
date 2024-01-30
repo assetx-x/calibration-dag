@@ -122,7 +122,7 @@ class CreateMonthlyDataSingleNamesWeekly(CreateMonthlyDataSingleNames):
         security_master = kwargs["security_master"]
         monthly_merged_data = kwargs["monthly_merged_data"]
         weekly_merged_data = kwargs["weekly_merged_data"]
-        singlename_tickers = list(security_master.dropna(subset=["IndustryGroup"])["ticker"].unique())
+        singlename_tickers = list(security_master.dropna(subset=["IndustryGroup"])["dcm_security_id"].unique())
 
         self.data = monthly_merged_data[monthly_merged_data["ticker"].isin(singlename_tickers)].reset_index(drop=True)
         self.weekly_data = weekly_merged_data[weekly_merged_data["ticker"].isin(singlename_tickers)].reset_index(drop=True)
