@@ -8,10 +8,10 @@ from plugins.DataCalculations.strategies.volatility_metrics import VolatilityMet
 
 class PerformanceCalculator:
     calculators = [
-        AccuracyMetrics,
+        # AccuracyMetrics,
         # ReturnSummary,
         ReturnQuantileMetrics,
-        VolatilityMetrics,
+        # VolatilityMetrics,
     ]
 
     @classmethod
