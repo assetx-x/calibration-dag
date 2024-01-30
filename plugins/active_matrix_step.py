@@ -56,7 +56,7 @@ class GenerateActiveMatrix(DataReaderClass):
 
         self.start_date = self.start_date if pd.notnull(self.start_date) else self.task_params.start_dt
         self.end_date = self.end_date if pd.notnull(self.end_date) else self.task_params.end_dt
-        singlename_tickers = list(gan_universe["ticker"].unique())
+        singlename_tickers = list(gan_universe["dcm_security_id"].unique())
         singlename_tickers.sort()
 
         self.data = self._generate_active_matrix(singlename_tickers, data)

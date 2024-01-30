@@ -152,12 +152,44 @@ def airflow_wrapper(**kwargs):
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
 
 
-    with TaskGroup("Transformation", tooltip="Transformation") as Transformation:
-
-        TransformEconomicDataWeekly = PythonOperator(
-            task_id="TransformEconomicDataWeekly",
+    with TaskGroup("MergeEcon", tooltip="MergeEcon") as MergeEcon:
+        QuantamentalMergeEconIndustryWeekly = PythonOperator(
+            task_id="QuantamentalMergeEconIndustryWeekly",
             python_callable=airflow_wrapper,
-            op_kwargs=TransformEconomicDataWeekly_params
+            op_kwargs=QuantamentalMergeEconIndustryWeekly_params
         )
+
+    with TaskGroup("Standarization", tooltip="Standarization") as Standarization:
+        FactorStandardizationFullPopulationWeekly = PythonOperator(
+            task_id="FactorStandardizationFullPopulationWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=FactorStandardizationFullPopulationWeekly_params
+        )
+
+    with TaskGroup("ActiveMatrix", tooltip="ActiveMatrix") as ActiveMatrix:
+        GenerateActiveMatrixWeekly = PythonOperator(
+            task_id="GenerateActiveMatrixWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=GenerateActiveMatrixWeekly_params
+        )
+
+    with TaskGroup("AdditionalGanFeatures", tooltip="AdditionalGanFeatures") as AdditionalGanFeatures:
+        GenerateBMEReturnsWeekly = PythonOperator(
+            task_id="GenerateBMEReturnsWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=GenerateBMEReturnsWeekly_params
+        )
+
+    with TaskGroup("SaveGANInputs", tooltip="SaveGANInputs") as SaveGANInputs:
+        GenerateDataGAN = PythonOperator(
+            task_id="GenerateDataGAN",
+            python_callable=airflow_wrapper,
+            op_kwargs=GenerateDataGANWeekly_params
+        )
+
+
+
+    MergeEcon >> Standarization >> ActiveMatrix >> AdditionalGanFeatures >> SaveGANInputs
+
 
 
