@@ -67,11 +67,11 @@ class QuantamentalMerge(DataReaderClass):
                 # current_df["ticker"] = current_df["ticker"].astype(int)
                 merged_data = pd.merge(merged_data, current_df, how="left", on=["date", "ticker"])
             # TODO: chang eback to spy
-            #merged_data = merged_data.drop(["8554_correl_rank"], axis=1)
-            #merged_data = merged_data.drop(["8554_beta_rank"], axis=1)
+            merged_data = merged_data.drop(["8554_correl_rank"], axis=1)
+            merged_data = merged_data.drop(["8554_beta_rank"], axis=1)
 
-            merged_data = merged_data.drop(["SPY_correl_rank"], axis=1)
-            merged_data = merged_data.drop(["SPY_beta_rank"], axis=1)
+            #merged_data = merged_data.drop(["SPY_correl_rank"], axis=1)
+            #merged_data = merged_data.drop(["SPY_beta_rank"], axis=1)
 
 
             if self.apply_log_vol:
@@ -85,8 +85,8 @@ class QuantamentalMerge(DataReaderClass):
             good_cols = list(set(merged_data.columns) - set(index_cols))
             merged_data = merged_data[good_cols]
             # TODO: change back to SPY
-            # merged_data.columns = map(lambda x:x.replace("8554", "SPY"), merged_data.columns)
-            merged_data["SPY_beta"] = merged_data["SPY_beta"].astype(float)
+            merged_data.columns = map(lambda x:x.replace("8554", "SPY"), merged_data.columns)
+            #merged_data["SPY_beta"] = merged_data["SPY_beta"].astype(float)
             #merged_data["ABCB_beta"] = merged_data["ABCB_beta"].astype(float)
             # TODO: added by Jack 2020/04/30 for Live mode. Live mode should use the latest available data without date shift
             # if self.task_params.run_mode==TaskflowPipelineRunMode.Calibration:
