@@ -197,7 +197,7 @@ class QuantamentalMergeEconIndustryWeekly(QuantamentalMergeEconIndustry):
 
 
 WMEIW_params = {'industry_cols':["volatility_126", "PPO_12_26", "PPO_21_126", "netmargin", "macd_diff", "pe", "debt2equity", "bm", "ret_63B", "ebitda_to_ev", "divyield"],
- 'security_master_cols':["ticker", "Sector", "IndustryGroup"],
+ 'security_master_cols':["dcm_security_id", "Sector", "IndustryGroup"],
  'sector_cols':["volatility_126", "PPO_21_126", "macd_diff", "divyield", "bm"],
  'key_sectors':["Energy", "Information Technology", "Financials", "Utilities", "Consumer Discretionary", "Industrials", "Consumer Staples"],
  'econ_cols':["RETAILx", "USTRADE", "SPY_close", "bm_Financials", "T10YFFM", "T5YFFM", "CPITRNSL", "DCOILWTICO", "EWJ_volume", "HWI",
