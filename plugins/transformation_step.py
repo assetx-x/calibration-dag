@@ -152,14 +152,14 @@ class CreateIndustryAverage(DataReaderClass):
             columns_needed_for_averaging = self.industry_cols
         columns_needed_for_averaging = columns_needed_for_averaging + ["ticker", "date"]
         data_to_average = merged_data[columns_needed_for_averaging]
-        data_to_average = pd.merge(data_to_average, mapping[["ticker", averaging_col]], how="left",
-                                   left_on=["ticker"], right_on=["ticker"])
+        data_to_average = pd.merge(data_to_average, mapping[["dcm_security_id", averaging_col]], how="left",
+                                   left_on=["ticker"], right_on=["dcm_security_id"])
         data_to_average[averaging_col] = data_to_average[averaging_col].astype(str)
 
         # TODO : figure out why the tickers are still in the columns
-        # avg_data = data_to_average.groupby(["date", averaging_col]).apply(lambda x:x.mean(skipna=True)) #.drop(["ticker"], axis=1)
-        avg_data = data_to_average.drop(['ticker'], axis=1).groupby(["date", averaging_col]).apply(
-            lambda x: x.mean(skipna=True))
+        #avg_data = data_to_average.drop(['ticker'], axis=1).groupby(["date", averaging_col]).apply(lambda x: x.mean(skipna=True))
+        avg_data = data_to_average.groupby(["date", averaging_col]).apply(lambda x: x.mean(skipna=True)).drop(
+            ["ticker", "dcm_security_id"], axis=1)
         for col in avg_data:
             avg_data[col] = avg_data[col].astype(float)
 
