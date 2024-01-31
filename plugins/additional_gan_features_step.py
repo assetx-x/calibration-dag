@@ -36,6 +36,8 @@ class GenerateBMEReturns(DataReaderClass):
         pivot_data = pivot_data.fillna(method="ffill")
         pivot_data.index = pd.DatetimeIndex(list(map(pd.Timestamp, pivot_data.index))).normalize()
 
+        print('pivot_data:', pivot_data.mean().mean())
+        print('pivot_data shape:', pivot_data.shape)
         start_date = pivot_data.index.min()
         end_date = pivot_data.index.max()
         if trading_freq == "monthly":
@@ -56,10 +58,15 @@ class GenerateBMEReturns(DataReaderClass):
             ub = ub if pd.notnull(ub) else 2.0
             raw_returns.loc[dt, :] = raw_returns.loc[dt, :].clip(lb, ub)
 
+        print('raw_returns pre fill:', raw_returns.mean().mean())
+        print('raw_returns shape pre fill:', raw_returns.shape)
         raw_returns = raw_returns.fillna(0.0)
         residual_tickers = list(set(gan_universe) - set(raw_returns.columns))
+        print('res ticker len:', len(residual_tickers))
         for rt in residual_tickers:
             raw_returns[rt] = 0.0
+        print('raw_returns:', raw_returns.mean().mean())
+        print('raw_returns shape:', raw_returns.shape)
         return raw_returns
 
     def do_step_action(self, **kwargs):
@@ -69,7 +76,9 @@ class GenerateBMEReturns(DataReaderClass):
         gan_universe = list(active_matrix.columns)
         raw_returns = self._generate_raw_returns(daily_price_data, gan_universe, "monthly")
         future_returns = raw_returns.shift(-1)
+        print('future_returns pre fillna:', future_returns.mean().mean())
         future_returns = future_returns.fillna(0.0)
+        print('future_returns post fillna:', future_returns.mean().mean())
 
         self.data = raw_returns.loc[active_matrix.index, gan_universe]
         self.future_data = future_returns.loc[active_matrix.index, gan_universe]
