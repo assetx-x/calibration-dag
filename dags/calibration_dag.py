@@ -150,28 +150,6 @@ def airflow_wrapper(**kwargs):
 
 """ Calibration Process"""
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
-    with TaskGroup("DataPull", tooltip="DataPull") as DataPull:
-        S3GANUniverseReader = PythonOperator(
-            task_id="S3GANUniverseReader",
-            python_callable=airflow_wrapper,
-            op_kwargs=current_gan_universe_params,
-            execution_timeout=timedelta(minutes=25)
-        )
-
-
-    with TaskGroup("ActiveMatrix", tooltip="ActiveMatrix") as ActiveMatrix:
-        GenerateActiveMatrixWeekly = PythonOperator(
-            task_id="GenerateActiveMatrixWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=GenerateActiveMatrixWeekly_params
-        )
-
-    with TaskGroup("AdditionalGanFeatures", tooltip="AdditionalGanFeatures") as AdditionalGanFeatures:
-        GenerateBMEReturnsWeekly = PythonOperator(
-            task_id="GenerateBMEReturnsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=GenerateBMEReturnsWeekly_params
-        )
 
     with TaskGroup("SaveGANInputs", tooltip="SaveGANInputs") as SaveGANInputs:
         GenerateDataGAN = PythonOperator(
@@ -182,7 +160,6 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
 
 
 
-    DataPull >> ActiveMatrix >> AdditionalGanFeatures >> SaveGANInputs
 
 
 
