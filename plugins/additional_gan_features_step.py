@@ -35,9 +35,6 @@ class GenerateBMEReturns(DataReaderClass):
                                     columns="ticker", dropna=False).sort_index()
         pivot_data = pivot_data.fillna(method="ffill")
         pivot_data.index = pd.DatetimeIndex(list(map(pd.Timestamp, pivot_data.index))).normalize()
-
-        print('pivot_data:', pivot_data.mean().mean())
-        print('pivot_data shape:', pivot_data.shape)
         start_date = pivot_data.index.min()
         end_date = pivot_data.index.max()
         if trading_freq == "monthly":
@@ -58,15 +55,12 @@ class GenerateBMEReturns(DataReaderClass):
             ub = ub if pd.notnull(ub) else 2.0
             raw_returns.loc[dt, :] = raw_returns.loc[dt, :].clip(lb, ub)
 
-        print('raw_returns pre fill:', raw_returns.mean().mean())
-        print('raw_returns shape pre fill:', raw_returns.shape)
+
         raw_returns = raw_returns.fillna(0.0)
         residual_tickers = list(set(gan_universe) - set(raw_returns.columns))
-        print('res ticker len:', len(residual_tickers))
         for rt in residual_tickers:
             raw_returns[rt] = 0.0
-        print('raw_returns:', raw_returns.mean().mean())
-        print('raw_returns shape:', raw_returns.shape)
+
         return raw_returns
 
     def do_step_action(self, **kwargs):
@@ -76,9 +70,7 @@ class GenerateBMEReturns(DataReaderClass):
         gan_universe = list(active_matrix.columns)
         raw_returns = self._generate_raw_returns(daily_price_data, gan_universe, "monthly")
         future_returns = raw_returns.shift(-1)
-        print('future_returns pre fillna:', future_returns.mean().mean())
         future_returns = future_returns.fillna(0.0)
-        print('future_returns post fillna:', future_returns.mean().mean())
 
         self.data = raw_returns.loc[active_matrix.index, gan_universe]
         self.future_data = future_returns.loc[active_matrix.index, gan_universe]
@@ -100,6 +92,8 @@ class GenerateBMEReturnsWeekly(GenerateBMEReturns):
     def do_step_action(self, **kwargs):
         active_matrix = kwargs[self.REQUIRES_FIELDS[0]]
         active_matrix_weekly = kwargs[self.REQUIRES_FIELDS[1]]
+        active_matrix.columns = [int(i) for i in active_matrix.columns]
+        active_matrix_weekly.columns = [int(i) for i in active_matrix_weekly.columns]
         daily_price_data = kwargs[self.REQUIRES_FIELDS[2]]
         gan_universe = list(active_matrix.columns)
 
@@ -107,17 +101,13 @@ class GenerateBMEReturnsWeekly(GenerateBMEReturns):
         future_returns = raw_returns.shift(-1).fillna(0.0)
         self.data = raw_returns.reindex(active_matrix.index).dropna()[gan_universe]
         self.future_data = future_returns.reindex(active_matrix.index).dropna()[gan_universe]
-        print('future_data DATA')
-        print(future_returns.head())
 
-        print('future_data DATA post transformation')
-        print(future_returns.reindex(active_matrix.index).dropna()[gan_universe].head(10))
         raw_returns_weekly = self._generate_raw_returns(daily_price_data, gan_universe, "weekly")
         future_returns_weekly = raw_returns_weekly.shift(-1).fillna(0.0)
         self.future_data_weekly = future_returns_weekly.reindex(active_matrix_weekly.index).dropna()[gan_universe]
         return {'past_returns_bme': self.data, 'future_returns_bme': self.future_data,
                 'future_returns_weekly': self.future_data_weekly}
-        # return self.data,self.future_data,self.future_data_weekly
+
 
 
 
