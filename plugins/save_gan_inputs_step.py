@@ -35,16 +35,16 @@ class GenerateDataGAN(DataReaderClass):
         pass
 
     def melt_merge(self, future_return_data, df):
+
         future_returns = pd.melt(future_return_data.reset_index().rename(columns={"index": "date"}), id_vars=["date"],
                                  value_name="future_return_bme")
         future_returns.rename(columns={"variable": "ticker"}, inplace=True)
-        print('future')
-        print(future_returns.columns)
-        print(future_returns.head())
 
-        print('df')
-        print(df.columns)
-        print(df.head())
+        # ensure columns are correct format
+        future_returns['date'] = pd.to_datetime(future_returns['date'])
+        df['date'] = pd.to_datetime(df['date'])
+        future_returns['ticker'] = future_returns['ticker'].astype(str)
+        df['ticker'] = df['ticker'].astype(str)
 
         merged = pd.merge(future_returns, df, how="left", on=["date", "ticker"])
         merged = merged.sort_values(["date", "ticker"])
