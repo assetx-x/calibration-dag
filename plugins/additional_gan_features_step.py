@@ -107,7 +107,11 @@ class GenerateBMEReturnsWeekly(GenerateBMEReturns):
         future_returns = raw_returns.shift(-1).fillna(0.0)
         self.data = raw_returns.reindex(active_matrix.index).dropna()[gan_universe]
         self.future_data = future_returns.reindex(active_matrix.index).dropna()[gan_universe]
+        print('future_data DATA')
+        print(future_returns.head())
 
+        print('future_data DATA post transformation')
+        print(future_returns.reindex(active_matrix.index).dropna()[gan_universe].head(10))
         raw_returns_weekly = self._generate_raw_returns(daily_price_data, gan_universe, "weekly")
         future_returns_weekly = raw_returns_weekly.shift(-1).fillna(0.0)
         self.future_data_weekly = future_returns_weekly.reindex(active_matrix_weekly.index).dropna()[gan_universe]
