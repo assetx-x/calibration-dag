@@ -17,7 +17,12 @@ default_args = {
     'schedule_interval': '@daily',
 }
 
-dag = DAG('gcp_sensor_dag', default_args=default_args, schedule_interval=timedelta(minutes=5))
+dag = DAG(
+    'gcp_sensor_dag',
+    description='GCP Sensor Prediction Calculation. Triggered by a csv file inside the bucket, and send via API to DB',
+    default_args=default_args,
+    schedule_interval=timedelta(minutes=5)
+)
 
 
 def create_gcs_file_sensor(obj):
