@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
 from airflow import DAG
+from airflow.models import Variable
 from airflow.providers.google.cloud.sensors.gcs import GCSObjectExistenceSensor
 
-from dags.strategy_prediction_calculation_dag import list_files_task, GS_BUCKET_NAME
+from dags.strategy_prediction_calculation_dag import GS_BUCKET_NAME, list_files_in_bucket
 
-
-STRATEGY_PATH_BLOB = 'api_v2_storage/strategies/*'
+STRATEGY_PATH_BLOB = Variable.get('STRATEGY_PATH_BLOB', 'api_v2_storage/strategies/*')
 INACTIVITY_PERIOD = 30
 MIN_OBJECT_AGE = 300
 
@@ -16,7 +16,7 @@ default_args = {
     'retries_delay': timedelta(minutes=1)
 }
 
-dag = DAG('your_dag', default_args=default_args, schedule_interval=timedelta(minutes=5))
+dag = DAG('gcp_sensor_dag', default_args=default_args, schedule_interval=timedelta(minutes=5))
 
 
 def create_gcs_file_sensor(obj):
@@ -34,14 +34,16 @@ def create_gcs_file_sensor(obj):
         task_id=task_id,
         bucket=GS_BUCKET_NAME,
         object=obj,
-        inactivity_period=INACTIVITY_PERIOD,
-        min_object_age=MIN_OBJECT_AGE,
-        allow_delete=False,
-        blob=STRATEGY_PATH_BLOB,
-        dag=dag
+        dag=dag,
+        on_execute_callback=list_files_in_bucket,
     )
 
+
 [
-    create_gcs_file_sensor('growth_predictions.csv'),
-    create_gcs_file_sensor('largecap_growth_predictions.csv')
-] >> list_files_task
+    create_gcs_file_sensor('growth_predictions_test.csv'),
+    create_gcs_file_sensor('largecap_growth_predictions_test.csv')
+]
+
+
+if __name__ == '__main__':
+    dag.test()
