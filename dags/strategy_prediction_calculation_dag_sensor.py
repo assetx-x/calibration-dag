@@ -6,8 +6,6 @@ from airflow.providers.google.cloud.sensors.gcs import GCSObjectExistenceSensor,
 from dags.strategy_prediction_calculation_dag import GS_BUCKET_NAME, list_files_in_bucket
 
 STRATEGY_PATH_BLOB = Variable.get('STRATEGY_PATH_BLOB', 'api_v2_storage/strategies/*')
-INACTIVITY_PERIOD = 30
-MIN_OBJECT_AGE = 300
 
 
 default_args = {

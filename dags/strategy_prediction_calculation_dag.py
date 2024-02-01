@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
 import requests
@@ -77,48 +78,54 @@ def recursive_str(data):
     return str(data)
 
 
-def post_data_recursively(f_name, to_iterate_dict, t):
+def threaded_post_data_recursively(f_name, to_iterate_dict, t):
     """
-    Recursively posts data to an API endpoint.
-
+    Recursively posts data to an API endpoint using a ThreadPoolExecutor.
     :param f_name: The name of the strategy.
     :type f_name: str
     :param to_iterate_dict: The dictionary to iterate and post data from.
     :type to_iterate_dict: dict
     :param t: The authorization token.
     :type t: str
-
     :returns: None
     """
+
     retry_strategy = Retry(
         total=3,
         status_forcelist=[401, 429, 500, 502, 503, 504],
         allowed_methods=["HEAD", "GET", "OPTIONS", "POST"],
         backoff_factor=0.1
     )
-
     adapter = HTTPAdapter(max_retries=retry_strategy)
-
     http = requests.Session()
     http.mount("https://", adapter)
     http.mount("http://", adapter)
 
-    for key, value in to_iterate_dict.items():
-        if isinstance(value, dict):
-            post_data_recursively(f_name, value, t)
-        else:
-            response = http.post(
-                f'{API_ENDPOINT}/strategy_performance/',
-                json={'strategy': f_name, 'data': {key: value}},
-                headers={
-                    'X-User-Agent': f'airflow-task-{f_name}',
-                    'Content-Type': 'application/json',
-                    'accept': 'application/json',
-                    'Authorization': f'Bearer {t}',
-                },
-            )
-            print(f'[*] API POST response: [{response.status_code}] {response.content}')
-            print(f' calculator {key}')
+    def post_data_recursively(f, d, _t, h):
+        for key, value in d.items():
+            if isinstance(value, dict):
+                post_data_recursively(f, value, _t, h)
+            else:
+                response = h.post(
+                    f'{API_ENDPOINT}/strategy_performance/',
+                    json={'strategy': f, 'data': {key: value}},
+                    headers={
+                        'X-User-Agent': f'airflow-task-{f}',
+                        'Content-Type': 'application/json',
+                        'accept': 'application/json',
+                        'Authorization': f'Bearer {_t}',
+                    },
+                )
+                print(f'[*] API POST response: [{response.status_code}] {response.content}')
+                print(f' calculator {key}')
+
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        future = executor.submit(
+            post_data_recursively,
+            f_name,
+            to_iterate_dict,
+            t, http
+        )
 
 
 def list_files_in_bucket(dag_context: Context, *args, **kwargs):
@@ -163,7 +170,7 @@ def list_files_in_bucket(dag_context: Context, *args, **kwargs):
         parsed_s_performance = recursive_str(s_performance)
         token = authenticate()
 
-        post_data_recursively(data["file_name"], parsed_s_performance, token)
+        threaded_post_data_recursively(data["file_name"], parsed_s_performance, token)
 
 
 # list_files_task = PythonOperator(
