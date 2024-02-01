@@ -7,6 +7,8 @@ from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.context import Context
 from google.cloud import storage
+from requests.adapters import HTTPAdapter
+from urllib3 import Retry
 
 from plugins.DataCalculations.strategies.main import PerformanceCalculator
 
@@ -77,24 +79,35 @@ def recursive_str(data):
 
 def post_data_recursively(f_name, to_iterate_dict, t):
     """
-    Recursively post data to an API endpoint with given parameters.
+    Recursively posts data to an API endpoint.
 
-    Parameters:
-    - f_name (str): The name of the strategy.
-    - to_iterate_dict (dict): The dictionary containing the data to be posted.
-    - t (str): The authorization token.
+    :param f_name: The name of the strategy.
+    :type f_name: str
+    :param to_iterate_dict: The dictionary to iterate and post data from.
+    :type to_iterate_dict: dict
+    :param t: The authorization token.
+    :type t: str
 
-    Returns:
-    None
-
-    Example usage:
-    post_data_recursively("my_strategy", {"key1": "value", "key2": "value2"}, "my_token")
+    :returns: None
     """
+    retry_strategy = Retry(
+        total=3,
+        status_forcelist=[401, 429, 500, 502, 503, 504],
+        allowed_methods=["HEAD", "GET", "OPTIONS", "POST"],
+        backoff_factor=0.1
+    )
+
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+
+    http = requests.Session()
+    http.mount("https://", adapter)
+    http.mount("http://", adapter)
+
     for key, value in to_iterate_dict.items():
         if isinstance(value, dict):
             post_data_recursively(f_name, value, t)
         else:
-            response = requests.post(
+            response = http.post(
                 f'{API_ENDPOINT}/strategy_performance/',
                 json={'strategy': f_name, 'data': {key: value}},
                 headers={
@@ -104,7 +117,7 @@ def post_data_recursively(f_name, to_iterate_dict, t):
                     'Authorization': f'Bearer {t}',
                 },
             )
-            print(f'[*] API POST response: {response.content}')
+            print(f'[*] API POST response: [{response.status_code}] {response.content}')
             print(f' calculator {key}')
 
 
