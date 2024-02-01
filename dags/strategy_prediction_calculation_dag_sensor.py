@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.models import Variable
-from airflow.providers.google.cloud.sensors.gcs import GCSObjectExistenceSensor
+from airflow.providers.google.cloud.sensors.gcs import GCSObjectExistenceSensor, GCSObjectUpdateSensor
 
 from dags.strategy_prediction_calculation_dag import GS_BUCKET_NAME, list_files_in_bucket
 
@@ -29,19 +29,23 @@ def create_gcs_file_sensor(obj):
     """
     Creates a Google Cloud Storage (GCS) file sensor.
 
-    :param obj: The name of the GCS object to monitor.
-    :type obj: str
+    Parameters:
+    - obj: A string representing the file name or path of the GCS object to be monitored.
 
-    :return: A GCSObjectExistenceSensor instance.
-    :rtype: GCSObjectExistenceSensor
+    Returns:
+    - An instance of the GCSObjectUpdateSensor class.
+
+    Example Usage:
+    sensor = create_gcs_file_sensor("my-bucket/my-file.txt")
     """
     task_id = 'gcs_file_sensor_' + obj.split(".")[0]
-    return GCSObjectExistenceSensor(
+
+    return GCSObjectUpdateSensor(
         task_id=task_id,
         bucket=GS_BUCKET_NAME,
         object=obj,
         dag=dag,
-        on_execute_callback=list_files_in_bucket,
+        ts_func=list_files_in_bucket
     )
 
 
