@@ -69,6 +69,11 @@ class S3GANUniverseReader(GCPReader):
 
     def _post_process_pulled_data(self, data, **kwargs):
         data["dcm_security_id"] = data["dcm_security_id"].astype(int)
+        #TODO: These tickers were missing from airlfow version but existed in luigi version
+        new_values = [60856, 60562, 60896, 60853]
+        new_rows = pd.DataFrame(new_values, columns=['dcm_security_id'])
+        data = pd.concat([data, new_rows], ignore_index=True)
+
         #security_master = kwargs['security_master']
         #secm = security_master[(security_master['dcm_security_id'].isin(data['dcm_security_id'].tolist()))]['ticker'].to_frame()
         #secm.rename(columns={'ticker':'dcm_security_id'},inplace=True)
