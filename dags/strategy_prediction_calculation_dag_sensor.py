@@ -13,7 +13,8 @@ MIN_OBJECT_AGE = 300
 default_args = {
     'start_date': datetime(2023, 1, 1),
     'depends_on_past': False,
-    'retries_delay': timedelta(minutes=1)
+    'retries_delay': timedelta(minutes=1),
+    'schedule_interval': '@daily',
 }
 
 dag = DAG('gcp_sensor_dag', default_args=default_args, schedule_interval=timedelta(minutes=5))
