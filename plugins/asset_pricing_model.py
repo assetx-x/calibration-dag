@@ -146,6 +146,8 @@ def load_data(data_dir):
     econ_data = pd.read_csv(os.path.join(data_dir, "econ_data_final.csv"), index_col=0)
     active_matrix = pd.read_csv(os.path.join(data_dir, "active_matrix.csv"), index_col=0).fillna(0)
     return_data = pd.read_csv(os.path.join(data_dir, "future_returns.csv"), index_col=0).fillna(0.0)
+    active_matrix.columns = [int(i) for i in active_matrix.columns]
+    return_data.columns = [int(i) for i in return_data.columns]
 
     # Needs conversion for fixed format
     df["date"] = df["date"].apply(pd.Timestamp)
@@ -153,7 +155,7 @@ def load_data(data_dir):
     active_matrix.index = pd.DatetimeIndex(list(map(pd.Timestamp, list(active_matrix.index))))
     return_data.index = pd.DatetimeIndex(list(map(pd.Timestamp, list(return_data.index))))
 
-    company_data = df.set_index(["date", "ticker"]).sort_index().to_panel().transpose(1, 2, 0).fillna(0.0)
+    company_data = df.groupby(["date", "ticker"]).mean().sort_index().to_panel().transpose(1, 2, 0).fillna(0.0)
     econ_data = econ_data.set_index(["date"]).sort_index()
 
     # Enforce common timeline
