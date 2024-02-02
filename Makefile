@@ -22,8 +22,11 @@ deploy:
 	helm upgrade airflow apache-airflow/airflow -f k8s/values.yml --wait --timeout=30m --debug --atomic --namespace default
 
 rebuild:
+	@echo "\n[ ] SHUTTING DOWN SERVICES\n"
 	$(docker_compose) down
+	@echo "\n[ ] PULLING CHANGES FROM GIT\n"
 	sudo git pull
-# 	echo -n y | docker system prune -a --volumes
+	@echo "\n[ ] BUILDING GAN IMAGE\n"
 	$(docker_build) -f $(docker_file_src) -t $(image_gan) .
+	@echo "\n[ ] BUILDING AIRFLOW IMAGE\n"
 	$(docker_compose) up --build -d
