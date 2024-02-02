@@ -141,7 +141,6 @@ def delete_directory_content(directory, del_subdirs=True, delete_root_dir=False)
 
 def load_data(data_dir):
     print("loading data with shapes.....")
-    data_dir = os.path.join(data_dir, "company_data.csv")
     print(f'Data directory > {data_dir}')
     df = pd.read_csv(data_dir, index_col=0).fillna(0.0)
     econ_data = pd.read_csv(os.path.join(data_dir, "econ_data_final.csv"), index_col=0)
