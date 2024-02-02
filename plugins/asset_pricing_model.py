@@ -461,7 +461,10 @@ class AssetPricingGAN(object):
         from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
         from tensorflow.keras.utils import plot_model
         from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
+        import tensorflow
         f_factor = Dot(2, name="f_factor")([self.return_sequences, self.sdf_network.output])
+        if len(f_factor.shape) == 4:  # If the shape is (None, 1, 1, 1)
+            f_factor = tensorflow.squeeze(f_factor, axis=-1)
         # discount_factor = Multiply(name="negative_f_factor")([self.discount_factor_multiplier, f_factor])
         negative_f_factor = multiply([self.discount_factor_multiplier, f_factor], name="negative_f_factor")
         discount_factor = subtract([self.discount_factor_substraction, negative_f_factor], name="discount_factor")
