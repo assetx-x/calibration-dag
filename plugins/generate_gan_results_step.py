@@ -48,7 +48,7 @@ class ExtractGANFactors:
 
 
 extract_gan_factors_params = {
-    'data_dir': 'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/local/save_gan_inputs',
+    'data_dir': 'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/live/save_gan_inputs/save_gan_inputs',
     'insample_cut_date': "2023-02-03",
     'epochs': 150,
     'epochs_discriminator': 50,
