@@ -1,6 +1,4 @@
-FROM apache/airflow:2.6.3-python3.8
-
-ENV PYTHONPATH "${PYTHONPATH}:/usr/local/airflow/:/usr/local/airflow/dags:/usr/local/airflow/plugins"
+FROM apache/airflow:2.6.3-python3.8 AS builder
 
 USER root
 
@@ -9,10 +7,17 @@ RUN apt-get update && apt-get install -y \
     libncurses5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev mecab-ipadic-utf8 git && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-
 RUN curl -L http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz | tar xvz && \
     cd ta-lib/ && ./configure --prefix=/usr && make && make install && cd .. && rm -rf ta-lib
 
+# Stage 2: Final image
+FROM apache/airflow:2.6.3-python3.8
+
+ENV PYTHONPATH "${PYTHONPATH}:/usr/local/airflow/:/usr/local/airflow/dags:/usr/local/airflow/plugins"
+
+USER root
+
+COPY --from=builder /usr /usr
 RUN mkdir -p /.pyenv && chown airflow /.pyenv
 
 USER airflow
