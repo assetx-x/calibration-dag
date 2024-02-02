@@ -1,6 +1,8 @@
 import pandas as pd
 import io
 
+from pandas.errors import EmptyDataError
+
 from plugins.DataCalculations.strategies.accuracy_metrics import AccuracyMetrics
 from plugins.DataCalculations.strategies.return_quantile_metrics import ReturnQuantileMetrics
 from plugins.DataCalculations.strategies.volatility_metrics import VolatilityMetrics
@@ -32,7 +34,9 @@ class PerformanceCalculator:
             return pd.read_csv(io.BytesIO(file_content), index_col=[0])
         except (pd.errors.EmptyDataError, pd.errors.ParserError) as e:
             print(f"Error reading strategy CSV file. {e}")  # {file_path.name} - {e}")
-            raise ValueError(f"Error reading strategy CSV file. {e}")  # {file_path.name}") from e
+            if 'No columns to parse from file' in str(e):
+                raise EmptyDataError(f'No content at file')
+            raise ValueError(f"Error reading strategy CSV file. {e}, {type(e)}")  # {file_path.name}") from e
 
     def run(self) -> dict:
         """

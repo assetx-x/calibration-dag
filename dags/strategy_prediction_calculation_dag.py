@@ -1,14 +1,15 @@
-import json
-import os
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
-from pprint import pprint
 
 import requests
 from airflow import DAG
 from airflow.models import Variable
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
+from airflow.utils.context import Context
 from google.cloud import storage
+from requests.adapters import HTTPAdapter
+from urllib3 import Retry
 
 from plugins.DataCalculations.strategies.main import PerformanceCalculator
 
@@ -77,40 +78,57 @@ def recursive_str(data):
     return str(data)
 
 
-def post_data_recursively(f_name, to_iterate_dict, t):
+def threaded_post_data_recursively(f_name, to_iterate_dict, t):
     """
-    Recursively post data to an API endpoint with given parameters.
-
-    Parameters:
-    - f_name (str): The name of the strategy.
-    - to_iterate_dict (dict): The dictionary containing the data to be posted.
-    - t (str): The authorization token.
-
-    Returns:
-    None
-
-    Example usage:
-    post_data_recursively("my_strategy", {"key1": "value", "key2": "value2"}, "my_token")
+    Recursively posts data to an API endpoint using a ThreadPoolExecutor.
+    :param f_name: The name of the strategy.
+    :type f_name: str
+    :param to_iterate_dict: The dictionary to iterate and post data from.
+    :type to_iterate_dict: dict
+    :param t: The authorization token.
+    :type t: str
+    :returns: None
     """
-    for key, value in to_iterate_dict.items():
-        if isinstance(value, dict):
-            post_data_recursively(f_name, value, t)
-        else:
-            response = requests.post(
-                f'{API_ENDPOINT}/strategy_performance/',
-                json={'strategy': f_name, 'data': {key: value}},
-                headers={
-                    'X-User-Agent': f'airflow-task-{f_name}',
-                    'Content-Type': 'application/json',
-                    'accept': 'application/json',
-                    'Authorization': f'Bearer {t}',
-                },
-            )
-            print(f'[*] API POST response: {response.content}')
-            print(f' calculator {key}')
+
+    retry_strategy = Retry(
+        total=3,
+        status_forcelist=[401, 429, 500, 502, 503, 504],
+        allowed_methods=["HEAD", "GET", "OPTIONS", "POST"],
+        backoff_factor=0.1
+    )
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    http = requests.Session()
+    http.mount("https://", adapter)
+    http.mount("http://", adapter)
+
+    def post_data_recursively(f, d, _t, h):
+        for key, value in d.items():
+            if isinstance(value, dict):
+                post_data_recursively(f, value, _t, h)
+            else:
+                response = h.post(
+                    f'{API_ENDPOINT}/strategy_performance/',
+                    json={'strategy': f, 'data': {key: value}},
+                    headers={
+                        'X-User-Agent': f'airflow-task-{f}',
+                        'Content-Type': 'application/json',
+                        'accept': 'application/json',
+                        'Authorization': f'Bearer {_t}',
+                    },
+                )
+                print(f'[*] API POST response: [{response.status_code}] {response.content}')
+                print(f' calculator {key}')
+
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        future = executor.submit(
+            post_data_recursively,
+            f_name,
+            to_iterate_dict,
+            t, http
+        )
 
 
-def list_files_in_bucket(bucket_name, **kwargs):
+def list_files_in_bucket(dag_context: Context, *args, **kwargs):
     """
     Open the method documentation for list_files_in_bucket.
 
@@ -133,10 +151,10 @@ def list_files_in_bucket(bucket_name, **kwargs):
     list_files_in_bucket("my-bucket")
     """
     client = storage.Client()
-    bucket = client.get_bucket(bucket_name)
+    bucket = client.get_bucket(GS_BUCKET_NAME)
     blobs = bucket.list_blobs()
 
-    print(f"Files in bucket '{bucket_name}':")
+    print(f"Files in bucket '{GS_BUCKET_NAME}':")
     for blob in blobs:
         file_content = blob.download_as_string()
         blob_name = blob.name
@@ -152,19 +170,19 @@ def list_files_in_bucket(bucket_name, **kwargs):
         parsed_s_performance = recursive_str(s_performance)
         token = authenticate()
 
-        post_data_recursively(data["file_name"], parsed_s_performance, token)
+        threaded_post_data_recursively(data["file_name"], parsed_s_performance, token)
 
 
-list_files_task = PythonOperator(
-    task_id='list_files_task',
-    python_callable=list_files_in_bucket,
-    op_kwargs={'bucket_name': GS_BUCKET_NAME},
-    dag=dag,
-)
+# list_files_task = PythonOperator(
+#     task_id='list_files_task',
+#     python_callable=list_files_in_bucket,
+#     op_kwargs={'bucket_name': GS_BUCKET_NAME},
+#     dag=dag,
+# )
+#
+# empty_operator = EmptyOperator(task_id='empty_operator', dag=dag)
 
-empty_operator = EmptyOperator(task_id='empty_operator', dag=dag)
-
-empty_operator >> list_files_task
+# empty_operator >> list_files_task
 
 if __name__ == '__main__':
     dag.test()
