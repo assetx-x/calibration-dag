@@ -10,7 +10,7 @@ from numpy import sqrt, sin, pi, linspace, sign, roll, ones, asarray, expand_dim
 import pandas as pd
 import numpy as np
 from numpy import inf, ceil
-
+from google.cloud import storage
 from pathlib import Path
 
 __config = None
@@ -664,8 +664,9 @@ class SDFExtraction(object):  # This is a complete version with data and gan net
         self.time_steps = gan_network.time_steps
         self.batch_size = gan_network.batch_size
         self.gan_model = gan_network.gan_model
-        if saved_weight_path:
-            self.gan_model.load_weights(saved_weight_path)  # load weights
+        get_saved_weights(self.gan_model,skip=False)
+        #if saved_weight_path:
+        #    self.gan_model.load_weights(saved_weight_path)  # load weights
         self.create_input_layers()
         self.sdf_network = self.__build_network()
         self.weighted_layers = ["sdf-rnn-0", "sdf-fnn-1", "sdf-fnn-2", "sdf-output-raw"]
@@ -772,9 +773,56 @@ class SDFExtraction(object):  # This is a complete version with data and gan net
         all_factors = all_factors.fillna(mean_vals)
         self.all_factors = all_factors
 
+
+
     def save_factors(self):
-        print(self.all_factor_path)
-        self.all_factors.to_hdf(self.all_factor_path, key="df", format="table")
+        # Save locally
+        local_filename = 'all_factors.h5'
+
+        local_storage_path = os.path.join(os.getcwd(),local_filename)
+        self.all_factors.to_hdf(local_storage_path, key="df", format="table")
+
+        # Initialize a GCS client
+        client = storage.Client()
+
+        # Define GCS bucket name and destination file name
+        bucket_name = 'dcm-prod-ba2f-us-dcm-data-test'
+        gcs_destination = 'calibration_data/live/save_gan_inputs/save_gan_inputs/all_factors.h5'
+
+        # Get the bucket and blob
+        bucket = client.bucket(bucket_name)
+        blob = bucket.blob(gcs_destination)
+
+        # Upload the file
+        blob.upload_from_filename(local_storage_path)
+        # Clean up: remove local file after uploading
+        os.remove(local_storage_path)
+
+        print(f"File {local_filename} successfully uploaded to {gcs_destination}")
+
+
+
+def get_saved_weights(gan_model, skip=True):
+
+    bucket_name = 'dcm-prod-ba2f-us-dcm-data-test'
+    source_blob_name = 'calibration_data/live/save_gan_inputs/save_gan_inputs/saved_weights.h5'
+    destination_file_name = os.path.join(os.getcwd(), 'saved_weights.h5')
+    if skip == True:
+        print('skipping model download from storage')
+        destination_file_name = '/mnt/disk1/gan_data/20240128/calibration_data/gan_training_data/saved_weights.h5'
+
+    else:
+        client = storage.Client()
+        bucket = client.get_bucket(bucket_name)
+        blob = bucket.blob(source_blob_name)
+        # Download the file to a local destination
+        print('downloading weights from blob storage')
+        blob.download_to_filename(destination_file_name)
+
+    # Now load the weights from the local file
+    print('loading weights....')
+    gan_model.load_weights(destination_file_name)
+    print('finished loading weights')
 
 def extract_factors(data_dir, insample_cut_date):
     sdf_network = SDFExtraction(data_dir, insample_cut_date)
