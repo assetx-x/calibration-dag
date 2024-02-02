@@ -180,7 +180,7 @@ def load_data(data_dir):
 
 def build_timeseries_modified(econ_data, company_data, return_data, per_moment_time_weights, per_company_time_weights,
                               average_weights, time_steps):
-    from tqdm import tnrange, tqdm_notebook
+
     dim_time = company_data.shape[0] - time_steps  # time
     n_assets = company_data.shape[1]  # comapny
     n_company_features = company_data.shape[2]  # characteristic
@@ -195,7 +195,7 @@ def build_timeseries_modified(econ_data, company_data, return_data, per_moment_t
     pos_ones = np.ones((dim_time, time_steps, 1))
     output = np.zeros((dim_time, time_steps))
 
-    for i in tqdm_notebook(range(dim_time)):
+    for i in range(dim_time):
         econ[i] = econ_data[i:time_steps + i]
         comp[i] = company_data[i:time_steps + i]
         rets[i] = return_data[i:time_steps + i]
