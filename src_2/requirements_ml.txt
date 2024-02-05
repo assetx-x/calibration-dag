@@ -5,3 +5,4 @@ google-cloud-bigquery
 numpy
 gcsfs
 lightgbm==2.2.3
+yfinance
