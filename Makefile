@@ -15,7 +15,7 @@ web:
 
 build:
 	$(docker_build) -f src/Dockerfile -t $(image) .
-	$(docker_build) -f src_2/Dockerfile -t $(intermediate_training_image) src .
+	$(docker_build) -f src_2/Dockerfile -t $(intermediate_training_image) .
 	$(docker_build) -f $(docker_file_src) -t $(image_gan) .
 
 deploy:
@@ -28,10 +28,9 @@ rebuild:
 	$(docker_compose) down
 	@echo "\n[ ] PULLING CHANGES FROM GIT\n"
 	sudo git pull
-	@echo "\n[ ] BUILDING GAN IMAGE\n"
-	$(docker_build) -f $(docker_file_src) -t $(image_gan) .
-	@echo "\n[ ] BUILDING TRAINING IMAGE\n"
-	$(docker_build) -f src_2/Dockerfile -t $(intermediate_training_image) src .
+	@echo "\n[ ] BUILDING IMAGES\n"
+	$(docker_build) -f src/Dockerfile -t $(image) .
+	$(docker_build) -f src_2/Dockerfile -t $(intermediate_training_image) .
 	@echo "\n[ ] BUILDING AIRFLOW IMAGE\n"
 	$(docker_compose) up --build -d
 	@echo "\n[ ] DONE\n"
