@@ -1,13 +1,6 @@
 import pandas as pd
 from core_classes import GCPReader, download_yahoo_data, DataReaderClass
 import pandas as pd
-from sklearn.model_selection import GroupKFold, GridSearchCV, cross_val_score
-from sklearn.linear_model import LinearRegression, LassoCV, RidgeCV, ElasticNetCV
-from sklearn.ensemble import (
-    RandomForestRegressor,
-    ExtraTreesRegressor,
-    GradientBoostingRegressor,
-)
 from time import time
 import tempfile
 import pyhocon
@@ -16,7 +9,6 @@ import os
 from google.cloud import storage
 from enum import Enum
 import sys
-from sklearn.externals.joblib import dump, load
 import gcsfs
 
 current_date = datetime.now().date()
@@ -73,6 +65,14 @@ def airflow_wrapper(**kwargs):
 
 
 def train_ml_model(folds, X, y, algo, grid, n_jobs=11):
+    from sklearn.model_selection import GroupKFold, GridSearchCV, cross_val_score
+    from sklearn.linear_model import LinearRegression, LassoCV, RidgeCV, ElasticNetCV
+    from sklearn.ensemble import (
+        RandomForestRegressor,
+        ExtraTreesRegressor,
+        GradientBoostingRegressor,
+    )
+    from sklearn.externals.joblib import dump, load
     print(algo.__class__)
 
     n_folds = folds.nunique()
@@ -151,6 +151,15 @@ class TrainIntermediateModels(DataReaderClass):
         pass
 
     def _train_models(self, df):
+        from sklearn.model_selection import GroupKFold, GridSearchCV, cross_val_score
+        from sklearn.linear_model import LinearRegression, LassoCV, RidgeCV, ElasticNetCV
+        from sklearn.ensemble import (
+            RandomForestRegressor,
+            ExtraTreesRegressor,
+            GradientBoostingRegressor,
+        )
+        from sklearn.externals.joblib import dump, load
+
         models = ['ols', 'lasso', 'enet', 'rf', 'et', 'gbm']
 
         mode = self.task_params.run_mode
