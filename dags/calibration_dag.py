@@ -95,6 +95,7 @@ from merge_econ_step import QuantamentalMergeEconIndustryWeekly_params
 from standarization_step import FactorStandardizationFullPopulationWeekly_params
 from active_matrix_step import GenerateActiveMatrixWeekly_params
 from additional_gan_features_step import GenerateBMEReturnsWeekly_params
+from merge_gan_results_step import AddFoldIdToGANResultDataWeekly_params, ConsolidateGANResultsWeekly_params
 
 ## edits
 
@@ -150,23 +151,44 @@ def airflow_wrapper(**kwargs):
             data_value.to_csv(gcs_path)
 
 
+
+#TODO: Henrique create a new DockerOperator based on src_2.
+
+"""
+    with TaskGroup(
+            "IntermediateModelTraining", tooltip="IntermediateModelTraining"
+    ) as IntermediateModelTraining:
+        TrainIntermediateModelsWeekly = DockerOperator(
+            task_id="TrainIntermediateModelsWeekly",
+            #container_name='task__generate_gan',
+            #command="echo 'RUNNING GAN STEP'",
+            # command=f"python generate_gan_results.py",
+            #api_version='auto',
+            #auto_remove='success',
+            #image='gan_image',
+            #network_mode='host',
+        )
+        """
+
 """ Calibration Process"""
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
-    with TaskGroup(
-            "GenerateGANResults", tooltip="GenerateGANResults"
-    ) as GenerateGANResults:
-        ExtractGANFactors = DockerOperator(
-            task_id="ExtractGANFactors",
-            container_name='task__generate_gan',
-            command="echo 'RUNNING GAN STEP'",
-            # command=f"python generate_gan_results.py",
-            api_version='auto',
-            auto_remove='success',
-            image='gan_image',
-            network_mode='host',
+
+
+
+
+    with TaskGroup("MergeGANResults", tooltip="MergeGANResults") as MergeGANResults:
+        ConsolidateGANResultsWeekly = PythonOperator(
+            task_id="ConsolidateGANResultsWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=ConsolidateGANResultsWeekly_params
         )
 
-        ExtractGANFactors
+        AddFoldIdToGANResultDataWeekly = PythonOperator(
+            task_id="AddFoldIdToGANResultDataWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=AddFoldIdToGANResultDataWeekly_params
+        )
+
 
 
 

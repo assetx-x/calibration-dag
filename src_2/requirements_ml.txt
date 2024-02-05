@@ -1,0 +1,8 @@
+scikit-learn=0.21.3
+pytables
+pandas
+pyhocon
+google-cloud-bigquery
+numpy
+gcsfs
+lightgbm==2.2.3
