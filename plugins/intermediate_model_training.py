@@ -1,9 +1,13 @@
 import pandas as pd
-from core_classes import GCPReader,download_yahoo_data,DataReaderClass
+from core_classes import GCPReader, download_yahoo_data, DataReaderClass
 import pandas as pd
 from sklearn.model_selection import GroupKFold, GridSearchCV, cross_val_score
 from sklearn.linear_model import LinearRegression, LassoCV, RidgeCV, ElasticNetCV
-from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
+from sklearn.ensemble import (
+    RandomForestRegressor,
+    ExtraTreesRegressor,
+    GradientBoostingRegressor,
+)
 from time import time
 import tempfile
 import pyhocon
@@ -17,7 +21,7 @@ import gcsfs
 
 current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
-from core_classes import construct_required_path,construct_destination_path
+from core_classes import construct_required_path, construct_destination_path
 
 
 def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='dcm-prod-ba2f'):
@@ -68,7 +72,6 @@ def airflow_wrapper(**kwargs):
             data_value.to_csv(gcs_path)
 
 
-
 def train_ml_model(folds, X, y, algo, grid, n_jobs=11):
     print(algo.__class__)
 
@@ -84,7 +87,9 @@ def train_ml_model(folds, X, y, algo, grid, n_jobs=11):
         algo = cv.best_estimator_
         print(cv.best_params_)
         score = pd.DataFrame(cv.cv_results_).loc[cv.best_index_]
-        score = score[score.index.str.startswith('split') & score.index.str.endswith('test_score')]
+        score = score[
+            score.index.str.startswith('split') & score.index.str.endswith('test_score')
+        ]
 
     else:
         if 'cv' in algo.get_params().keys():
@@ -97,11 +102,8 @@ def train_ml_model(folds, X, y, algo, grid, n_jobs=11):
     lapsed = {'fit': fit_time}
     print(lapsed)
 
-    return {
-        'estimator': algo,
-        'cv_score': score,
-        'lapsed': lapsed
-    }
+    return {'estimator': algo, 'cv_score': score, 'lapsed': lapsed}
+
 
 class TrainIntermediateModels(DataReaderClass):
     '''
@@ -114,8 +116,17 @@ class TrainIntermediateModels(DataReaderClass):
     REQUIRES_FIELDS = ["normalized_data_full_population_with_foldId"]
 
     # SEED = 20190213
-    def __init__(self, y_col, X_cols, return_col, ensemble_weights, bucket, key_base, local_save_dir,
-                 load_from_s3=True):
+    def __init__(
+        self,
+        y_col,
+        X_cols,
+        return_col,
+        ensemble_weights,
+        bucket,
+        key_base,
+        local_save_dir,
+        load_from_s3=True,
+    ):
         self.data = None
         self.econ_model_info = None
         self.y_col = y_col
@@ -140,18 +151,13 @@ class TrainIntermediateModels(DataReaderClass):
         pass
 
     def _train_models(self, df):
-        models = [
-            'ols',
-            'lasso',
-            'enet',
-            'rf',
-            'et',
-            'gbm'
-        ]
+        models = ['ols', 'lasso', 'enet', 'rf', 'et', 'gbm']
 
         mode = self.task_params.run_mode
 
-        full_path = get_local_dated_dir(os.environ["MODEL_DIR"], self.task_params.end_dt, self.local_save_dir)
+        full_path = get_local_dated_dir(
+            os.environ["MODEL_DIR"], self.task_params.end_dt, self.local_save_dir
+        )
         print("***********************************************")
         print("***********************************************")
         print(full_path)
@@ -167,11 +173,23 @@ class TrainIntermediateModels(DataReaderClass):
             'ols': LinearRegression(),
             'lasso': LassoCV(random_state=self.seed),
             'enet': ElasticNetCV(random_state=self.seed),
-            'rf': RandomForestRegressor(n_estimators=500, max_depth=5, min_samples_leaf=0.001, random_state=self.seed,
-                                        n_jobs=self.n_jobs),
-            'et': ExtraTreesRegressor(n_estimators=500, max_depth=5, min_samples_leaf=0.001, random_state=self.seed,
-                                      n_jobs=self.n_jobs),
-            'gbm': GradientBoostingRegressor(n_estimators=200, min_samples_leaf=0.001, random_state=self.seed)
+            'rf': RandomForestRegressor(
+                n_estimators=500,
+                max_depth=5,
+                min_samples_leaf=0.001,
+                random_state=self.seed,
+                n_jobs=self.n_jobs,
+            ),
+            'et': ExtraTreesRegressor(
+                n_estimators=500,
+                max_depth=5,
+                min_samples_leaf=0.001,
+                random_state=self.seed,
+                n_jobs=self.n_jobs,
+            ),
+            'gbm': GradientBoostingRegressor(
+                n_estimators=200, min_samples_leaf=0.001, random_state=self.seed
+            ),
         }
 
         # CV only for lasso and enet
@@ -181,29 +199,29 @@ class TrainIntermediateModels(DataReaderClass):
             'enet': None,
             'rf': {'max_features': [6], 'max_depth': [6]},
             'et': {'max_features': [6], 'max_depth': [10]},
-            'gbm': {'n_estimators': [400], 'max_depth': [7], 'learning_rate': [0.001]}
+            'gbm': {'n_estimators': [400], 'max_depth': [7], 'learning_rate': [0.001]},
         }
 
         folds = df["fold_id"]
-        results = {k: feature_importance(X, y, algos[k], grids[k], folds, self.n_jobs)["estimator"] for k in models}
+        results = {
+            k: feature_importance(X, y, algos[k], grids[k], folds, self.n_jobs)[
+                "estimator"
+            ]
+            for k in models
+        }
         print(results)
 
         create_directory_if_does_not_exists(full_path)
         for k in results.keys():
             dump(results[k], os.path.join(full_path, '%s_econ_no_gan.joblib' % k))
-        self.econ_model_info = pd.DataFrame([self.local_save_dir], columns=["relative_path"])
+        self.econ_model_info = pd.DataFrame(
+            [self.local_save_dir], columns=["relative_path"]
+        )
         return results
 
     def _load_models(self):
         self.s3_client = storage.Client()
-        models = [
-            'ols',
-            'lasso',
-            'enet',
-            'rf',
-            'et',
-            'gbm'
-        ]
+        models = ['ols', 'lasso', 'enet', 'rf', 'et', 'gbm']
         results = {}
         for model in models:
             key = '{0}/{1}_econ_no_gan.joblib'.format(self.key_base, model)
@@ -219,21 +237,31 @@ class TrainIntermediateModels(DataReaderClass):
         pred = pd.Series(algo.predict(X), index=X.index)
         return pred
 
-    def generate_ensemble_prediction(self, df, algos, target_variable_name, return_column_name, feature_cols):
+    def generate_ensemble_prediction(
+        self, df, algos, target_variable_name, return_column_name, feature_cols
+    ):
         ensemble_weights = self.ensemble_weights
         df = df.set_index(["date", "ticker"])
         X = df[feature_cols].fillna(0.0)
         ret = df[return_column_name].reset_index().fillna(0.0)
-        pred = pd.concat((self.prediction(algos[k], X) for k in algos.keys()), axis=1, keys=algos.keys())
-        ensemble_pred = (pred[list(algos.keys())[0]] * 0.0)
+        pred = pd.concat(
+            (self.prediction(algos[k], X) for k in algos.keys()),
+            axis=1,
+            keys=algos.keys(),
+        )
+        ensemble_pred = pred[list(algos.keys())[0]] * 0.0
         for k in algos.keys():
             ensemble_pred += ensemble_weights[k] * pred[k]
         ensemble_pred = ensemble_pred.to_frame()
         ensemble_pred.columns = ["ensemble"]
         rank = pred.groupby("date").rank(pct=True)
         rank["ensemble"] = ensemble_pred.groupby("date").rank(pct=True)
-        signal_ranks = pd.merge(rank.reset_index(), ret[['date', 'ticker', return_column_name]], how='left',
-                                on=['date', 'ticker'])
+        signal_ranks = pd.merge(
+            rank.reset_index(),
+            ret[['date', 'ticker', return_column_name]],
+            how='left',
+            on=['date', 'ticker'],
+        )
         return signal_ranks
 
     def do_step_action(self, **kwargs):
@@ -245,46 +273,115 @@ class TrainIntermediateModels(DataReaderClass):
         target_variable_name = self.y_col
         return_column_name = self.return_col
         feature_cols = self.X_cols
-        signal_ranks = self.generate_ensemble_prediction(df, algos, target_variable_name, return_column_name,
-                                                         feature_cols)
+        signal_ranks = self.generate_ensemble_prediction(
+            df, algos, target_variable_name, return_column_name, feature_cols
+        )
         self.data = signal_ranks
         return StatusType.Success
 
     def _get_additional_step_results(self):
-        return {self.__class__.PROVIDES_FIELDS[0]: self.data,
-                self.__class__.PROVIDES_FIELDS[1]: self.econ_model_info}
+        return {
+            self.__class__.PROVIDES_FIELDS[0]: self.data,
+            self.__class__.PROVIDES_FIELDS[1]: self.econ_model_info,
+        }
 
     @classmethod
     def get_default_config(cls):
-        return {"y_col": "future_ret_21B_std",
-                "X_cols": ['EWG_close', 'HWI', 'IPDCONGD', 'EXUSUKx', 'COMPAPFFx', 'GS5', 'CUSR0000SAC', 'T5YFFM',
-                           'PPO_21_126_InformationTechnology', 'macd_diff_ConsumerStaples', 'PPO_21_126_Industrials',
-                           'VXOCLSx', 'PPO_21_126_Energy', 'T1YFFM', 'WPSID62', 'CUSR0000SA0L2', 'EWJ_volume',
-                           'PPO_21_126_ConsumerDiscretionary', 'OILPRICEx', 'GS10', 'RPI', 'CPITRNSL',
-                           'divyield_ConsumerStaples', 'bm_Financials', 'USTRADE', 'T10YFFM', 'divyield_Industrials',
-                           'AAAFFM', 'RETAILx', 'bm_Utilities', 'SPY_close', 'log_mktcap', 'volatility_126', 'momentum',
-                           'bm', 'PPO_12_26', 'SPY_beta', 'log_dollar_volume', 'fcf_yield'],
-                "return_col": "future_ret_21B",
-                "ensemble_weights": {'enet': 0.03333333333333333, 'et': 0.3, 'gbm': 0.2,
-                                     'lasso': 0.03333333333333333, 'ols': 0.03333333333333333, 'rf': 0.4},
-                "load_from_s3": False,
-                "bucket": "dcm-data-temp",
-                "key_base": "saved_econ_models", "local_save_dir": "econ_models"}
+        return {
+            "y_col": "future_ret_21B_std",
+            "X_cols": [
+                'EWG_close',
+                'HWI',
+                'IPDCONGD',
+                'EXUSUKx',
+                'COMPAPFFx',
+                'GS5',
+                'CUSR0000SAC',
+                'T5YFFM',
+                'PPO_21_126_InformationTechnology',
+                'macd_diff_ConsumerStaples',
+                'PPO_21_126_Industrials',
+                'VXOCLSx',
+                'PPO_21_126_Energy',
+                'T1YFFM',
+                'WPSID62',
+                'CUSR0000SA0L2',
+                'EWJ_volume',
+                'PPO_21_126_ConsumerDiscretionary',
+                'OILPRICEx',
+                'GS10',
+                'RPI',
+                'CPITRNSL',
+                'divyield_ConsumerStaples',
+                'bm_Financials',
+                'USTRADE',
+                'T10YFFM',
+                'divyield_Industrials',
+                'AAAFFM',
+                'RETAILx',
+                'bm_Utilities',
+                'SPY_close',
+                'log_mktcap',
+                'volatility_126',
+                'momentum',
+                'bm',
+                'PPO_12_26',
+                'SPY_beta',
+                'log_dollar_volume',
+                'fcf_yield',
+            ],
+            "return_col": "future_ret_21B",
+            "ensemble_weights": {
+                'enet': 0.03333333333333333,
+                'et': 0.3,
+                'gbm': 0.2,
+                'lasso': 0.03333333333333333,
+                'ols': 0.03333333333333333,
+                'rf': 0.4,
+            },
+            "load_from_s3": False,
+            "bucket": "dcm-data-temp",
+            "key_base": "saved_econ_models",
+            "local_save_dir": "econ_models",
+        }
 
 
 class TrainIntermediateModelsWeekly(TrainIntermediateModels):
-    PROVIDES_FIELDS = ["intermediate_signals", "intermediate_signals_weekly", "econ_model_info"]
-    REQUIRES_FIELDS = ["normalized_data_full_population_with_foldId",
-                       "normalized_data_full_population_with_foldId_weekly"]
+    PROVIDES_FIELDS = [
+        "intermediate_signals",
+        "intermediate_signals_weekly",
+        "econ_model_info",
+    ]
+    REQUIRES_FIELDS = [
+        "normalized_data_full_population_with_foldId",
+        "normalized_data_full_population_with_foldId_weekly",
+    ]
 
-    def __init__(self, y_col, X_cols, return_col, ensemble_weights, bucket, key_base, local_save_dir,
-                 load_from_s3=True):
+    def __init__(
+        self,
+        y_col,
+        X_cols,
+        return_col,
+        ensemble_weights,
+        bucket,
+        key_base,
+        local_save_dir,
+        load_from_s3=True,
+    ):
         self.weekly_data = None
-        TrainIntermediateModels.__init__(self, y_col, X_cols, return_col, ensemble_weights, bucket, key_base,
-                                         local_save_dir, load_from_s3)
+        TrainIntermediateModels.__init__(
+            self,
+            y_col,
+            X_cols,
+            return_col,
+            ensemble_weights,
+            bucket,
+            key_base,
+            local_save_dir,
+            load_from_s3,
+        )
 
     def do_step_action(self, **kwargs):
-
         monthly_df = kwargs[self.__class__.REQUIRES_FIELDS[0]]
         weekly_df = kwargs[self.__class__.REQUIRES_FIELDS[1]]
         if self.load_from_s3:
@@ -296,62 +393,110 @@ class TrainIntermediateModelsWeekly(TrainIntermediateModels):
         target_variable_name = self.y_col
         return_column_name = self.return_col
         feature_cols = self.X_cols
-        monthly_signal_ranks = self.generate_ensemble_prediction(monthly_df, algos, target_variable_name,
-                                                                 return_column_name, feature_cols)
-        weekly_signal_ranks = self.generate_ensemble_prediction(weekly_df, algos, target_variable_name,
-                                                                return_column_name, feature_cols)
+        monthly_signal_ranks = self.generate_ensemble_prediction(
+            monthly_df, algos, target_variable_name, return_column_name, feature_cols
+        )
+        weekly_signal_ranks = self.generate_ensemble_prediction(
+            weekly_df, algos, target_variable_name, return_column_name, feature_cols
+        )
         self.data = monthly_signal_ranks
         self.weekly_data = weekly_signal_ranks
 
-        return {'intermediate_signals': self.data, 'intermediate_signals_weekly': self.weekly_data}
+        return {
+            'intermediate_signals': self.data,
+            'intermediate_signals_weekly': self.weekly_data,
+        }
 
     def _get_additional_step_results(self):
-        return {self.__class__.PROVIDES_FIELDS[0]: self.data,
-                self.__class__.PROVIDES_FIELDS[1]: self.weekly_data,
-                self.__class__.PROVIDES_FIELDS[2]: self.econ_model_info}
+        return {
+            self.__class__.PROVIDES_FIELDS[0]: self.data,
+            self.__class__.PROVIDES_FIELDS[1]: self.weekly_data,
+            self.__class__.PROVIDES_FIELDS[2]: self.econ_model_info,
+        }
 
 
+TMW_params = {
+    'y_col': "future_return_RF_100_std",
+    'X_cols': [
+        "EWG_close",
+        "HWI",
+        "IPDCONGD",
+        "DEXUSUK",
+        "CPFF",
+        "GS5",
+        "CUSR0000SAC",
+        "T5YFFM",
+        "PPO_21_126_InformationTechnology",
+        "macd_diff_ConsumerStaples",
+        "PPO_21_126_Industrials",
+        "VIXCLS",
+        "PPO_21_126_Energy",
+        "T1YFFM",
+        "WPSID62",
+        "CUSR0000SA0L2",
+        "EWJ_volume",
+        "PPO_21_126_ConsumerDiscretionary",
+        "DCOILWTICO",
+        "GS10",
+        "RPI",
+        "CPITRNSL",
+        "divyield_ConsumerStaples",
+        "bm_Financials",
+        "USTRADE",
+        "T10YFFM",
+        "divyield_Industrials",
+        "AAAFFM",
+        "RETAILx",
+        "bm_Utilities",
+        "SPY_close",
+        "log_mktcap",
+        "volatility_126",
+        "momentum",
+        "bm",
+        "PPO_12_26",
+        "SPY_beta",
+        "log_dollar_volume",
+        "fcf_yield",
+    ],
+    'return_col': "future_ret_21B",
+    'ensemble_weights': {
+        "enet": 0.03333333333333333,
+        "et": 0.3,
+        "gbm": 0.2,
+        "lasso": 0.03333333333333333,
+        "ols": 0.03333333333333333,
+        "rf": 0.4,
+    },
+    'load_from_s3': True,
+    'bucket': "dcm-prod-ba2f-us-dcm-data-test",
+    'key_base': "calibration_data/live/saved_econ_,models_gan",
+    'local_save_dir': "econ_models_gan",
+}
 
-TMW_params =  {
-        'y_col': "future_return_RF_100_std",
-        'X_cols': ["EWG_close", "HWI", "IPDCONGD", "DEXUSUK", "CPFF", "GS5", "CUSR0000SAC", "T5YFFM",
-                   "PPO_21_126_InformationTechnology", "macd_diff_ConsumerStaples", "PPO_21_126_Industrials",
-                   "VIXCLS", "PPO_21_126_Energy", "T1YFFM", "WPSID62", "CUSR0000SA0L2", "EWJ_volume",
-                   "PPO_21_126_ConsumerDiscretionary", "DCOILWTICO", "GS10", "RPI", "CPITRNSL",
-                   "divyield_ConsumerStaples", "bm_Financials", "USTRADE", "T10YFFM", "divyield_Industrials",
-                   "AAAFFM", "RETAILx", "bm_Utilities", "SPY_close", "log_mktcap", "volatility_126", "momentum",
-                   "bm", "PPO_12_26", "SPY_beta", "log_dollar_volume", "fcf_yield"],
-        'return_col': "future_ret_21B",
-        'ensemble_weights': {"enet": 0.03333333333333333,
-                             "et": 0.3, "gbm": 0.2,
-                             "lasso": 0.03333333333333333,
-                             "ols": 0.03333333333333333,
-                             "rf": 0.4},
-        'load_from_s3': True,
-        'bucket': "dcm-prod-ba2f-us-dcm-data-test",
-        'key_base': "calibration_data/live/saved_econ_,models_gan",
-        'local_save_dir': "econ_models_gan",
-    }
-
-TrainIntermediateModelsWeekly_params = {'params': TMW_params,
-                                        'class': TrainIntermediateModelsWeekly,
-                                        'start_date': RUN_DATE,
-                                        'provided_data': {'intermediate_signals': construct_destination_path(
-                                            'intermediate_model_training'),
-                                                          'intermediate_signals_weekly': construct_destination_path(
-                                                              'intermediate_model_training'),
-                                                          },
-                                        'required_data': {
-                                            'normalized_data_full_population_with_foldId': construct_required_path(
-                                                'merge_gan_results', 'normalized_data_full_population_with_foldId'),
-                                            'normalized_data_full_population_with_foldId_weekly': construct_required_path(
-                                                'merge_gan_results', 'normalized_data_full_population_with_foldId'),
-
-                                            }}
+TrainIntermediateModelsWeekly_params = {
+    'params': TMW_params,
+    'class': TrainIntermediateModelsWeekly,
+    'start_date': RUN_DATE,
+    'provided_data': {
+        'intermediate_signals': construct_destination_path(
+            'intermediate_model_training'
+        ),
+        'intermediate_signals_weekly': construct_destination_path(
+            'intermediate_model_training'
+        ),
+    },
+    'required_data': {
+        'normalized_data_full_population_with_foldId': construct_required_path(
+            'merge_gan_results', 'normalized_data_full_population_with_foldId'
+        ),
+        'normalized_data_full_population_with_foldId_weekly': construct_required_path(
+            'merge_gan_results', 'normalized_data_full_population_with_foldId'
+        ),
+    },
+}
 
 
 if __name__ == "__main__":
     print("Running Intermediate Training")
     airflow_wrapper(**TrainIntermediateModelsWeekly_params)
     print("Intermediate Training Complete")
-
