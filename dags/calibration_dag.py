@@ -153,19 +153,6 @@ def airflow_wrapper(**kwargs):
             print(gcs_path)
             data_value.to_csv(gcs_path)
 
-#
-# with TaskGroup(
-#     "IntermediateModelTraining", tooltip="IntermediateModelTraining"
-# ) as IntermediateModelTraining:
-#     TrainIntermediateModelsWeekly = DockerOperator(
-#         task_id="TrainIntermediateModelsWeekly",
-#         container_name='task__intermediate_model_training',
-#         command="echo 'RUNNING INTERMEDIATE TRAINING STEP'",
-#         api_version='auto',
-#         auto_remove='success',
-#         image='intermediate_training_image',
-#         network_mode='host',
-#     )
 
 """ Calibration Process"""
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
