@@ -2,7 +2,7 @@ FROM python:3.6.10
 
 WORKDIR /app
 
-COPY src/ .
+COPY src_2/ .
 RUN pip install --upgrade pip && \
     pip install -q --no-cache-dir -r requirements_ml.txt
 

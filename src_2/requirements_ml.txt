@@ -1,5 +1,4 @@
-scikit-learn=0.21.3
-pytables
+scikit-learn==0.21.3
 pandas
 pyhocon
 google-cloud-bigquery
