@@ -2,6 +2,7 @@ get_credentials := gcloud container clusters get-credentials cluster-1 --zone us
 docker_build := docker build
 image := gcr.io/dcm-prod-ba2f/airflow:latest
 image_gan := gan_image:latest
+intermediate_training_image := intermediate_training_image:latest
 docker_file_src := src/Dockerfile
 docker_compose := docker compose
 
@@ -13,7 +14,8 @@ web:
 	echo "Airflow UI available at http://localhost:8080"
 
 build:
-	$(docker_build) -t $(image) .
+	$(docker_build) -f src/Dockerfile -t $(image) .
+	$(docker_build) -f src_2/Dockerfile -t $(intermediate_training_image) src .
 	$(docker_build) -f $(docker_file_src) -t $(image_gan) .
 
 deploy:
@@ -26,7 +28,5 @@ rebuild:
 	$(docker_compose) down
 	@echo "\n[ ] PULLING CHANGES FROM GIT\n"
 	sudo git pull
-	@echo "\n[ ] BUILDING GAN IMAGE\n"
-	$(docker_build) -f $(docker_file_src) -t $(image_gan) .
-	@echo "\n[ ] BUILDING AIRFLOW IMAGE\n"
-	$(docker_compose) up --build -d
+	@echo "\n[ ] BUILDING IMAGES\n"
+	$(build)
