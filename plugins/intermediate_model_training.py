@@ -4,7 +4,7 @@ import pandas as pd
 from time import time
 import tempfile
 import pyhocon
-import datetime
+from datetime import datetime
 import os
 from google.cloud import storage
 from enum import Enum
