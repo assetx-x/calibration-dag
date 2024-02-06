@@ -168,12 +168,4 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             python_callable=airflow_wrapper,
             op_kwargs=AddFoldIdToGANResultDataWeekly_params,
         )
-        TrainIntermediateModelsWeekly = DockerOperator(
-            task_id="TrainIntermediateModelsWeekly",
-            container_name='task__intermediate_model_training',
-            command="echo 'RUNNING INTERMEDIATE TRAINING STEP'",
-            api_version='auto',
-            auto_remove='success',
-            image='intermediate_training_image',
-            network_mode='host',
-        )
+
