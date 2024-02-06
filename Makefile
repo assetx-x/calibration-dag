@@ -14,9 +14,10 @@ web:
 	echo "Airflow UI available at http://localhost:8080"
 
 build:
-	$(docker_build) -f src/Dockerfile -t $(image) .
-	$(docker_build) -f src_2/Dockerfile -t $(intermediate_training_image) .
-	$(docker_build) -f $(docker_file_src) -t $(image_gan) .
+	docker build -t docker_base:latest -f src/Dockerfile.base .
+	docker build -t $(intermediate_training_image) --build-arg $(PWD)=src .
+    docker build -t $(image_gan) --build-arg $(PWD)=src_2 .
+
 
 deploy:
 	$(get_credentials)
@@ -28,9 +29,6 @@ rebuild:
 	$(docker_compose) down
 	@echo "\n[ ] PULLING CHANGES FROM GIT\n"
 	sudo git pull
-	@echo "\n[ ] BUILDING IMAGES\n"
-	$(docker_build) -f src/Dockerfile -t $(image) .
-	$(docker_build) -f src_2/Dockerfile -t $(intermediate_training_image) .
-	@echo "\n[ ] BUILDING AIRFLOW IMAGE\n"
-	$(docker_compose) up --build -d
+	@echo "\n[ ] RUNNING AIRFLOW CONTAINER\n"
+	$(docker_compose) up -d
 	@echo "\n[ ] DONE\n"
