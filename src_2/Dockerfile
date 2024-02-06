@@ -1,10 +1,14 @@
-FROM docker_base:latest
+FROM python:3.6.10
 
 WORKDIR /app
 
+COPY src_2/ .
 COPY plugins/ .
-RUN --mount=type=cache,target=/root/.cache/pip \
-    --mount=type=bind,source=src_2/requirements_ml.txt,target=requirements_ml.txt \
-    python -m pip install -r requirements_ml.txt
+
+RUN pip install --upgrade pip && \
+    pip install -q --no-cache-dir -r requirements_ml.txt
+
+
+ENV GOOGLE_APPLICATION_CREDENTIALS data_processing/dcm-prod.json
 
 ENTRYPOINT ["python", "intermediate_model_training.py"]

@@ -1,15 +1,13 @@
-FROM docker_base:latest
+FROM python:3.6.10
 
 WORKDIR /app
 
-#RUN --mount=type=bind,source=plugins/,target=/app \
-#    --mount=type=bind,source=requirements_gan.txt,target=requirements_gan.txt \
-#    python -m pip install -U pip && \
-#    python -m pip install -r requirements_gan.txt
-
+COPY src/ .
 COPY plugins/ .
-RUN --mount=type=cache,target=/root/.cache/pip \
-    --mount=type=bind,source=src/requirements_gan.txt,target=requirements_gan.txt \
-    python -m pip install -r requirements_gan.txt
+
+RUN pip install --upgrade pip && \
+    pip install -q --no-cache-dir -r requirements_gan.txt
+
+ENV GOOGLE_APPLICATION_CREDENTIALS data_processing/dcm-prod.json
 
 ENTRYPOINT ["python", "generate_gan_results_step.py"]
