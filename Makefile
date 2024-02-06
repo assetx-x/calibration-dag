@@ -25,9 +25,9 @@ deploy:
 
 rebuild:
 	@echo "\n[ ] SHUTTING DOWN SERVICES\n"
-	$(docker_compose) down
+	docker compose down --volumes --rmi all
 	@echo "\n[ ] PULLING CHANGES FROM GIT\n"
-	sudo git pull
+# 	sudo git pull
 	@echo "\n[ ] RUNNING AIRFLOW CONTAINER\n"
-	$(docker_compose) up --build -d
+	docker compose up --build -d
 	@echo "\n[ ] DONE\n"
