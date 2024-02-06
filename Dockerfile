@@ -28,12 +28,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir ta-lib "apache-airflow==${AIRFLOW_VERSION}"
 
-#RUN --mount=type=cache,target=/root/.cache/pip \
-#    --mount=type=bind,source=requirements.txt,target=requirements.txt \
-#    python -m pip install -U pip && \
-#    python -m pip install -r requirements.txt && \
-#    pip install --no-cache-dir ta-lib "apache-airflow==${AIRFLOW_VERSION}"
-
 # Set environment variables
 ENV PYTHONPATH "${PYTHONPATH}:/usr/local/airflow/:/usr/local/airflow/dags:/usr/local/airflow/plugins"
 
