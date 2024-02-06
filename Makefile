@@ -23,11 +23,16 @@ deploy:
 	helm repo add apache-airflow https://airflow.apache.org
 	helm upgrade airflow apache-airflow/airflow -f k8s/values.yml --wait --timeout=30m --debug --atomic --namespace default
 
-rebuild:
+up:
 	@echo "\n[ ] SHUTTING DOWN SERVICES\n"
 	docker compose down --volumes --rmi all
 	@echo "\n[ ] PULLING CHANGES FROM GIT\n"
-# 	sudo git pull
+	sudo git pull
 	@echo "\n[ ] RUNNING AIRFLOW CONTAINER\n"
 	docker compose up --build -d
 	@echo "\n[ ] DONE\n"
+
+restart:
+    docker compose down
+    systemctl restart docker
+    docker compose up -d
