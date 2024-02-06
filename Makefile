@@ -15,9 +15,8 @@ web:
 
 build:
 	docker build -t docker_base:latest -f src/Dockerfile.base .
-	docker build -t $(intermediate_training_image) --build-arg $(PWD)=src .
-    docker build -t $(image_gan) --build-arg $(PWD)=src_2 .
-
+	docker build -t intermediate_training_image:latest -f src_2/Dockerfile .
+	docker build -t gan_image:latest -f src/Dockerfile .
 
 deploy:
 	$(get_credentials)
