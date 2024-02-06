@@ -29,5 +29,5 @@ rebuild:
 	@echo "\n[ ] PULLING CHANGES FROM GIT\n"
 	sudo git pull
 	@echo "\n[ ] RUNNING AIRFLOW CONTAINER\n"
-	$(docker_compose) up -d
+	$(docker_compose) up --build -d
 	@echo "\n[ ] DONE\n"
