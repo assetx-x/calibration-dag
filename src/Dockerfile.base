@@ -2,6 +2,6 @@ FROM python:3.6.10
 
 WORKDIR /app
 
-COPY plugins/ .
+RUN --mount=type=bind,source=plugins/,target=/app
 
 ENV GOOGLE_APPLICATION_CREDENTIALS data_processing/dcm-prod.json

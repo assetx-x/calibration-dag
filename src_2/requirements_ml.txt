@@ -8,6 +8,5 @@ lightgbm==2.2.3
 yfinance
 pylru==1.0.9
 pytz~=2023.3
-pyhocon==0.3.37
 pandas-datareader==0.10.0
 python-dateutil~=2.8.2
