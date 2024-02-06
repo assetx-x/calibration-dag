@@ -73,3 +73,7 @@ Dockerfile
 .project
 .pydevproject
 *.bak
+
+*.db
+*.log
+*.pid
