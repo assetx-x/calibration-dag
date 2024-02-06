@@ -1,4 +1,4 @@
-from abc import ABC, ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from google.cloud import storage
 from enum import Enum
 import pandas as pd
