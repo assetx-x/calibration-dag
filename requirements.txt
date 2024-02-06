@@ -18,4 +18,4 @@ numpy~=1.24.4
 pytz~=2023.3
 python-dateutil~=2.8.2
 requests~=2.31.0
-
+scikit-learn==1.0

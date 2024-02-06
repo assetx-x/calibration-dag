@@ -100,6 +100,11 @@ from merge_gan_results_step import (
     ConsolidateGANResultsWeekly_params,
 )
 
+from merge_signal_step import QuantamentalMergeSignalsWeekly_params
+from intermediate_model_training import TrainIntermediateModelsWeekly_params
+from get_adjustment_factors import SQLReaderAdjustmentFactors_params
+from get_raw_prices_step import CalculateRawPrices_params
+
 ## edits
 
 
@@ -168,4 +173,35 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             python_callable=airflow_wrapper,
             op_kwargs=AddFoldIdToGANResultDataWeekly_params,
         )
+
+    with TaskGroup("IntermediateModelTraining", tooltip="IntermediateModelTraining") as IntermediateModelTraining:
+        TrainIntermediateModelsWeekly = PythonOperator(
+            task_id="TrainIntermediateModelsWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=TrainIntermediateModelsWeekly_params,
+        )
+
+
+    with TaskGroup("MergeSignal", tooltip="MergeSignal") as MergeSignal:
+        QuantamentalMergeSignalsWeekly = PythonOperator(
+            task_id="QuantamentalMergeSignalsWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=QuantamentalMergeSignalsWeekly_params,
+        )
+
+    with TaskGroup("GetAdjustmentFactors", tooltip="GetAdjustmentFactors") as GetAdjustmentFactors:
+            SQLReaderAdjustmentFactors = PythonOperator(
+                task_id="SQLReaderAdjustmentFactors",
+                python_callable=airflow_wrapper,
+                op_kwargs=SQLReaderAdjustmentFactors_params,
+            )
+
+    with TaskGroup("GetRawPrices", tooltip="GetRawPrices") as GetRawPrices:
+            CalculateRawPrices = PythonOperator(
+                task_id="CalculateRawPrices",
+                python_callable=airflow_wrapper,
+                op_kwargs=CalculateRawPrices_params,
+            )
+
+
 
