@@ -92,10 +92,10 @@ QuantamentalMergeSignalsWeekly_params = {'params': params_dict,
                                              },
                                          'required_data': {
                                              'normalized_data_full_population':
-                                                 construct_required_path('merge_gan_results',
+                                                 construct_required_path('standarization',
                                                                          'normalized_data_full_population'),
                                              'normalized_data_full_population_weekly':
-                                                 construct_required_path('merge_gan_results',
+                                                 construct_required_path('standarization',
                                                                          'normalized_data_full_population_weekly'),
 
                                             'intermediate_signals': construct_required_path('intermediate_model_training',
