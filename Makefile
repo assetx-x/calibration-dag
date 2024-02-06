@@ -33,6 +33,7 @@ up:
 	@echo "\n[ ] DONE\n"
 
 restart:
-    docker compose down
-    systemctl restart docker
-    docker compose up -d
+	@echo "\n[ ] RESTARTING\n"
+	docker compose down
+	systemctl restart docker
+	docker compose up -d
