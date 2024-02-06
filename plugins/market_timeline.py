@@ -1,10 +1,10 @@
 import errno
+from functools import lru_cache
 
 from dateutil import rrule
 import datetime
 import pytz
 import pandas as pd
-from pylru import lrudecorator
 from numpy import int64
 import os
 from commonlib import transform_data
@@ -28,7 +28,7 @@ class marketTimeline(object):
         return datetime.datetime(dt.year, dt.month, dt.day)
 
     @staticmethod
-    @lrudecorator(100)
+    @lru_cache(maxsize=128)
     def get_all_non_trading_days(start=None, end=None, timezone_corr='utc'):
         # timezone_corr can be 'utc' or 'none'; 'none' means not to change timezone
         start = start or pd.Timestamp(FIRST_POSSIBLE_TRADING_DATE)
