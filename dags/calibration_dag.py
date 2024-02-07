@@ -203,5 +203,6 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
                 op_kwargs=CalculateRawPrices_params,
             )
 
+    MergeGANResults >> IntermediateModelTraining >> MergeSignal >> GetAdjustmentFactors >> GetRawPrices
 
 

@@ -36,6 +36,7 @@ class CalculateRawPrices(DataReaderClass):
         adjustment_factor_data["ticker"] = adjustment_factor_data["ticker"].astype(int)
         daily_price_data = kwargs["daily_price_data"]
         adjustment_factor_data["date"] = pd.DatetimeIndex(adjustment_factor_data["date"]).normalize()
+        daily_price_data['date'] = daily_price_data['date'].apply(pd.Timestamp)
         data_to_use = daily_price_data[["close", "ticker", "date"]]
         merged_data = pd.merge(data_to_use, adjustment_factor_data, how="left", on=["date", "ticker"])
         merged_data = merged_data.sort_values(["ticker", "date"])
