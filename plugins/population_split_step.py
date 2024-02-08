@@ -177,6 +177,8 @@ class FilterRussell1000AugmentedWeekly(FilterRussell1000Augmented):
             .rename(columns={"dcm_security_id": "ticker"})
         raw_prices = kwargs[self.__class__.REQUIRES_FIELDS[4]].copy(deep=True)
         raw_prices["ticker"] = raw_prices["ticker"].fillna(-1).astype(int)
+        raw_prices['date'] = raw_prices['date'].apply(pd.Timestamp)
+        marketcap['date'] = marketcap['date'].apply(pd.Timestamp)
 
 
         raw_prices["date"] = raw_prices["date"].apply(lambda x: marketTimeline.get_trading_day_using_offset(x, 1))
