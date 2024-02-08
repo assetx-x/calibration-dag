@@ -105,6 +105,7 @@ from intermediate_model_training import TrainIntermediateModelsWeekly_params
 from get_adjustment_factors import SQLReaderAdjustmentFactors_params
 from get_raw_prices_step import CalculateRawPrices_params
 from population_split_step import FilterRussell1000AugmentedWeekly_params
+from residualization_step import FactorNeutralizationForStackingWeekly_params
 
 ## edits
 
@@ -170,6 +171,12 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
                 op_kwargs=FilterRussell1000AugmentedWeekly_params,
             )
 
+    with TaskGroup("Residualization", tooltip="Residualization") as Residualization:
+            FactorNeutralizationForStackingWeekly = PythonOperator(
+                task_id="FactorNeutralizationForStackingWeekly",
+                python_callable=airflow_wrapper,
+                op_kwargs=FactorNeutralizationForStackingWeekly_params,
+            )
 
 
 
