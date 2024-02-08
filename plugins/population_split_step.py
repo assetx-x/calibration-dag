@@ -286,7 +286,7 @@ FilterRussell1000AugmentedWeekly_params = {'params': params,
 
                                                             'russell_components': construct_required_path('data_pull',
                                                                                                           'russell_components'),
-                                                            'quandl_daily': construct_required_path('data_pull',
+                                                            'quandl_daily': construct_required_path('fundamental_cleanup',
                                                                                                     'quandl_daily'),
 
                                                             'raw_price_data': construct_required_path('get_raw_prices',

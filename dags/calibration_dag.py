@@ -106,6 +106,9 @@ from get_adjustment_factors import SQLReaderAdjustmentFactors_params
 from get_raw_prices_step import CalculateRawPrices_params
 from population_split_step import FilterRussell1000AugmentedWeekly_params
 from residualization_step import FactorNeutralizationForStackingWeekly_params
+from residualized_standarization_step import FactorStandardizationNeutralizedForStackingWeekly_params
+from add_final_fold_id_step import AddFoldIdToNormalizedDataPortfolioWeekly_params
+
 
 ## edits
 
@@ -179,7 +182,22 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             )
 
 
-    PopulationSplit >> Residualization
+    with TaskGroup("ResidualizedStandardization", tooltip="ResidualizedStandardization") as ResidualizedStandardization:
+            FactorStandardizationNeutralizedForStackingWeekly = PythonOperator(
+                task_id="FactorStandardizationNeutralizedForStackingWeekly",
+                python_callable=airflow_wrapper,
+                op_kwargs=FactorStandardizationNeutralizedForStackingWeekly_params,
+            )
+
+    with TaskGroup("AddFinalFoldId", tooltip="AddFinalFoldId") as AddFinalFoldId:
+            AddFoldIdToNormalizedDataPortfolioWeekly = PythonOperator(
+                task_id="AddFoldIdToNormalizedDataPortfolioWeekly",
+                python_callable=airflow_wrapper,
+                op_kwargs=AddFoldIdToNormalizedDataPortfolioWeekly_params,
+            )
+
+
+    PopulationSplit >> Residualization >> ResidualizedStandardization >> AddFoldIdToNormalizedDataPortfolioWeekly
 
 
 
