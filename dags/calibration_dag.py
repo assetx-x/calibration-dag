@@ -161,40 +161,6 @@ def airflow_wrapper(**kwargs):
 
 """ Calibration Process"""
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
-    with TaskGroup("MergeGANResults", tooltip="MergeGANResults") as MergeGANResults:
-        ConsolidateGANResultsWeekly = PythonOperator(
-            task_id="ConsolidateGANResultsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=ConsolidateGANResultsWeekly_params,
-        )
-
-        AddFoldIdToGANResultDataWeekly = PythonOperator(
-            task_id="AddFoldIdToGANResultDataWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=AddFoldIdToGANResultDataWeekly_params,
-        )
-
-    with TaskGroup("IntermediateModelTraining", tooltip="IntermediateModelTraining") as IntermediateModelTraining:
-        TrainIntermediateModelsWeekly = PythonOperator(
-            task_id="TrainIntermediateModelsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=TrainIntermediateModelsWeekly_params,
-        )
-
-
-    with TaskGroup("MergeSignal", tooltip="MergeSignal") as MergeSignal:
-        QuantamentalMergeSignalsWeekly = PythonOperator(
-            task_id="QuantamentalMergeSignalsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=QuantamentalMergeSignalsWeekly_params,
-        )
-
-    with TaskGroup("GetAdjustmentFactors", tooltip="GetAdjustmentFactors") as GetAdjustmentFactors:
-            SQLReaderAdjustmentFactors = PythonOperator(
-                task_id="SQLReaderAdjustmentFactors",
-                python_callable=airflow_wrapper,
-                op_kwargs=SQLReaderAdjustmentFactors_params,
-            )
 
     with TaskGroup("GetRawPrices", tooltip="GetRawPrices") as GetRawPrices:
             CalculateRawPrices = PythonOperator(
@@ -203,6 +169,6 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
                 op_kwargs=CalculateRawPrices_params,
             )
 
-    MergeGANResults >> IntermediateModelTraining >> MergeSignal >> GetAdjustmentFactors >> GetRawPrices
+
 
 

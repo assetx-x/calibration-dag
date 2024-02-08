@@ -43,12 +43,13 @@ class CalculateRawPrices(DataReaderClass):
         merged_data["split_div_factor"] = merged_data["split_div_factor"].fillna(1.0)
         merged_data["raw_close_price"] = merged_data["close"]*merged_data["split_div_factor"]
         merged_data = merged_data[["ticker", "date", "raw_close_price"]]
-        merged_shifted_data = merged_data.sort_values(["ticker", "date"]).set_index("date").groupby("ticker")\
-            .apply(lambda x:x.shift(1)).reset_index()
+        merged_data_sorted = merged_data.sort_values(["ticker", "date"])
+        merged_shifted_data = merged_data_sorted.groupby("ticker").apply(lambda x: x.shift(1))
+        merged_shifted_data = merged_shifted_data.reset_index(drop=True)
         merged_shifted_data = merged_shifted_data.dropna(subset=["ticker"])
         merged_shifted_data["ticker"] = merged_shifted_data["ticker"].astype(int)
         self.data = merged_shifted_data
-        return StatusType.Success
+        return {'raw_price_data':self.data}
 
     def _get_additional_step_results(self):
         return {self.__class__.PROVIDES_FIELDS[0] : self.data}
