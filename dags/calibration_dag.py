@@ -104,6 +104,7 @@ from merge_signal_step import QuantamentalMergeSignalsWeekly_params
 from intermediate_model_training import TrainIntermediateModelsWeekly_params
 from get_adjustment_factors import SQLReaderAdjustmentFactors_params
 from get_raw_prices_step import CalculateRawPrices_params
+from population_split_step import FilterRussell1000AugmentedWeekly_params
 
 ## edits
 
@@ -162,11 +163,11 @@ def airflow_wrapper(**kwargs):
 """ Calibration Process"""
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
 
-    with TaskGroup("GetRawPrices", tooltip="GetRawPrices") as GetRawPrices:
-            CalculateRawPrices = PythonOperator(
-                task_id="CalculateRawPrices",
+    with TaskGroup("PopulationSplit", tooltip="PopulationSplit") as PopulationSplit:
+            FilterRussell1000AugmentedWeekly = PythonOperator(
+                task_id="FilterRussell1000AugmentedWeekly",
                 python_callable=airflow_wrapper,
-                op_kwargs=CalculateRawPrices_params,
+                op_kwargs=FilterRussell1000AugmentedWeekly_params,
             )
 
 
