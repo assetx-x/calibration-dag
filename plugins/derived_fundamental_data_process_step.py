@@ -17,7 +17,7 @@ class CalculateDerivedQuandlFeatures(DataReaderClass):
     '''
 
     PROVIDES_FIELDS = ["fundamental_features"]
-    REQUIRES_FIELDS = ["industry_map", "daily_price_data", "quandl_daily", "quandl_quarterly"]
+    REQUIRES_FIELDS = ["industry_mapper", "daily_price_data", "quandl_daily", "quandl_quarterly"]
 
     def __init__(self):
         self.data = None
@@ -138,6 +138,7 @@ class CalculateDerivedQuandlFeatures(DataReaderClass):
         merged = pd.merge(df, quandl, how='left', on=['date', 'dcm_security_id'])
         merged["dcm_security_id"] = merged["dcm_security_id"].astype(int)
         return merged
+
 
     def do_step_action(self, **kwargs):
         sector = kwargs[self.__class__.REQUIRES_FIELDS[0]]

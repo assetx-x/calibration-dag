@@ -29,86 +29,8 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
 )
 os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
 
-from derived_simple_price_step import (
-    ComputeBetaQuantamental_params,
-    CalculateMACD_params,
-    CalcualteCorrelation_params,
-    CalculateDollarVolume_params,
-    CalculateOvernightReturn_params,
-    CalculatePastReturnEquity_params,
-    CalculateTaLibSTOCH_params,
-    CalculateTaLibSTOCHF_params,
-    CalculateTaLibTRIX_params,
-    CalculateTaLibULTOSC_params,
-)
-from transformation_step import (
-    CreateYahooDailyPriceRolling_params,
-    TransformEconomicDataWeekly_params,
-    CreateIndustryAverageWeekly_params,
-)
 
-from save_gan_inputs_step import GenerateDataGANWeekly_params
-
-
-##### DATA PULL STEP INSTRUCTIONS #####
-from data_pull_step import (
-    CALIBRATIONDATEJUMP_PARAMS,
-    S3_SECURITY_MASTER_READER_PARAMS,
-    S3_INDUSTRY_MAPPER_READER_PARAMS,
-    S3_ECON_TRANSFORMATION_PARAMS,
-    YAHOO_DAILY_PRICE_READER_PARAMS,
-    S3_RUSSELL_COMPONENT_READER_PARAMS,
-    S3_RAW_SQL_READER_PARAMS,
-    SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS,
-    current_gan_universe_params,
-)
-
-### ECON DATA STEP INSTRUCTIONS ####
-from econ_data_step import DOWNLOAD_ECONOMIC_DATA_PARAMS
-
-####### FundamentalCleanup INSTRUCTIONS #####
-from fundamental_cleanup_step import QuandlDataCleanup_PARAMS
-
-### TARTGET INSTRUCTIONS #######
-from targets_step import TARGETS_PARAMS
-
-####### DerivedFundamentalDataProcessing ######
-from derived_fundamental_data_process_step import CalculateDerivedQuandlFeatures_PARAMS
-
-######## DerivedTechnicalDataProcessing #######
-from derived_technical_data_processing_step import (
-    CalculateTaLibSTOCHRSIMultiParam_PARAMS,
-    CalculateVolatilityMultiParam_params,
-    CalculateTaLibWILLRMultiParam_params,
-    CalculateTaLibPPOMultiParam_params,
-    CalculateTaLibADXMultiParam_params,
-)
-
-from merge_step import QuantamentalMerge_params
-
-from filter_dates_single_names import (
-    FilterMonthlyDatesFullPopulationWeekly_params,
-    CreateMonthlyDataSingleNamesWeekly_params,
-)
-
-from merge_econ_step import QuantamentalMergeEconIndustryWeekly_params
-from standarization_step import FactorStandardizationFullPopulationWeekly_params
-from active_matrix_step import GenerateActiveMatrixWeekly_params
-from additional_gan_features_step import GenerateBMEReturnsWeekly_params
-from merge_gan_results_step import (
-    AddFoldIdToGANResultDataWeekly_params,
-    ConsolidateGANResultsWeekly_params,
-)
-
-from merge_signal_step import QuantamentalMergeSignalsWeekly_params
-from intermediate_model_training import TrainIntermediateModelsWeekly_params
-from get_adjustment_factors import SQLReaderAdjustmentFactors_params
-from get_raw_prices_step import CalculateRawPrices_params
-from population_split_step import FilterRussell1000AugmentedWeekly_params
-from residualization_step import FactorNeutralizationForStackingWeekly_params
-from residualized_standardization_step import FactorStandardizationNeutralizedForStackingWeekly_params
-from add_final_fold_id_step import AddFoldIdToNormalizedDataPortfolioWeekly_params
-
+from parameters_file import PARAMS_DICTIONARY
 
 ## edits
 
@@ -164,40 +86,309 @@ def airflow_wrapper(**kwargs):
             data_value.to_csv(gcs_path)
 
 
+class TaskParamsManager:
+    def __init__(self):
+        self.params = {}
+
+    def process_and_add_data_formatters(self, params_dictionary):
+        # Iterate through each key and DataFormatter instance in the dictionary
+        for key, data_formatter_instance in params_dictionary.items():
+            # Call the DataFormatter instance to get the formatted data dictionary
+            formatted_data = data_formatter_instance()
+            # Add the formatted data dictionary to the params under the same key
+            self.params[key] = formatted_data
+
+    def add_data_formatter(self, name, data_formatter):
+        # This method remains for adding individual DataFormatter instances if needed
+        formatted_data = data_formatter()
+        self.params[name] = formatted_data
+
+
+task_params_manager = TaskParamsManager()
+task_params_manager.process_and_add_data_formatters(PARAMS_DICTIONARY)
+
+
+
 """ Calibration Process"""
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
+    with TaskGroup("DataPull", tooltip="DataPull") as DataPull:
+        CalibrationDatesJump = PythonOperator(
+            task_id="CalibrationDatesJump",
+            python_callable=airflow_wrapper,
+            provide_context=True,
+            op_kwargs=task_params_manager['CalibrationDatesJump'],
+            execution_timeout=timedelta(minutes=25)
+        )
 
-    with TaskGroup("PopulationSplit", tooltip="PopulationSplit") as PopulationSplit:
-            FilterRussell1000AugmentedWeekly = PythonOperator(
-                task_id="FilterRussell1000AugmentedWeekly",
-                python_callable=airflow_wrapper,
-                op_kwargs=FilterRussell1000AugmentedWeekly_params,
-            )
+        S3SecurityMasterReader = PythonOperator(
+            task_id="S3SecurityMasterReader",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['S3SecurityMasterReader'],
+            execution_timeout=timedelta(minutes=25)
+        )
 
-    with TaskGroup("Residualization", tooltip="Residualization") as Residualization:
-            FactorNeutralizationForStackingWeekly = PythonOperator(
-                task_id="FactorNeutralizationForStackingWeekly",
-                python_callable=airflow_wrapper,
-                op_kwargs=FactorNeutralizationForStackingWeekly_params,
-            )
+        S3GANUniverseReader = PythonOperator(
+            task_id="S3GANUniverseReader",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['S3GANUniverseReader'],
+            execution_timeout=timedelta(minutes=25)
+        )
+
+        S3IndustryMappingReader = PythonOperator(
+            task_id="S3IndustryMappingReader",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['S3IndustryMappingReader'],
+            execution_timeout=timedelta(minutes=25)
+        )
+
+        S3EconTransformationReader = PythonOperator(
+            task_id="S3EconTransformationReader",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['S3EconTransformationReader'],
+            execution_timeout=timedelta(minutes=25)
+        )
+
+        YahooDailyPriceReader = PythonOperator(
+            task_id="YahooDailyPriceReader",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['YahooDailyPriceReader'],
+            execution_timeout=timedelta(minutes=25)
+        )
+
+        S3RussellComponentReader = PythonOperator(
+            task_id="S3RussellComponentReader",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['S3RussellComponentReader'],
+            execution_timeout=timedelta(minutes=25)
+        )
+
+        S3RawQuandlDataReader = PythonOperator(
+            task_id="S3RawQuandlDataReader",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['S3RawQuandlDataReader'],
+            execution_timeout=timedelta(minutes=25)
+        )
+
+        SQLMinuteToDailyEquityPrices = PythonOperator(
+            task_id="SQLMinuteToDailyEquityPrices",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['SQLMinuteToDailyEquityPrices'],
+            execution_timeout=timedelta(minutes=150)
+        )
+
+        CalibrationDatesJump >> S3SecurityMasterReader >> S3GANUniverseReader >> S3IndustryMappingReader >> S3EconTransformationReader >> YahooDailyPriceReader >> S3RussellComponentReader >> S3RawQuandlDataReader >> SQLMinuteToDailyEquityPrices
+
+    with TaskGroup("EconData", tooltip="EconData") as EconData:
+        DownloadEconomicData = PythonOperator(
+            task_id="DownloadEconomicData",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['DownloadEconomicData']
+        )
+
+    with TaskGroup("FundamentalCleanup", tooltip="FundamentalCleanup") as FundamentalCleanup:
+        QuandlDataCleanup = PythonOperator(
+            task_id="QuandlDataCleanup",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['QuandlDataCleanup']
+        )
+
+    with TaskGroup("Targets", tooltip="Targets") as Targets:
+        CalculateTargetReturns = PythonOperator(
+            task_id="CalculateTargetReturns",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CalculateTargetReturns']
+        )
+
+    with TaskGroup("DerivedFundamentalDataProcessing",
+                   tooltip="DerivedFundamentalDataProcessing") as DerivedFundamentalDataProcessing:
+        CalculateDerivedQuandlFeatures = PythonOperator(
+            task_id="CalculateDerivedQuandlFeatures",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CalculateDerivedQuandlFeatures']
+        )
+
+    with TaskGroup("DerivedTechnicalDataProcessing",
+                   tooltip="DerivedTechnicalDataProcessing") as DerivedTechnicalDataProcessing:
+        CalculateTaLibSTOCHRSIMultiParam = PythonOperator(
+            task_id="CalculateTaLibSTOCHRSIMultiParam",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CalculateTaLibSTOCHRSIMultiParam']
+        )
+
+        CalculateVolatilityMultiParam = PythonOperator(
+            task_id="CalculateVolatilityMultiParam",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CalculateVolatilityMultiParam']
+        )
+
+        CalculateTaLibWILLRMultiParam = PythonOperator(
+            task_id="CalculateTaLibWILLRMultiParam",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CalculateTaLibWILLRMultiParam']
+        )
+
+        CalculateTaLibPPOMultiParam = PythonOperator(
+            task_id="CalculateTaLibPPOMultiParam",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CalculateTaLibPPOMultiParam']
+        )
+
+        CalculateTaLibADXMultiParam = PythonOperator(
+            task_id="CalculateTaLibADXMultiParam",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CalculateTaLibADXMultiParam']
+        )
+
+        CalculateTaLibSTOCHRSIMultiParam >> CalculateVolatilityMultiParam >> CalculateTaLibWILLRMultiParam >> CalculateTaLibPPOMultiParam >> CalculateTaLibADXMultiParam
+
+    with TaskGroup("DerivedSimplePriceFeatureProcessing",
+                   tooltip="DerivedSimplePriceFeatureProcessing") as DerivedSimplePriceFeatureProcessing:
+        ComputeBetaQuantamental = PythonOperator(
+            task_id="ComputeBetaQuantamental",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['ComputeBetaQuantamental']
+        )
+
+        CalculateMACD = PythonOperator(
+            task_id="CalculateMACD",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CalculateMACD']
+        )
+
+        CalcualteCorrelation = PythonOperator(
+            task_id="CalcualteCorrelation",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CalcualteCorrelation']
+        )
+
+        CalculateDollarVolume = PythonOperator(
+            task_id="CalculateDollarVolume",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CalculateDollarVolume']
+        )
+
+        CalculateOvernightReturn = PythonOperator(
+            task_id="CalculateOvernightReturn",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CalculateOvernightReturn']
+        )
+
+        CalculatePastReturnEquity = PythonOperator(
+            task_id="CalculatePastReturnEquity",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CalculatePastReturnEquity']
+        )
+
+        CalculateTaLibSTOCH = PythonOperator(
+            task_id="CalculateTaLibSTOCH",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CalculateTaLibSTOCH']
+        )
+
+        CalculateTaLibSTOCHF = PythonOperator(
+            task_id="CalculateTaLibSTOCHF",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CalculateTaLibSTOCHF']
+        )
+
+        CalculateTaLibTRIX = PythonOperator(
+            task_id="CalculateTaLibTRIX",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CalculateTaLibTRIX']
+        )
+
+        CalculateTaLibULTOSC = PythonOperator(
+            task_id="CalculateTaLibULTOSC",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CalculateTaLibULTOSC']
+        )
+
+        ComputeBetaQuantamental >> CalculateMACD >> CalcualteCorrelation >> CalculateDollarVolume >> CalculateOvernightReturn >> CalculatePastReturnEquity >> CalculateTaLibSTOCH >> CalculateTaLibSTOCHF >> CalculateTaLibULTOSC
+
+    with TaskGroup("MergeStep", tooltip="MergeStep") as MergeStep:
+        QuantamentalMerge = PythonOperator(
+            task_id="QuantamentalMerge",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['QuantamentalMerge'],
+            execution_timeout=timedelta(minutes=150)
+        )
+
+    with TaskGroup("FilterDatesSingleNames", tooltip="FilterDatesSingleNames") as FilterDatesSingleNames:
+        FilterMonthlyDatesFullPopulationWeekly = PythonOperator(
+            task_id="FilterMonthlyDatesFullPopulationWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['FilterMonthlyDatesFullPopulationWeekly']
+        )
+
+        CreateMonthlyDataSingleNamesWeekly = PythonOperator(
+            task_id="CreateMonthlyDataSingleNamesWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CreateMonthlyDataSingleNamesWeekly']
+        )
+
+        FilterMonthlyDatesFullPopulationWeekly >> CreateMonthlyDataSingleNamesWeekly
+
+    with TaskGroup("Transformation", tooltip="Transformation") as Transformation:
+        CreateYahooDailyPriceRolling = PythonOperator(
+            task_id="CreateYahooDailyPriceRolling",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CreateYahooDailyPriceRolling']
+        )
+
+        TransformEconomicDataWeekly = PythonOperator(
+            task_id="TransformEconomicDataWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['TransformEconomicDataWeekly']
+        )
+
+        CreateIndustryAverageWeekly = PythonOperator(
+            task_id="CreateIndustryAverageWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CreateIndustryAverageWeekly']
+        )
+
+        CreateYahooDailyPriceRolling >> TransformEconomicDataWeekly >> CreateIndustryAverageWeekly
+
+    with TaskGroup("MergeEcon", tooltip="MergeEcon") as MergeEcon:
+        QuantamentalMergeEconIndustryWeekly = PythonOperator(
+            task_id="QuantamentalMergeEconIndustryWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['QuantamentalMergeEconIndustryWeekly']
+        )
+
+    with TaskGroup("Standarization", tooltip="Standarization") as Standarization:
+        FactorStandardizationFullPopulationWeekly = PythonOperator(
+            task_id="FactorStandardizationFullPopulationWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['FactorStandardizationFullPopulationWeekly']
+        )
+
+    with TaskGroup("ActiveMatrix", tooltip="ActiveMatrix") as ActiveMatrix:
+        GenerateActiveMatrixWeekly = PythonOperator(
+            task_id="GenerateActiveMatrixWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['GenerateActiveMatrixWeekly']
+        )
+
+    with TaskGroup("AdditionalGanFeatures", tooltip="AdditionalGanFeatures") as AdditionalGanFeatures:
+        GenerateBMEReturnsWeekly = PythonOperator(
+            task_id="GenerateBMEReturnsWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['GenerateBMEReturnsWeekly']
+        )
+
+    with TaskGroup("SaveGANInputs", tooltip="SaveGANInputs") as SaveGANInputs:
+        GenerateDataGANWeekly = PythonOperator(
+            task_id="GenerateDataGANWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['GenerateDataGANWeekly']
+        )
 
 
-    with TaskGroup("ResidualizedStandardization", tooltip="ResidualizedStandardization") as ResidualizedStandardization:
-            FactorStandardizationNeutralizedForStackingWeekly = PythonOperator(
-                task_id="FactorStandardizationNeutralizedForStackingWeekly",
-                python_callable=airflow_wrapper,
-                op_kwargs=FactorStandardizationNeutralizedForStackingWeekly_params,
-            )
-
-    with TaskGroup("AddFinalFoldId", tooltip="AddFinalFoldId") as AddFinalFoldId:
-            AddFoldIdToNormalizedDataPortfolioWeekly = PythonOperator(
-                task_id="AddFoldIdToNormalizedDataPortfolioWeekly",
-                python_callable=airflow_wrapper,
-                op_kwargs=AddFoldIdToNormalizedDataPortfolioWeekly_params,
-            )
 
 
-    PopulationSplit >> Residualization >> ResidualizedStandardization >> AddFoldIdToNormalizedDataPortfolioWeekly
+    DataPull >> EconData >> FundamentalCleanup >> Targets >> DerivedFundamentalDataProcessing >> DerivedTechnicalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> Standarization >> ActiveMatrix >> AdditionalGanFeatures >> SaveGANInputs
+
 
 
 

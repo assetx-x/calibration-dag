@@ -587,22 +587,7 @@ SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS = {'params':{"start_date" : "2000-01-03
 
 
 
-SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS_PART2 = {'params':{"start_date" : "2000-01-03","end_date" : RUN_DATE},
-                                            'class':SQLMinuteToDailyEquityPrices_2_0_edit,
-                                      'start_date':RUN_DATE,
-                                        'provided_data': {'daily_price_data_part2': construct_destination_path('data_pull')},
-                                            'required_data': {'security_master': construct_required_path('data_pull','security_master_part2')}
 
-                                            }
-
-
-SQL_MINUTE_TO_DAILY_EQUITY_PRICES_PARAMS_PART3 = {'params':{"start_date" : "2000-01-03","end_date" : RUN_DATE},
-                                            'class':SQLMinuteToDailyEquityPrices_2_0_edit,
-                                      'start_date':RUN_DATE,
-                                        'provided_data': {'daily_price_data_part3': construct_destination_path('data_pull')},
-                                            'required_data': {'security_master': construct_required_path('data_pull','security_master_part3')}
-
-                                            }
 
 
 

@@ -478,7 +478,6 @@ CalculateVolatilityMultiParam_params = {'params':{'configs':CalculateVolatilityM
                                            'provided_data': {'volatility_data': construct_destination_path('derived_technical')},
                                             'required_data': {'daily_price_data': construct_required_path('data_pull','daily_price_data')}}
 
-
 #######
 
 CalculateTaLibWILLRMultiParam_configs = [{"technical_indicator_params": {"timeperiod": 5}, "smoothing_period": 3},
