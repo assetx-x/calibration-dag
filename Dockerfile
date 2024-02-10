@@ -33,6 +33,3 @@ ENV PYTHONPATH "${PYTHONPATH}:/usr/local/airflow/:/usr/local/airflow/dags:/usr/l
 
 # Create necessary directories
 RUN mkdir -p logs/{scheduler,webserver,worker,flower,redis,postgres}
-
-# Copy the rest of the files
-COPY . .

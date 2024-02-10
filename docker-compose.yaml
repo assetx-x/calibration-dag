@@ -91,6 +91,18 @@ x-airflow-common:
       condition: service_healthy
 
 services:
+#  gan_service:
+#    build:
+#      context: .
+#      dockerfile: src/Dockerfile
+#    <<: *airflow-common
+#
+#  training:
+#    build:
+#      context: .
+#      dockerfile: src_2/Dockerfile
+#    <<: *airflow-common
+
   postgres:
     image: postgres:13
     environment:
@@ -310,3 +322,9 @@ services:
 
 volumes:
   postgres-db-volume:
+  bind-mounts:
+    driver: local
+    driver_opts:
+        type: none
+        o: bind
+        device: ${AIRFLOW_PROJ_DIR:-.}

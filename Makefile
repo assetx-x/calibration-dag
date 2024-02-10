@@ -14,9 +14,9 @@ web:
 	echo "Airflow UI available at http://localhost:8080"
 
 build:
-	docker build -t docker_base:latest -f src/Dockerfile.base .
-	docker build -t intermediate_training_image:latest -f src_2/Dockerfile .
-	docker build -t gan_image:latest -f src/Dockerfile .
+	docker build -t base_docker:latest -f src/base.Dockerfile .
+# 	docker build -t intermediate_training_image:latest -f src_2/Dockerfile .
+# 	docker build -t gan_image:latest -f src/Dockerfile .
 
 deploy:
 	$(get_credentials)
