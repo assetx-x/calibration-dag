@@ -86,6 +86,17 @@ def airflow_wrapper(**kwargs):
             data_value.to_csv(gcs_path)
 
 
+def transform_params(params_dictionary):
+    params = {}
+    for key, data_formatter_instance in params_dictionary.items():
+        # Call the DataFormatter instance to get the formatted data dictionary
+        formatted_data = data_formatter_instance()
+        # Add the formatted data dictionary to the params under the same key
+        params[key] = formatted_data
+
+    return params
+
+
 class TaskParamsManager:
     def __init__(self):
         self.params = {}
@@ -104,8 +115,10 @@ class TaskParamsManager:
         self.params[name] = formatted_data
 
 
-task_params_manager = TaskParamsManager()
-task_params_manager.process_and_add_data_formatters(PARAMS_DICTIONARY)
+#task_params_manager = TaskParamsManager()
+#task_params_manager.process_and_add_data_formatters(PARAMS_DICTIONARY)
+
+task_params_manager = transform_params(PARAMS_DICTIONARY)
 
 
 
