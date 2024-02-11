@@ -161,9 +161,7 @@ from derived_technical_data_processing_step import (CalculateTaLibSTOCHRSIMultiP
 
 
 
-
-calculate_talib_stochrsimulti_param = DataFormatter(class_=CalculateTaLibSTOCHRSIMultiParam,
-             class_parameters=[{"technical_indicator_params": {"timeperiod": 14, "fastk_period": 5,
+CalculateTaLibSTOCHRSIMultiParam_figs = [{"technical_indicator_params": {"timeperiod": 14, "fastk_period": 5,
                                                                    "fastd_period": 3, "fastd_matype": 0},
                                     "price_column": "close"},
         {"technical_indicator_params": {"timeperiod": 30, "fastk_period": 10,
@@ -172,30 +170,35 @@ calculate_talib_stochrsimulti_param = DataFormatter(class_=CalculateTaLibSTOCHRS
         {"technical_indicator_params": {"timeperiod": 63, "fastk_period": 15,
                                                                    "fastd_period": 10, "fastd_matype": 0},
                                     "price_column": "close"},
-       ],
+       ]
+
+
+calculate_talib_stochrsimulti_param = DataFormatter(class_=CalculateTaLibSTOCHRSIMultiParam,
+             class_parameters={'configs':CalculateTaLibSTOCHRSIMultiParam_figs},
              provided_data={'DerivedTechnicalDataProcessing':['talib_stochrsi_indicator_data']},
              required_data={'DataPull':['daily_price_data'],
                             })
 
 
-
+CalculateVolatilityMultiParam_configs = [{"volatility_lookback": 63, "price_column": "close"},
+                                        {"volatility_lookback": 21, "price_column": "close"},
+                                        {"volatility_lookback": 126, "price_column": "close"}]
 
 calculate_volatility_multi_param = DataFormatter(class_=CalculateVolatilityMultiParam,
-             class_parameters=[{"volatility_lookback": 63, "price_column": "close"},
-                                        {"volatility_lookback": 21, "price_column": "close"},
-                                        {"volatility_lookback": 126, "price_column": "close"}],
+             class_parameters={'configs':CalculateVolatilityMultiParam_configs},
              provided_data={'DerivedTechnicalDataProcessing':['volatility_data']},
              required_data={'DataPull':['daily_price_data'],
                             })
 
 ######
 
-
-calculate_talib_willr_multi_param = DataFormatter(class_=CalculateTaLibWILLRMultiParam,
-             class_parameters=[{"technical_indicator_params": {"timeperiod": 5}, "smoothing_period": 3},
+CalculateTaLibWILLRMultiParam_configs = [{"technical_indicator_params": {"timeperiod": 5}, "smoothing_period": 3},
                                          {"technical_indicator_params": {"timeperiod": 14}, "smoothing_period": 3},
                                          {"technical_indicator_params": {"timeperiod": 63}, "smoothing_period": 3},
-                                        ],
+                                        ]
+
+calculate_talib_willr_multi_param = DataFormatter(class_=CalculateTaLibWILLRMultiParam,
+             class_parameters={'configs':CalculateTaLibWILLRMultiParam_configs},
              provided_data={'DerivedTechnicalDataProcessing':['talib_willr_indicator_data']},
              required_data={'DataPull':['daily_price_data'],
                             })
@@ -205,15 +208,17 @@ calculate_talib_willr_multi_param = DataFormatter(class_=CalculateTaLibWILLRMult
 
 ##############
 
-
-calculate_talib_ppo_multi_param = DataFormatter(class_=CalculateTaLibPPOMultiParam,
-             class_parameters=[{"technical_indicator_params": {"fastperiod": 12, "slowperiod": 26, "matype": 0},
+CalculateTaLibPPOMultiParam_configs = [{"technical_indicator_params": {"fastperiod": 12, "slowperiod": 26, "matype": 0},
                                     "price_column": "close", "invert_sign": True},
                                       {"technical_indicator_params": {"fastperiod": 3, "slowperiod": 14, "matype": 0},
                                     "price_column": "close", "invert_sign": True},
                                       {"technical_indicator_params": {"fastperiod": 21, "slowperiod": 126, "matype": 0},
                                     "price_column": "close", "invert_sign": True},
-                                     ],
+                                     ]
+
+
+calculate_talib_ppo_multi_param = DataFormatter(class_=CalculateTaLibPPOMultiParam,
+             class_parameters={'configs':CalculateTaLibPPOMultiParam_configs},
              provided_data={'DerivedTechnicalDataProcessing':['talib_ppo_indicator_data']},
              required_data={'DataPull':['daily_price_data'],
                             })
@@ -221,14 +226,16 @@ calculate_talib_ppo_multi_param = DataFormatter(class_=CalculateTaLibPPOMultiPar
 
 ##########
 
-calculate_talib_adx_mult_param = DataFormatter(class_=CalculateTaLibADXMultiParam,
-             class_parameters=[{"technical_indicator": talib.ADX, "technical_indicator_params": {"timeperiod": 5},
+CalculateTaLibADXMultiParam_configs = [{"technical_indicator": talib.ADX, "technical_indicator_params": {"timeperiod": 5},
                                      "smoothing_period": 3},
                               {"technical_indicator": talib.ADX, "technical_indicator_params": {"timeperiod": 14},
                                      "smoothing_period": 3},
                                {"technical_indicator": talib.ADX, "technical_indicator_params": {"timeperiod": 63},
                                      "smoothing_period": 3}
-                              ],
+                              ]
+
+calculate_talib_adx_mult_param = DataFormatter(class_=CalculateTaLibADXMultiParam,
+             class_parameters={'configs':CalculateTaLibADXMultiParam_configs},
              provided_data={'DerivedTechnicalDataProcessing':['talib_adx_indicator_data']},
              required_data={'DataPull':['daily_price_data'],
                             })
