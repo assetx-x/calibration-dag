@@ -125,41 +125,6 @@ task_params_manager = transform_params(PARAMS_DICTIONARY)
 """ Calibration Process"""
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
 
-
-    with TaskGroup("DerivedTechnicalDataProcessing",
-                   tooltip="DerivedTechnicalDataProcessing") as DerivedTechnicalDataProcessing:
-        CalculateTaLibSTOCHRSIMultiParam = PythonOperator(
-            task_id="CalculateTaLibSTOCHRSIMultiParam",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['CalculateTaLibSTOCHRSIMultiParam']
-        )
-
-        CalculateVolatilityMultiParam = PythonOperator(
-            task_id="CalculateVolatilityMultiParam",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['CalculateVolatilityMultiParam']
-        )
-
-        CalculateTaLibWILLRMultiParam = PythonOperator(
-            task_id="CalculateTaLibWILLRMultiParam",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['CalculateTaLibWILLRMultiParam']
-        )
-
-        CalculateTaLibPPOMultiParam = PythonOperator(
-            task_id="CalculateTaLibPPOMultiParam",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['CalculateTaLibPPOMultiParam']
-        )
-
-        CalculateTaLibADXMultiParam = PythonOperator(
-            task_id="CalculateTaLibADXMultiParam",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['CalculateTaLibADXMultiParam']
-        )
-
-        CalculateTaLibSTOCHRSIMultiParam >> CalculateVolatilityMultiParam >> CalculateTaLibWILLRMultiParam >> CalculateTaLibPPOMultiParam >> CalculateTaLibADXMultiParam
-
     with TaskGroup("DerivedSimplePriceFeatureProcessing",
                    tooltip="DerivedSimplePriceFeatureProcessing") as DerivedSimplePriceFeatureProcessing:
         ComputeBetaQuantamental = PythonOperator(
@@ -306,7 +271,7 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
 
 
 
-    DerivedTechnicalDataProcessing >> DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> Standarization >> ActiveMatrix >> AdditionalGanFeatures >> SaveGANInputs
+    DerivedSimplePriceFeatureProcessing >> MergeStep >> FilterDatesSingleNames >> Transformation >> MergeEcon >> Standarization >> ActiveMatrix >> AdditionalGanFeatures >> SaveGANInputs
 
 
 
