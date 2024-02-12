@@ -21,15 +21,5 @@ steps:
         gsutil -m cp -r dags/* gs://us-east4-airflowcomposer-d2353cf2-bucket/dags
     id: 'upload-folder'
 
-  # Example of using the output
-  - name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        echo "Uploaded files: ${UPLOADED_FILES}"
-    id: 'print-uploaded-files'
-    env:
-      - 'UPLOADED_FILES=$(_FILES)' # Use a substitution variable to access the uploaded files from previous step
 options:
   logging: CLOUD_LOGGING_ONLY
