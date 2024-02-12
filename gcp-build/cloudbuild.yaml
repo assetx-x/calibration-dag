@@ -8,7 +8,7 @@ steps:
     args:
       - '-c'
       - |
-        gcloud -q auth activate-service-account --key-file=${SA_KEY}
+        gcloud -q auth activate-service-account --key-file=${_SA_KEY}
     id: 'auth'
     env:
       - 'SA_KEY=${_SERVICE_ACCOUNT_KEY}' # Provide the service account key as a substitution variable
