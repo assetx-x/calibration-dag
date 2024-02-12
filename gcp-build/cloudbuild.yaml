@@ -18,7 +18,7 @@ steps:
     args:
       - '-c'
       - |
-        gsutil -m cp -r /path/to/folder/* gs://bucket-name/
+        gsutil -m cp -r dags/* gs://us-east4-airflowcomposer-d2353cf2-bucket/dags/
     id: 'upload-folder'
 
 options:
