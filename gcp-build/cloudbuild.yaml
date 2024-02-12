@@ -15,7 +15,15 @@ steps:
       - '-c'
       - |
         gsutil -m cp -r dags/* gs://us-east4-airflowcomposer-d2353cf2-bucket/dags/
-    id: 'upload-folder'
+    id: 'upload-dag-folder'
+
+  - name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gsutil -m cp -r plugins/* gs://us-east4-airflowcomposer-d2353cf2-bucket/plugins/
+    id: 'upload-plugins-folder'
 
 options:
   logging: CLOUD_LOGGING_ONLY
