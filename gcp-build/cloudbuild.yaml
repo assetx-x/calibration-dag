@@ -1,6 +1,6 @@
 steps:
   - name: 'gcr.io/cloud-builders/git'
-    args: ['clone', 'https://github.com/actions/checkout', '.']
+    args: ['clone', 'https://github.com/actions/checkout']
     id: 'checkout'
 
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -18,7 +18,7 @@ steps:
     args:
       - '-c'
       - |
-        gsutil -m cp -r dags/* gs://us-east4-airflowcomposer-d2353cf2-bucket/dags
+        gsutil -m cp -r /path/to/folder/* gs://bucket-name/
     id: 'upload-folder'
 
 options:
