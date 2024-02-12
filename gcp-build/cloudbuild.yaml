@@ -31,3 +31,5 @@ steps:
     id: 'print-uploaded-files'
     env:
       - 'UPLOADED_FILES=$(_FILES)' # Use a substitution variable to access the uploaded files from previous step
+options:
+  logging: CLOUD_LOGGING_ONLY
