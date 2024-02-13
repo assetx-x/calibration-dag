@@ -25,5 +25,14 @@ steps:
         gsutil -m cp -r plugins/* gs://us-east4-airflowcomposer-d2353cf2-bucket/plugins/
     id: 'upload-plugins-folder'
 
+  - name: 'python:3.8.17'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        pip install twine
+        twine upload --repository-url=https://us-central1-python.pkg.dev/dcm-dev-9fe8/python-repo/ dist/*
+    id: 'upload-to-artifact-registry'
+
 options:
   logging: CLOUD_LOGGING_ONLY
