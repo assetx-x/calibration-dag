@@ -29,6 +29,7 @@ steps:
     args:
       - '-c'
       - |
+        python -m pip install -U twine pip wheel setuptools keyring==23.7.0 keyrings.google-artifactregistry-auth==1.0.0
         python -m pip download -r requirements-light.txt -d /data/dist
         python -m twine upload -v --repository-url https://us-east4-python.pkg.dev/dcm-dev-9fe8/python-repo/ /data/dist/*.whl --skip-existing
     id: 'download-and-upload-to-artifact-registry'
