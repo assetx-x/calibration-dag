@@ -6,6 +6,9 @@ steps:
       - |
         gcloud -q auth activate-service-account --key-file=${_SA_KEY}
     id: 'auth'
+    volumes:
+      - name: 'shared-data'
+        path: '/data'
 
   - name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'bash'
@@ -17,20 +20,26 @@ steps:
         gsutil -m cp -r pip.conf gs://us-east4-airflowcomposer-d2353cf2-bucket/conf/
     id: 'upload-all'
     waitFor: ['auth']
+    volumes:
+      - name: 'shared-data'
+        path: '/data'
 
   - name: 'custom-python-image' # replace with your custom image name
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        python -m pip download -r requirements-light.txt -d dist
-        python -m twine upload --repository-url https://us-east4-python.pkg.dev/dcm-dev-9fe8/python-repo/ dist/* --skip-existing
+        python -m pip download -r requirements-light.txt -d /data/dist
+        python -m twine upload --repository-url https://us-east4-python.pkg.dev/dcm-dev-9fe8/python-repo/ /data/dist/* --skip-existing
     id: 'download-and-upload-to-artifact-registry'
     env:
       - PIP_ROOT_USER_ACTION=ignore
       - GOOGLE_APPLICATION_CREDENTIALS=${_SA_KEY}
       - PIP_CONFIG_FILE=pip.conf
     waitFor: ['upload-all']
+    volumes:
+      - name: 'shared-data'
+        path: '/data'
 
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
@@ -43,6 +52,9 @@ steps:
     id: 'import-and-update'
     timeout: 600s
     waitFor: ['download-and-upload-to-artifact-registry']
+    volumes:
+      - name: 'shared-data'
+        path: '/data'
 
 options:
   logging: CLOUD_LOGGING_ONLY
