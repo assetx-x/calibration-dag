@@ -45,6 +45,8 @@ steps:
       - |
         python -m twine upload --repository-url https://us-east4-python.pkg.dev/dcm-dev-9fe8/python-repo/ /data/dist/* --skip-existing
     id: 'upload-to-artifact-registry'
+    env:
+      - PIP_CONFIG_FILE=pip.conf
     volumes:
       - name: 'shared-data'
         path: '/data'
@@ -59,7 +61,7 @@ steps:
         gcloud composer environments update dcm-dev-9fe8 --location us-east4 --update-pypi-packages-from-file gs://us-east4-airflowcomposer-d2353cf2-bucket/conf/pip.conf
     id: 'import-and-update'
     timeout: 1200s  # 20 minutes
-    waitFor: ['download-and-upload-to-artifact-registry']
+    waitFor: ['download-packages', 'upload-to-artifact-registry']
     volumes:
       - name: 'shared-data'
         path: '/data'
