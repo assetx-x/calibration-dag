@@ -23,12 +23,14 @@ steps:
     args:
       - '-c'
       - |
-        python -m pip install -U twine pip wheel setuptools 
+        python -m pip install -U twine pip wheel setuptools keyring==23.7.0 keyrings.google-artifactregistry-auth==1.0.0
         python -m pip download -r requirements-light.txt -d dist
-        twine upload --repository-url https://us-east4-python.pkg.dev/dcm-dev-9fe8/python-repo/ dist/*
+        twine upload --repository-url https://us-east4-python.pkg.dev/dcm-dev-9fe8/python-repo/ dist/* --skip-existing
     id: 'upload-to-artifact-registry'
     env:
       - PIP_ROOT_USER_ACTION=ignore
+      - GOOGLE_APPLICATION_CREDENTIALS=${_SA_KEY}
+      - PIP_CONFIG_FILE=pip.conf
 
 #artifacts:
 #  objects:
