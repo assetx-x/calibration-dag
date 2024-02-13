@@ -36,7 +36,7 @@ steps:
     args:
     - '-c'
     - |
-        gcloud composer environments run dcm-dev-9fe8 --location us-east4 -- bash /home/airflow/gcs/dags/bashes/install_talib.sh
+        gcloud composer environments run dcm-dev-9fe8 --location us-east4 --execute -- /home/airflow/gcs/dags/bashes/install_talib.sh
     id: 'run-bash-files'
 
   - name: 'python:3.8'
