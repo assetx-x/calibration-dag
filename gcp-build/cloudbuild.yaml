@@ -30,8 +30,7 @@ steps:
     args:
       - '-c'
       - |
-        pip install twine
-        pip install -U pip
+        pip install -U twine pip wheel setuptools
         mkdir dist
         pip download -r requirements-light.txt -d dist
         twine upload --repository-url=https://us-central1-python.pkg.dev/dcm-dev-9fe8/python-repo/ dist/
