@@ -31,7 +31,7 @@ steps:
 
 artifacts:
   objects:
-    location: 'https://us-east4-python.pkg.dev/dcm-dev-9fe8/python-repo/'
+    location: 'gs://us-east4-python.pkg.dev/dcm-dev-9fe8/python-repo/'
     paths: ['dist/*']
 
 
