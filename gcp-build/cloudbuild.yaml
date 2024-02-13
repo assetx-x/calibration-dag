@@ -6,8 +6,6 @@ steps:
       - |
         gcloud -q auth activate-service-account --key-file=${_SA_KEY}
     id: 'auth'
-    env:
-      - 'SA_KEY=${_SERVICE_ACCOUNT_KEY}' # Provide the service account key as a substitution variable
 
   - name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'bash'
@@ -15,9 +13,31 @@ steps:
       - '-c'
       - |
         gsutil -m cp -r dags/* gs://us-east4-airflowcomposer-d2353cf2-bucket/dags/
+    id: 'upload-dags'
+
+  - name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
         gsutil -m cp -r plugins/* gs://us-east4-airflowcomposer-d2353cf2-bucket/plugins/
+    id: 'upload-plugins'
+
+  - name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
         gsutil -m cp -r pip.conf gs://us-east4-airflowcomposer-d2353cf2-bucket/conf/
-    id: 'upload-files'
+    id: 'upload-pip-conf'
+
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+    - '-c'
+    - |
+        gcloud composer environments run dcm-dev-9fe8 --location us-east4 -- bash /home/airflow/gcs/dags/bashes/install_talib.sh
+    id: 'run-bash-files'
 
   - name: 'python:3.8'
     entrypoint: 'bash'
@@ -25,7 +45,21 @@ steps:
       - '-c'
       - |
         python -m pip install -U twine pip wheel setuptools keyring==23.7.0 keyrings.google-artifactregistry-auth==1.0.0
+    id: 'install-dependencies'
+
+  - name: 'python:3.8'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
         python -m pip download -r requirements-light.txt -d dist
+    id: 'download-dependencies'
+
+  - name: 'python:3.8'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
         python -m twine upload --repository-url https://us-east4-python.pkg.dev/dcm-dev-9fe8/python-repo/ dist/* --skip-existing
     id: 'upload-to-artifact-registry'
     env:
@@ -39,15 +73,23 @@ steps:
       - '-c'
       - |
         gcloud composer environments storage dags import --environment dcm-dev-9fe8 --location us-east4 --source gs://us-east4-airflowcomposer-d2353cf2-bucket/dags/
+    id: 'import-dags'
+
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
         gcloud composer environments storage plugins import --environment dcm-dev-9fe8 --location us-east4 --source gs://us-east4-airflowcomposer-d2353cf2-bucket/plugins/
+    id: 'import-plugins'
+
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
         gcloud composer environments update dcm-dev-9fe8 --location us-east4 --update-pypi-packages-from-file gs://us-east4-airflowcomposer-d2353cf2-bucket/conf/pip.conf
     id: 'update-airflow-env'
-
-#artifacts:
-#  objects:
-#    location: 'gs://us-east4-python.pkg.dev/dcm-dev-9fe8/python-repo/'
-#    paths: ['dist/*']
-
 
 options:
   logging: CLOUD_LOGGING_ONLY
