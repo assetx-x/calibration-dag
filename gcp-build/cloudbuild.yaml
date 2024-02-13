@@ -33,8 +33,8 @@ steps:
         pip install twine
         pip install -U pip
         mkdir dist
-        pip download -r requirements.txt -d dist
-        twine upload --repository-url=https://us-central1-python.pkg.dev/dcm-dev-9fe8/python-repo/ dist/*
+        pip download -r requirements-light.txt -d dist
+        twine upload --repository-url=https://us-central1-python.pkg.dev/dcm-dev-9fe8/python-repo/ dist/
     id: 'upload-to-artifact-registry'
 
 options:
