@@ -18,14 +18,6 @@ steps:
         gsutil -m cp -r plugins/* gs://us-east4-airflowcomposer-d2353cf2-bucket/plugins/
     id: 'upload-folders'
 
-  - name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        gcloud artifacts print-settings python --project=dcm-dev --repository=python-repo --location=us-east4
-    id: 'print-settings'
-
   - name: 'python:3.8'
     entrypoint: 'bash'
     args:
