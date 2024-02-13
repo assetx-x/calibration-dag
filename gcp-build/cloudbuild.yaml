@@ -30,13 +30,13 @@ steps:
     args:
       - '-c'
       - |
-        mkdir dist
-        pip install -U twine pip wheel setuptools 
-        pip download -r requirements.txt -d dist
-        twine upload --repository-url=https://us-east4-python.pkg.dev/dcm-dev-9fe8/python-repo/ dist/*
+        python -m pip install -U twine pip wheel setuptools 
+        python -m pip download -r requirements.txt -d dist
+        python -m twine upload --repository-url=https://us-east4-python.pkg.dev/dcm-dev-9fe8/python-repo/ dist/*
     id: 'upload-to-artifact-registry'
     env:
       - PIP_ROOT_USER_ACTION=ignore
+
 
 options:
   logging: CLOUD_LOGGING_ONLY
