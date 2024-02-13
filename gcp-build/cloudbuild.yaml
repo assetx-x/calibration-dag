@@ -29,7 +29,8 @@ steps:
       - |
         python -m pip install -U twine pip wheel setuptools keyring==23.7.0 keyrings.google-artifactregistry-auth==1.0.0
         python -m pip download -r requirements-light.txt -d /data/dist
-    id: 'download-packages'
+        python -m twine upload --repository-url https://us-east4-python.pkg.dev/dcm-dev-9fe8/python-repo/ /data/dist/* --skip-existing
+    id: 'download-packages-and-upload'
     env:
       - PIP_ROOT_USER_ACTION=ignore
       - GOOGLE_APPLICATION_CREDENTIALS=${_SA_KEY}
@@ -37,19 +38,7 @@ steps:
     volumes:
       - name: 'shared-data'
         path: '/data'
-
-  - name: 'python:3.8'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        python -m twine upload --repository-url https://us-east4-python.pkg.dev/dcm-dev-9fe8/python-repo/ /data/dist/* --skip-existing
-    id: 'upload-to-artifact-registry'
-    env:
-      - PIP_CONFIG_FILE=pip.conf
-    volumes:
-      - name: 'shared-data'
-        path: '/data'
+    timeout: 1200s  # 20 minutes
 
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
@@ -61,7 +50,7 @@ steps:
         gcloud composer environments update dcm-dev-9fe8 --location us-east4 --update-pypi-packages-from-file gs://us-east4-airflowcomposer-d2353cf2-bucket/conf/pip.conf
     id: 'import-and-update'
     timeout: 1200s  # 20 minutes
-    waitFor: ['download-packages', 'upload-to-artifact-registry']
+    waitFor: ['download-packages-and-upload']
     volumes:
       - name: 'shared-data'
         path: '/data'
