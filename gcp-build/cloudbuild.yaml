@@ -32,6 +32,7 @@ steps:
       - |
         pip install twine
         mkdir dist
+        echo $(python -V) 
         pip download -r requirements.txt -d dist
         twine upload --repository-url=https://us-central1-python.pkg.dev/dcm-dev-9fe8/python-repo/ dist/*
     id: 'upload-to-artifact-registry'
