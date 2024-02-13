@@ -31,13 +31,13 @@ steps:
         gsutil -m cp -r pip.conf gs://us-east4-airflowcomposer-d2353cf2-bucket/conf/
     id: 'upload-pip-conf'
 
-  - name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: 'bash'
-    args:
-    - '-c'
-    - |
-        gcloud composer environments run dcm-dev-9fe8 --location us-east4 --execute -- /home/airflow/gcs/dags/bashes/install_talib.sh
-    id: 'run-bash-files'
+#  - name: 'gcr.io/cloud-builders/gcloud'
+#    entrypoint: 'bash'
+#    args:
+#    - '-c'
+#    - |
+#        gcloud composer environments run dcm-dev-9fe8 --location us-east4 --execute -- /home/airflow/gcs/dags/bashes/install_talib.sh
+#    id: 'run-bash-files'
 
   - name: 'python:3.8'
     entrypoint: 'bash'
