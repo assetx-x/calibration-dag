@@ -24,7 +24,7 @@ steps:
       - name: 'shared-data'
         path: '/data'
 
-  - name: 'custom-python-image' # replace with your custom image name
+  - name: 'python:3.8'
     entrypoint: 'bash'
     args:
       - '-c'
