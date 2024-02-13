@@ -27,7 +27,7 @@ up:
 	@echo "\n[ ] SHUTTING DOWN SERVICES\n"
 	docker compose down --volumes --rmi all
 	@echo "\n[ ] PULLING CHANGES FROM GIT\n"
-	sudo git pull
+# 	sudo git pull
 	@echo "\n[ ] RUNNING AIRFLOW CONTAINER\n"
 	docker compose up --build -d
 	@echo "\n[ ] DONE\n"
@@ -37,3 +37,9 @@ restart:
 	docker compose down
 	systemctl restart docker
 	docker compose up -d
+
+push:
+	export TAG=v0.1.0
+	sudo docker build -t calibration-airflow -f Dockerfile .
+	sudo docker tag dcm gcr.io/dcm-prod-ba2f/assetx-api:${TAG}
+	docker push gcr.io/dcm-prod-ba2f/assetx-api:${TAG}
