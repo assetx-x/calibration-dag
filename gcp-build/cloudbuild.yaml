@@ -16,7 +16,8 @@ steps:
       - |
         gsutil -m cp -r dags/* gs://us-east4-airflowcomposer-d2353cf2-bucket/dags/
         gsutil -m cp -r plugins/* gs://us-east4-airflowcomposer-d2353cf2-bucket/plugins/
-    id: 'upload-folders'
+        gsutil -m cp -r pip.conf gs://us-east4-airflowcomposer-d2353cf2-bucket/conf/
+    id: 'upload-files'
 
   - name: 'python:3.8'
     entrypoint: 'bash'
@@ -31,6 +32,16 @@ steps:
       - PIP_ROOT_USER_ACTION=ignore
       - GOOGLE_APPLICATION_CREDENTIALS=${_SA_KEY}
       - PIP_CONFIG_FILE=pip.conf
+
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud composer environments storage dags import --environment dcm-dev-9fe8 --location us-east4 --source gs://us-east4-airflowcomposer-d2353cf2-bucket/dags/
+        gcloud composer environments storage plugins import --environment dcm-dev-9fe8 --location us-east4 --source gs://us-east4-airflowcomposer-d2353cf2-bucket/plugins/
+        gcloud composer environments update dcm-dev-9fe8 --location us-east4 --update-pypi-packages-from-file gs://us-east4-airflowcomposer-d2353cf2-bucket/conf/pip.conf
+    id: 'update-airflow-env'
 
 #artifacts:
 #  objects:
