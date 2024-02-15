@@ -22,35 +22,19 @@ steps:
       - name: 'shared-data'
         path: '/data'
 
-  - name: 'python:3.8'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        python -m pip install -U twine pip wheel setuptools keyring==23.7.0 keyrings.google-artifactregistry-auth==1.0.0
-        python -m pip download -r requirements-light.txt -d /data/dist
-        python -m twine upload --repository-url https://us-east4-python.pkg.dev/dcm-dev-9fe8/python-repo/ /data/dist/* --skip-existing
-    id: 'download-packages-and-upload'
-    env:
-      - PIP_ROOT_USER_ACTION=ignore
-      - GOOGLE_APPLICATION_CREDENTIALS=${_SA_KEY}
-      - PIP_CONFIG_FILE=pip.conf
-    volumes:
-      - name: 'shared-data'
-        path: '/data'
-    timeout: 1200s  # 20 minutes
-
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        gcloud composer environments storage dags import --environment dcm-dev-9fe8 --location us-east4 --source gs://us-east4-airflowcomposer-d2353cf2-bucket/dags/
-        gcloud composer environments storage plugins import --environment dcm-dev-9fe8 --location us-east4 --source gs://us-east4-airflowcomposer-d2353cf2-bucket/plugins/
-        gcloud composer environments update dcm-dev-9fe8 --location us-east4 --update-pypi-packages-from-file gs://us-east4-airflowcomposer-d2353cf2-bucket/conf/pip.conf
+        gcloud composer environments storage dags import --environment airflowcomposer --location us-east4 --source gs://us-east4-airflowcomposer-d2353cf2-bucket/dags/
+        gcloud composer environments storage plugins import --environment airflowcomposer --location us-east4 --source gs://us-east4-airflowcomposer-d2353cf2-bucket/plugins/
+        gcloud composer environments update airflowcomposer --location=us-east4 --update-pypi-packages-from-file=requirements.txt
     id: 'import-and-update'
     timeout: 1200s  # 20 minutes
     waitFor: ['download-packages-and-upload']
+    env:
+      - COMPOSER_PYTHON_VERSION=3.8
     volumes:
       - name: 'shared-data'
         path: '/data'
