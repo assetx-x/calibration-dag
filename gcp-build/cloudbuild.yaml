@@ -4,7 +4,8 @@ steps:
     args:
       - '-c'
       - |
-        gcloud -q auth activate-service-account --key-file=${_SA_KEY}
+        gcloud auth login --quiet --no-launch-browser --cred-file=${_SA_KEY}
+        gcloud config set project ${_PROJECT_ID}
     id: 'auth'
     volumes:
       - name: 'shared-data'
