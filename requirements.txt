@@ -1,4 +1,3 @@
-apache-airflow==2.6.3
 psycopg2-binary
 yfinance==0.1.74
 pylru==1.0.9
@@ -7,7 +6,7 @@ pyhocon==0.3.37
 statsmodels
 fredapi==0.4.0
 pandas-datareader==0.10.0
-google-cloud-bigquery==2.13.1
+google-cloud-bigquery
 google-cloud-storage==1.37.1
 pandas==2.0.3
 pyarrow
