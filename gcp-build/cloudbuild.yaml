@@ -5,7 +5,7 @@ steps:
     args:
       - '-c'
       - |
-        gcloud composer environments storage dags import --environment airflowcomposer --location us-east4 --source gs://us-east4-airflowcomposer-d2353cf2-bucket/dags/
+        gcloud composer environments storage dags import --environment airflowcomposer --location us-east4 --source dags/
     id: 'import-dags'
     env:
       - COMPOSER_PYTHON_VERSION=3.8
@@ -19,7 +19,7 @@ steps:
     args:
       - '-c'
       - |
-        gcloud composer environments storage plugins import --environment airflowcomposer --location us-east4 --source gs://us-east4-airflowcomposer-d2353cf2-bucket/plugins/
+        gcloud composer environments storage plugins import --environment airflowcomposer --location us-east4 --source plugins/
     id: 'import-plugins'
     env:
       - COMPOSER_PYTHON_VERSION=3.8
