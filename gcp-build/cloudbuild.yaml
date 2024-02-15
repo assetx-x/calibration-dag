@@ -32,7 +32,7 @@ steps:
         gcloud composer environments update airflowcomposer --location=us-east4 --update-pypi-packages-from-file=requirements.txt
     id: 'import-and-update'
     timeout: 1200s  # 20 minutes
-    waitFor: ['download-packages-and-upload']
+    waitFor: ['upload-folders']
     env:
       - COMPOSER_PYTHON_VERSION=3.8
     volumes:
