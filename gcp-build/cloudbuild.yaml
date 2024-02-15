@@ -17,6 +17,7 @@ steps:
     args:
       - '-c'
       - |
+        python -m pip install -U twine pip wheel setuptools keyring==23.7.0 keyrings.google-artifactregistry-auth==1.0.0
         gcloud composer environments storage dags import --environment airflowcomposer --location us-east4 --source gs://us-east4-airflowcomposer-d2353cf2-bucket/dags/
         gcloud composer environments storage plugins import --environment airflowcomposer --location us-east4 --source gs://us-east4-airflowcomposer-d2353cf2-bucket/plugins/
         gcloud composer environments update airflowcomposer --location=us-east4 --update-pypi-packages-from-file=requirements.txt
