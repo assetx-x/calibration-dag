@@ -1,14 +1,4 @@
 steps:
-  - name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        gcloud -q auth activate-service-account --key-file=${_SA_KEY}
-    id: 'auth'
-    volumes:
-      - name: 'shared-data'
-        path: '/data'
 
   - name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'bash'
