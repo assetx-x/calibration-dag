@@ -1,33 +1,49 @@
 steps:
 
-  - name: 'gcr.io/cloud-builders/gsutil'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        gsutil -m cp -r dags/* gs://us-east4-airflowcomposer-d2353cf2-bucket/dags/
-        gsutil -m cp -r plugins/* gs://us-east4-airflowcomposer-d2353cf2-bucket/plugins/
-    id: 'upload-folders'
-    volumes:
-      - name: 'shared-data'
-        path: '/data'
-
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
         gcloud composer environments storage dags import --environment airflowcomposer --location us-east4 --source gs://us-east4-airflowcomposer-d2353cf2-bucket/dags/
-        gcloud composer environments storage plugins import --environment airflowcomposer --location us-east4 --source gs://us-east4-airflowcomposer-d2353cf2-bucket/plugins/
-        gcloud composer environments update airflowcomposer --location=us-east4 --update-pypi-packages-from-file=requirements.txt
-    id: 'import-and-update'
-    timeout: 1200s  # 20 minutes
-    waitFor: ['upload-folders']
+    id: 'import-dags'
     env:
       - COMPOSER_PYTHON_VERSION=3.8
     volumes:
       - name: 'shared-data'
         path: '/data'
+    timeout: 600s
+
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud composer environments storage plugins import --environment airflowcomposer --location us-east4 --source gs://us-east4-airflowcomposer-d2353cf2-bucket/plugins/
+    id: 'import-plugins'
+    env:
+      - COMPOSER_PYTHON_VERSION=3.8
+    volumes:
+      - name: 'shared-data'
+        path: '/data'
+    waitFor: ['-']
+    timeout: 600s
+
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud composer environments update airflowcomposer --location=us-east4 --update-pypi-packages-from-file=requirements.txt
+    id: 'update-environment'
+    env:
+      - COMPOSER_PYTHON_VERSION=3.8
+    volumes:
+      - name: 'shared-data'
+        path: '/data'
+    waitFor: ['import-dags', 'import-plugins']
+    timeout: 1200s
 
 options:
   logging: CLOUD_LOGGING_ONLY
+  diskSizeGb: 100
