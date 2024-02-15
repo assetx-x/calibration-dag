@@ -4,8 +4,7 @@ steps:
     args:
       - '-c'
       - |
-        gcloud auth login --quiet --no-launch-browser --cred-file=${_SA_KEY}
-        gcloud config set project ${_PROJECT_ID}
+        gcloud auth login --no-launch-browser --force --quiet --cred-file=${_SA_KEY}
     id: 'auth'
     volumes:
       - name: 'shared-data'
