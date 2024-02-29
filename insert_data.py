@@ -11,6 +11,8 @@ from dotenv import load_dotenv
 from google.cloud import bigquery
 from datetime import datetime, date
 
+from tqdm import tqdm
+
 warnings.filterwarnings("ignore")
 
 load_dotenv()
@@ -103,7 +105,7 @@ def download_tickers_list_by_date(start: str, end: str = None):
         }
         r = requests.get(api_url, params=args)
         if r.status_code != 200:
-            print(f'[!] Error: {r.status_code}')
+            print(f'[!] Error: {r.status_code}. {r.content}')
             return None
         file_status = r.json().get('datatable_bulk_download').get('file').get('status')
         while file_status.lower() == 'creating':
@@ -145,11 +147,11 @@ def download_tickers_list_by_date(start: str, end: str = None):
 def execute_query(head: str, queries: list, batch_size=1_000):
     try:
         print(f'[*] Total rows to execute: {len(queries)}')
-        for i in range(0, len(queries), batch_size):
+        for i in tqdm(range(0, len(queries), batch_size)):
             batch = queries[i:i + batch_size]
             q = head + ', '.join(batch)
-            query_job = client.query(q)
-            result = query_job.result()
+            # query_job = client.query(q)
+            # result = query_job.result()
             print(f'[*] Executed rows {len(batch)}.')
     except Exception as e:
         print('[!] Error:', type(e), e)
