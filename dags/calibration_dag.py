@@ -123,7 +123,11 @@ task_params_manager = transform_params(PARAMS_DICTIONARY)
 
 
 """ Calibration Process"""
-with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
+with DAG(
+        dag_id="calibration",
+        start_date=days_ago(1),
+        schedule_interval="0 0 1 * ? *",  # Schedule to run at 00:00 on the first day of every month
+) as dag:
 
     with TaskGroup("DerivedSimplePriceFeatureProcessing",
                    tooltip="DerivedSimplePriceFeatureProcessing") as DerivedSimplePriceFeatureProcessing:
