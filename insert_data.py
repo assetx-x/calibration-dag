@@ -150,9 +150,9 @@ def execute_query(head: str, queries: list, batch_size=1_000):
         for i in tqdm(range(0, len(queries), batch_size)):
             batch = queries[i:i + batch_size]
             q = head + ', '.join(batch)
-            # query_job = client.query(q)
-            # result = query_job.result()
-            print(f'[*] Executed rows {len(batch)}.')
+            query_job = client.query(q)
+            result = query_job.result()
+        print(f'[*] Executed rows {len(queries)}.')
     except Exception as e:
         print('[!] Error:', type(e), e)
 
