@@ -552,6 +552,181 @@ generate_data_gan_weekly = DataFormatter(class_=GenerateDataGANWeekly,
                             'AdditionalGANFeatures':['future_returns_bme','future_returns_weekly']})
 
 
+########### MergeGanResults
+
+from merge_gan_results_step import ConsolidateGANResultsWeekly,AddFoldIdToGANResultDataWeekly
+
+#TODO :This step writes the same data to different place twice, should remove later to conserve space
+consolidate_gan_results_weekly = DataFormatter(class_=ConsolidateGANResultsWeekly,
+             class_parameters={},
+             provided_data={'MergeGANResults':['company_data_rf',
+                                              'company_data_rf_weekly'
+                                                     ]},
+             required_data={'SaveGANInputs':['company_data',
+                                         'company_data_weekly']
+                            })
+
+
+add_fold_id_to_gan_results_weekly = DataFormatter(class_=AddFoldIdToGANResultDataWeekly,
+             class_parameters={'cut_dates' : ["2003-10-31", "2007-08-31", "2011-06-30", "2015-04-30", "2019-02-28", "2023-02-03"]},
+             provided_data={'MergeGANResults':['normalized_data_full_population_with_foldId',
+                                               'normalized_data_full_population_with_foldId_weekly']},
+             required_data={'MergeGANResults':['company_data_rf',
+                                         'company_data_rf_weekly']
+                            })
+
+
+
+
+##### IntermediateModelTraining
+
+from intermediate_model_training import TrainIntermediateModelsWeekly
+
+TMW_params = {'y_col': "future_return_RF_100_std",
+        'X_cols': ["EWG_close", "HWI", "IPDCONGD", "DEXUSUK", "CPFF", "GS5", "CUSR0000SAC",
+                   "T5YFFM", "PPO_21_126_InformationTechnology", "macd_diff_ConsumerStaples",
+                   "PPO_21_126_Industrials", "VIXCLS", "PPO_21_126_Energy", "T1YFFM", "WPSID62",
+                   "CUSR0000SA0L2", "EWJ_volume", "PPO_21_126_ConsumerDiscretionary", "DCOILWTICO",
+                   "GS10", "RPI", "CPITRNSL", "divyield_ConsumerStaples", "bm_Financials", "USTRADE",
+                   "T10YFFM", "divyield_Industrials", "AAAFFM", "RETAILx", "bm_Utilities", "SPY_close",
+                   "log_mktcap", "volatility_126", "momentum", "bm", "PPO_12_26", "SPY_beta", "log_dollar_volume",
+                   "fcf_yield"],
+        'return_col': "future_ret_21B",
+        'ensemble_weights': {"enet": 0.03333333333333333, "et": 0.3, "gbm": 0.2, "lasso": 0.03333333333333333, "ols": 0.03333333333333333, "rf": 0.4},
+        'load_from_s3': False,
+        'bucket':'dcm-prod-ba2f-us-dcm-data-test',
+        'key_base' :"gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/live/saved_econ_models_gan",
+        'source_path': 'calibration_data/live/saved_econ_models_gan',
+        'local_save_dir': "econ_models_gan"
+    }
+
+
+train_intermediate_model = DataFormatter(class_=TrainIntermediateModelsWeekly,
+             class_parameters=TMW_params,
+             provided_data={'IntermediateModelTraining':['intermediate_signals',
+                                               'intermediate_signals_weekly']},
+             required_data={'MergeGANResults':['normalized_data_full_population_with_foldId',
+                                         'normalized_data_full_population_with_foldId_weekly']
+                            })
+
+
+############## MergeSignal
+
+from merge_signal_step import QuantamentalMergeSignalsWeekly
+
+
+
+
+quantamental_merge_signal_weekly_step = DataFormatter(class_=QuantamentalMergeSignalsWeekly,
+             class_parameters={
+        'drop_column': "future_ret_21B"},
+             provided_data={'MergeSignal':['data_full_population_signal',
+                                               'data_full_population_signal_weekly']},
+             required_data={'IntermediateModelTraining':['intermediate_signals',
+                                         'intermediate_signals_weekly'],
+                            'Standarization':['normalized_data_full_population',
+                                              'normalized_data_full_population_weekly']
+                            })
+
+
+######## GetAdjustmentFactors
+
+from get_adjustment_factors import SQLReaderAdjustmentFactors
+
+sql_reader_adjustment_factors = DataFormatter(class_=SQLReaderAdjustmentFactors,
+             class_parameters={"start_date" : "2000-01-03","end_date" : RUN_DATE},
+             provided_data={'GetAdjustmentFactors':['adjustment_factor_data',
+                                               ]},
+             required_data={})
+
+####### GetRawPrices
+from get_raw_prices_step import CalculateRawPrices
+
+calculate_raw_prices = DataFormatter(class_=CalculateRawPrices,
+             class_parameters={},
+             provided_data={'GetRawPrices':['raw_price_data']},
+             required_data={'GetAdjustmentFactors':['adjustment_factor_data'],
+                            'DataPull':['daily_price_data']})
+
+
+######### PopulationSplit
+from population_split_step import FilterRussell1000AugmentedWeekly
+
+filter_r1k_weekly_params = {
+        'start_date': "2009-03-15",
+        'end_date': RUN_DATE,
+        'filter_price_marketcap': True,
+        'price_limit': 6.0,
+        'marketcap_limit': 800000000.0,
+        'largecap_quantile': 0.25,
+    }
+
+
+filter_r1k_weekly = DataFormatter(class_=FilterRussell1000AugmentedWeekly,
+             class_parameters=filter_r1k_weekly_params,
+             provided_data={'PopulationSplit':['r1k_models','r1k_models_sc_weekly','r1k_models_lc_weekly']},
+             required_data={'GetAdjustmentFactors':['adjustment_factor_data'],
+                            'MergeSignal':['data_full_population_signal','data_full_population_signal_weekly',
+                                           ],
+                            'DataPull':['russell_components'],
+                            'FundamentalCleanup':['quandl_daily'],
+                            'GetRawPrices':['raw_price_data']}
+                                  )
+
+
+
+
+######## Residualization #####
+from residualization_step import FactorNeutralizationForStackingWeekly
+
+residulaization_params = {'factors':["SPY_beta", "log_mktcap", "ret_5B", "ret_21B", "volatility_63", "volatility_126", "momentum"],
+          'exclusion_list':["fq", "divyield_Industrials", "PPO_21_126_ConsumerDiscretionary", "DNDGRG3M086SBEA", "DEXUSUK",
+                          "GS10", "IPDCONGD", "T5YFFM", "USTRADE", "CUSR0000SA0L2", "RETAILx", "bm_Financials", "DCOILWTICO",
+                          "T10YFFM", "CPITRNSL", "CP3Mx", "CUSR0000SAC", "EWJ_volume", "SPY_close", "VIXCLS",
+                          "PPO_21_126_InformationTechnology",  "WPSID62", "GS5", "CPFF", "CUSR0000SA0L5",
+                          "T1YFFM", "PPO_21_126_Energy", "bm_Utilities", "PPO_21_126_Financials", "HWI", "RPI",
+                          "PPO_21_126_Industrials",  "divyield_ConsumerStaples", "EWG_close", "macd_diff_ConsumerStaples",
+                          "AAAFFM", "ols", "lasso", "enet", "et", "rf", "gbm", "ensemble"]}
+
+
+fnstacking_weekly = DataFormatter(class_=FactorNeutralizationForStackingWeekly,
+             class_parameters=residulaization_params,
+             provided_data={'Residualization':['r1k_resid_models','r1k_resid_sc_weekly','r1k_resid_lc_weekly']},
+             required_data={'GetAdjustmentFactors':['adjustment_factor_data'],
+                            'PopulationSplit':['r1k_models','r1k_models_sc_weekly','r1k_models_lc_weekly']}
+                                  )
+
+######## ResidualizedStandardization
+
+from residualized_standardization_step import FactorStandardizationNeutralizedForStackingWeekly
+
+
+fnstackingneutral_weekly = DataFormatter(class_=FactorStandardizationNeutralizedForStackingWeekly,
+             class_parameters=residulaization_params,
+             provided_data={'ResidualizedStandardization':['r1k_neutral_normal_models',
+                                                           'r1k_neutral_normal_sc_weekly',
+                                                           'r1k_neutral_normal_lc_weekly']},
+             required_data={'Residualization':['r1k_resid_models','r1k_resid_sc_weekly','r1k_resid_lc_weekly']}
+                                  )
+
+
+########## AddFinalFoldId
+from add_final_fold_id_step import AddFoldIdToNormalizedDataPortfolioWeekly
+
+add_fold_params = {'cut_dates' :["2010-12-31", "2012-09-28", "2014-06-30", "2016-03-31", "2017-12-29"]}
+
+
+afi_step_weekly = DataFormatter(class_=AddFoldIdToNormalizedDataPortfolioWeekly,
+             class_parameters=residulaization_params,
+             provided_data={'AddFinalFoldId':['r1k_neutral_normal_models_with_foldId',
+                                                           'r1k_sc_with_foldId_weekly',
+                                                           'r1k_lc_with_foldId_weekly']},
+             required_data={'ResidualizedStandardization':['r1k_neutral_normal_models',
+                                                           'r1k_neutral_normal_sc_weekly',
+                                                           'r1k_neutral_normal_lc_weekly']}
+                                  )
+
+
 
 
 PARAMS_DICTIONARY = {'CalibrationDatesJump':calibration_jump_params,
@@ -592,6 +767,17 @@ PARAMS_DICTIONARY = {'CalibrationDatesJump':calibration_jump_params,
                      'FactorStandardizationFullPopulationWeekly':factor_standardization_full_pop_weekly,
                      'GenerateActiveMatrixWeekly':generate_active_matrix_weekly,
                      'GenerateBMEReturnsWeekly':generate_bme_returns_weekly,
-                     'GenerateDataGANWeekly':generate_data_gan_weekly}
+                     'GenerateDataGANWeekly':generate_data_gan_weekly,
+                     'ConsolidateGANResultsWeekly':consolidate_gan_results_weekly,
+                     'AddFoldIdToGANResultDataWeekly_params':add_fold_id_to_gan_results_weekly,
+                     'TrainIntermediateModelsWeekly':train_intermediate_model,
+                     'QuantamentalMergeSignalsWeekly':quantamental_merge_signal_weekly_step,
+                     'SQLReaderAdjustmentFactors':sql_reader_adjustment_factors,
+                     'CalculateRawPrices':calculate_raw_prices,
+                     'FilterRussell1000AugmentedWeekly':filter_r1k_weekly,
+                     'FactorNeutralizationForStackingWeekly':fnstacking_weekly,
+                     'FactorStandardizationNeutralizedForStackingWeekly':fnstackingneutral_weekly,
+                     'AddFoldIdToNormalizedDataPortfolioWeekly':afi_step_weekly
+                     }
 
 
