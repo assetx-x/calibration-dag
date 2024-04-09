@@ -1,48 +1,49 @@
 steps:
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/calibrationdag:$COMMIT_SHA', '.']
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/calibrationdag:$COMMIT_SHA']
-  - name: 'gcr.io/$PROJECT_ID/helm'
-    args:
-      - 'repo'
-      - 'add'
-      - 'apache-airflow'
-      - 'https://airflow.apache.org'
+
   - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
     args:
-      - 'kms'
-      - 'decrypt'
-      - '--ciphertext-file=secrets.yaml.enc'
-      - '--plaintext-file=secrets.yaml'
-      - '--location=global'
-      - '--keyring=abc-keyring-$_ENVIRONMENT'
-      - '--key=abc-webshop-$_ENVIRONMENT'
-    dir: 'k8s/charts-values/gcloud-sqlproxy/$_VALUES_DIRECTORY'
+      - '-c'
+      - |
+        gcloud composer environments storage dags import --environment airflowcomposer --location us-east4 --source dags/
+    id: 'import-dags'
+    env:
+      - COMPOSER_PYTHON_VERSION=3.8
+    volumes:
+      - name: 'shared-data'
+        path: '/data'
+    timeout: 600s
+
   - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
     args:
-      - 'container'
-      - 'clusters'
-      - 'get-credentials'
-      - '$_CLUSTER_ID'
-      - '--zone=global'
-  - name: 'gcr.io/$PROJECT_ID/helm'
+      - '-c'
+      - |
+        gcloud composer environments storage plugins import --environment airflowcomposer --location us-east4 --source plugins/
+    id: 'import-plugins'
+    env:
+      - COMPOSER_PYTHON_VERSION=3.8
+    volumes:
+      - name: 'shared-data'
+        path: '/data'
+    waitFor: ['-']
+    timeout: 600s
+
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
     args:
-      - 'upgrade'
-      - 'airflow'
-      - 'apache-airflow/airflow'
-      - '-f'
-      - 'k8s/values.yml'
-      - '--set'
-      - 'images.airflow.repository=gcr.io/$PROJECT_ID/calibrationdag'
-      - '--set'
-      - 'images.airflow.tag=$COMMIT_SHA'
-      - '--wait'
-      - '--timeout=15m'
-      - '--set'
-      - 'ingress.annotations.kubernetes.io/tls-acme="true"'
-      - '--atomic'
-      - '--namespace'
-      - 'default'
+      - '-c'
+      - |
+        gcloud composer environments update airflowcomposer --location=us-east4 --update-pypi-packages-from-file=requirements.txt
+    id: 'update-environment'
+    env:
+      - COMPOSER_PYTHON_VERSION=3.8
+    volumes:
+      - name: 'shared-data'
+        path: '/data'
+    waitFor: ['import-dags', 'import-plugins']
+    timeout: 1200s
+
 options:
-  logging: GCS_ONLY
+  logging: CLOUD_LOGGING_ONLY
+  diskSizeGb: 100
