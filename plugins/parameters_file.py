@@ -276,8 +276,7 @@ calculate_macd = DataFormatter(class_=CalculateMACD,
 
 
 calculate_correlation = DataFormatter(class_=CalcualteCorrelation,
-             class_parameters={"bucket": os.environ['GCS_BUCKET'],
-                              "key": "calibration_data/current_gan_training_universe.csv"},
+             class_parameters={"benchmark_names": [8554], "correlation_lookback": 63, "price_column": "close"},
              provided_data={'DerivedSimplePriceFeatureProcessing':['correlation_data']},
              required_data={'DataPull':['daily_price_data']})
 
