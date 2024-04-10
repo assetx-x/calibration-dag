@@ -5,6 +5,7 @@ WORKDIR /app
 COPY bashes/install_talib.sh .
 
 USER root
-RUN chmod +x install_talib.sh && ./install_talib.sh
+RUN chmod +x install_talib.sh
+RUN ./install_talib.sh
 
 ENV GOOGLE_APPLICATION_CREDENTIALS data_processing/dcm-prod.json
