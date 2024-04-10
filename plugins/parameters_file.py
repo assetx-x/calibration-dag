@@ -67,7 +67,7 @@ yahoo_daily_price_reader = DataFormatter(class_=YahooDailyPriceReader,
              class_parameters={"sector_etfs": ["SPY", "MDY", "EWG", "EWH", "EWJ", "EWW", "EWS", "EWU"],
                               "start_date": "1997-01-01",
                               "end_date": RUN_DATE},
-             provided_data={'DataPull':['etf_prices']},
+             provided_data={'DataPull':['yahoo_daily_price_data']},
              required_data={'DataPull':['security_master']})
 
 
@@ -409,7 +409,7 @@ from transformation_step import (
 create_yahoo_daily_price_rolling =DataFormatter(class_=CreateYahooDailyPriceRolling,
              class_parameters={'rolling_interval':5},
              provided_data={'Transformation':['yahoo_daily_price_rolling']},
-             required_data={'DataPull':['etf_prices']})
+             required_data={'DataPull':['yahoo_daily_price_data']})
 
 
 transform_economic_data_weekly =DataFormatter(class_=TransformEconomicDataWeekly,

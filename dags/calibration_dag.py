@@ -124,6 +124,13 @@ task_params_manager = transform_params(PARAMS_DICTIONARY)
 
 """ Calibration Process"""
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
+    with TaskGroup("DataPull", tooltip="DataPull") as DataPull:
+        YahooDailyPriceReader = PythonOperator(
+            task_id="YahooDailyPriceReader",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['YahooDailyPriceReader'],
+            execution_timeout=timedelta(minutes=25)
+        )
 
     with TaskGroup("Transformation", tooltip="Transformation") as Transformation:
         CreateYahooDailyPriceRolling = PythonOperator(
@@ -270,7 +277,7 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
 
 
 
-    Transformation >> MergeEcon >> Standarization >> ActiveMatrix >> AdditionalGanFeatures >> SaveGANInputs >> GenerateGANResults >> MergeGANResults >> IntermediateModelTraining >> MergeSignal >> GetAdjustmentFactors >> GetRawPrices >> PopulationSplit >> Residualization >> ResidualizedStandardization >> AddFoldIdToNormalizedDataPortfolioWeekly
+    DataPull >> Transformation >> MergeEcon >> Standarization >> ActiveMatrix >> AdditionalGanFeatures >> SaveGANInputs >> GenerateGANResults >> MergeGANResults >> IntermediateModelTraining >> MergeSignal >> GetAdjustmentFactors >> GetRawPrices >> PopulationSplit >> Residualization >> ResidualizedStandardization >> AddFoldIdToNormalizedDataPortfolioWeekly
 
 
 
