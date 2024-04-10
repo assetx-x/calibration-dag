@@ -14,11 +14,9 @@ import gcsfs
 
 import os
 
-load_dotenv()
-
-from plugins.sms_send.twillio_send import send_message
 from parameters_file import PARAMS_DICTIONARY
 
+load_dotenv()
 
 # Add the path to the "plugins" folder to sys.path
 # Assuming the "calibration-dag" directory is the parent directory of your DAGs folder.
@@ -193,12 +191,6 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             python_callable=airflow_wrapper,
             op_kwargs=task_params_manager['AddFoldIdToNormalizedDataPortfolioWeekly'],
         )
-
-    all_tasks = dag.get_leaves()
-    for task in all_tasks:
-        task.on_success_callback = send_message
-        task.on_failure_callback = send_message
-        logging.info(f'Setup callbacks for {task.task_id}')
 
     GenerateGANResults >> MergeGANResults >> IntermediateModelTraining >> MergeSignal >> GetAdjustmentFactors >> GetRawPrices >> PopulationSplit >> Residualization >> ResidualizedStandardization >> AddFoldIdToNormalizedDataPortfolioWeekly
 
