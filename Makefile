@@ -15,8 +15,8 @@ web:
 
 build:
 	docker build -t base_docker:latest -f src/base.Dockerfile .
-# 	docker build -t intermediate_training_image:latest -f src_2/Dockerfile .
-# 	docker build -t gan_image:latest -f src/Dockerfile .
+ 	docker build -t intermediate_training_image:latest -f src_2/Dockerfile .
+ 	docker build -t gan_image:latest -f src/Dockerfile .
 
 deploy:
 	$(get_credentials)
