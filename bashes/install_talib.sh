@@ -1,5 +1,7 @@
 #!/bin/bash
 
+apt-get update && apt-get install -y gcc wget build-essential
+
 wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
 
 tar -xzf ta-lib-0.4.0-src.tar.gz
