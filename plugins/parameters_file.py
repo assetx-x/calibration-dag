@@ -409,7 +409,7 @@ from transformation_step import (
 create_yahoo_daily_price_rolling =DataFormatter(class_=CreateYahooDailyPriceRolling,
              class_parameters={'rolling_interval':5},
              provided_data={'Transformation':['yahoo_daily_price_rolling']},
-             required_data={'DataPull':['yahoo_daily_price_data']})
+             required_data={'DataPull':['etf_prices']})
 
 
 transform_economic_data_weekly =DataFormatter(class_=TransformEconomicDataWeekly,
