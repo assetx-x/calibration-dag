@@ -386,7 +386,7 @@ filter_monthly_dates_full_pop = DataFormatter(class_=FilterMonthlyDatesFullPopul
         'start_date':"2000-03-15",
         'end_date':RUN_DATE},
              provided_data={'FilterDatesSingleNames':['monthly_merged_data','weekly_merged_data']},
-             required_data={'QuantamentalMerge':['merge_step']})
+             required_data={'QuantamentalMerge':['merged_data']})
 
 
 create_monthly_data_single_names = DataFormatter(class_=CreateMonthlyDataSingleNamesWeekly,
