@@ -14,10 +14,11 @@ import gcsfs
 
 import os
 
+load_dotenv()
+
 from plugins.sms_send.twillio_send import send_message
 from parameters_file import PARAMS_DICTIONARY
 
-load_dotenv()
 
 # Add the path to the "plugins" folder to sys.path
 # Assuming the "calibration-dag" directory is the parent directory of your DAGs folder.
