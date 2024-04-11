@@ -108,91 +108,14 @@ task_params_manager = transform_params(PARAMS_DICTIONARY)
 """ Calibration Process"""
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
 
-
-    with TaskGroup("GenerateGANResults", tooltip="GenerateGANResults") as GenerateGANResults:
-        ExtractGANFactors = DockerOperator(
-            task_id="ExtractGANFactors",
-            container_name='task__generate_gan',
-            command="echo 'RUNNING GAN STEP'",
-            api_version='auto',
-            auto_remove='success',
-            image='gan_image',
-            network_mode='host',
-        )
-
-    with TaskGroup("MergeGANResults", tooltip="MergeGANResults") as MergeGANResults:
-        ConsolidateGANResultsWeekly = PythonOperator(
-            task_id="ConsolidateGANResultsWeekly",
+    with TaskGroup("EconData", tooltip="EconData") as EconData:
+        DownloadEconomicData = PythonOperator(
+            task_id="DownloadEconomicData",
             python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['ConsolidateGANResultsWeekly'],
+            op_kwargs=task_params_manager['DownloadEconomicData']
         )
 
-        AddFoldIdToGANResultDataWeekly = PythonOperator(
-            task_id="AddFoldIdToGANResultDataWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['AddFoldIdToGANResultDataWeekly'],
-        )
 
-    with TaskGroup("IntermediateModelTraining", tooltip="IntermediateModelTraining") as IntermediateModelTraining:
-        TrainIntermediateModelsWeekly = PythonOperator(
-            task_id="TrainIntermediateModelsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['TrainIntermediateModelsWeekly'],
-        )
-
-    with TaskGroup("MergeSignal", tooltip="MergeSignal") as MergeSignal:
-        QuantamentalMergeSignalsWeekly = PythonOperator(
-            task_id="QuantamentalMergeSignalsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['QuantamentalMergeSignalsWeekly'],
-        )
-
-    with TaskGroup(
-            "GetAdjustmentFactors",
-            tooltip="GetAdjustmentFactors"
-    ) as GetAdjustmentFactors:
-        SQLReaderAdjustmentFactors = PythonOperator(
-            task_id="SQLReaderAdjustmentFactors",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['SQLReaderAdjustmentFactors'],
-        )
-
-    with TaskGroup("GetRawPrices", tooltip="GetRawPrices") as GetRawPrices:
-        CalculateRawPrices = PythonOperator(
-            task_id="CalculateRawPrices",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['CalculateRawPrices'],
-        )
-
-    with TaskGroup("PopulationSplit", tooltip="PopulationSplit") as PopulationSplit:
-        FilterRussell1000AugmentedWeekly = PythonOperator(
-            task_id="FilterRussell1000AugmentedWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['FilterRussell1000AugmentedWeekly'],
-        )
-
-    with TaskGroup("Residualization", tooltip="Residualization") as Residualization:
-        FactorNeutralizationForStackingWeekly = PythonOperator(
-            task_id="FactorNeutralizationForStackingWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['FactorNeutralizationForStackingWeekly'],
-        )
-
-    with TaskGroup("ResidualizedStandardization", tooltip="ResidualizedStandardization") as ResidualizedStandardization:
-        FactorStandardizationNeutralizedForStackingWeekly = PythonOperator(
-            task_id="FactorStandardizationNeutralizedForStackingWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['FactorStandardizationNeutralizedForStackingWeekly'],
-        )
-
-    with TaskGroup("AddFinalFoldId", tooltip="AddFinalFoldId") as AddFinalFoldId:
-        AddFoldIdToNormalizedDataPortfolioWeekly = PythonOperator(
-            task_id="AddFoldIdToNormalizedDataPortfolioWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['AddFoldIdToNormalizedDataPortfolioWeekly'],
-        )
-
-    GenerateGANResults >> MergeGANResults >> IntermediateModelTraining >> MergeSignal >> GetAdjustmentFactors >> GetRawPrices >> PopulationSplit >> Residualization >> ResidualizedStandardization >> AddFoldIdToNormalizedDataPortfolioWeekly
 
 
 if __name__ == '__main__':
