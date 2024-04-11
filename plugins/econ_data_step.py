@@ -78,20 +78,19 @@ class DownloadEconomicData(DataReaderClass):
         econ_trans = kwargs["econ_transformation"]
         data_names = self._create_data_names(econ_trans)
         for etf_name in self.sector_etfs:
-            data_names.pop(etf_name + "_close")
-            data_names.pop(etf_name + "_volume")
+            data_names.pop(etf_name + "_close", None)  # Use .pop(key, None) to avoid KeyError if key does not exist
+            data_names.pop(etf_name + "_volume", None)
         all_data = []
         for concept in data_names:
             try:
                 if self.use_latest:
                     data = self.fred_connection.get_series(concept)
                 else:
+                    # Special handling for 'SP500'
                     if concept != 'SP500':
-                        # try to fetch the first-release data first for a Fred series to avoid any look ahead bias
-                        # if some problem, then look for the latest known data for the series
                         try:
                             data = self.fred_connection.get_series_first_release(concept)
-                        except:
+                        except Exception as e:
                             data = self.fred_connection.get_series_latest_release(concept)
                     else:
                         data = self.fred_connection.get_series(concept)
@@ -101,9 +100,25 @@ class DownloadEconomicData(DataReaderClass):
                 data = data.to_frame()
                 data = data.groupby(data.index).last()
                 all_data.append(data)
-            except Exception:
-                # print(e)
+            except Exception as e:
                 print("****** PROBLEM WITH : {0}".format(concept))
+
+        # Check if 'WPSFD49502' data is missing after the initial download attempts
+        if 'WPSFD49502' not in [d.columns[0] for d in all_data]:
+            # Try to download 'WPSFD49502' one more time
+            try:
+                data = self.fred_connection.get_series(
+                    'WPSFD49502') if self.use_latest else self.fred_connection.get_series_first_release('WPSFD49502')
+                data = data.loc[self.start_date:self.end_date]
+                data.name = 'WPSFD49502'
+                data.index = data.index.normalize()
+                data = data.to_frame()
+                data = data.groupby(data.index).last()
+                all_data.append(data)
+            except Exception as e:
+                # If there's an error in the second attempt, raise an exception
+                raise Exception("Failed to download 'WPSFD49502' on the second attempt.")
+
         result = pd.concat(all_data, axis=1)
         result = result.loc[list(map(lambda x: marketTimeline.isTradingDay(x), result.index))]
         result = result.fillna(method="ffill")
