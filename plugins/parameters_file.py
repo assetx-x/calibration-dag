@@ -558,11 +558,9 @@ from merge_gan_results_step import ConsolidateGANResultsWeekly,AddFoldIdToGANRes
 #TODO :This step writes the same data to different place twice, should remove later to conserve space
 consolidate_gan_results_weekly = DataFormatter(class_=ConsolidateGANResultsWeekly,
              class_parameters={},
-             provided_data={'MergeGANResults':['company_data_rf',
-                                              'company_data_rf_weekly'
+             provided_data={'MergeGANResults':['company_data_rf','company_data_rf_weekly'
                                                      ]},
-             required_data={'SaveGANInputs':['company_data',
-                                         'company_data_weekly']
+             required_data={'SaveGANInputs':['company_data','company_data_weekly']
                             })
 
 
@@ -570,8 +568,7 @@ add_fold_id_to_gan_results_weekly = DataFormatter(class_=AddFoldIdToGANResultDat
              class_parameters={'cut_dates' : ["2003-10-31", "2007-08-31", "2011-06-30", "2015-04-30", "2019-02-28", "2023-02-03"]},
              provided_data={'MergeGANResults':['normalized_data_full_population_with_foldId',
                                                'normalized_data_full_population_with_foldId_weekly']},
-             required_data={'MergeGANResults':['company_data_rf',
-                                         'company_data_rf_weekly']
+             required_data={'MergeGANResults':['company_data_rf','company_data_rf_weekly']
                             })
 
 
