@@ -181,6 +181,7 @@ class FilterRussell1000AugmentedWeekly(FilterRussell1000Augmented):
         marketcap['date'] = marketcap['date'].apply(pd.Timestamp)
         data_to_filter_weekly['date'] = data_to_filter_weekly['date'].apply(pd.Timestamp)
         data_to_filter_monthly['date'] = data_to_filter_monthly['date'].apply(pd.Timestamp)
+        russell_components['date'] = russell_components['date'].apply(pd.Timestamp)
 
 
         raw_prices["date"] = raw_prices["date"].apply(lambda x: marketTimeline.get_trading_day_using_offset(x, 1))
