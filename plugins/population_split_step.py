@@ -79,30 +79,35 @@ class FilterRussell1000Augmented(DataReaderClass):
             univ_part1 = univ[univ['wt-r1g'] > 0].reset_index(drop=True)
             existing_tickers = univ_part1['ticker'].unique().tolist()
             future_univ = univ[(univ.date > '2023-03-06') & (univ.ticker.isin(existing_tickers))]
-            univ = univ_part1.append(future_univ)
+            univ = pd.concat([univ_part1, future_univ], ignore_index=True)
+            #univ = univ_part1.append(future_univ)
 
         elif mode == "value":
             univ_part1 = univ[univ['wt-r1v'] > 0].reset_index(drop=True)
             existing_tickers = univ_part1['ticker'].unique().tolist()
             future_univ = univ[(univ.date > '2023-03-06') & (univ.ticker.isin(existing_tickers))]
-            univ = univ_part1.append(future_univ)
+            univ = pd.concat([univ_part1, future_univ], ignore_index=True)
+            #univ = univ_part1.append(future_univ)
 
         elif mode == "largecap_growth":
             univ_part1 = univ[(univ['wt-r1g'] > 0) & marketcap_filter].reset_index(drop=True)
             existing_tickers = univ_part1['ticker'].unique().tolist()
             future_univ = univ[(univ.date > '2023-03-06') & (univ.ticker.isin(existing_tickers))]
-            univ = univ_part1.append(future_univ)
+            univ = pd.concat([univ_part1, future_univ], ignore_index=True)
+            #univ = univ_part1.append(future_univ)
 
         elif mode == "largecap_value":
             univ_part1 = univ[(univ['wt-r1v'] > 0) & marketcap_filter].reset_index(drop=True)
             existing_tickers = univ_part1['ticker'].unique().tolist()
             future_univ = univ[(univ.date > '2023-03-06') & (univ.ticker.isin(existing_tickers))]
-            univ = univ_part1.append(future_univ)
+            univ = pd.concat([univ_part1, future_univ], ignore_index=True)
+            #univ = univ_part1.append(future_univ)
         else:
             univ_part1 = univ[univ['wt-r1'] > 0].reset_index(drop=True)
             existing_tickers = univ_part1['ticker'].unique().tolist()
             future_univ = univ[(univ.date > '2023-03-06') & (univ.ticker.isin(existing_tickers))]
-            univ = univ_part1.append(future_univ)
+            univ = pd.concat([univ_part1, future_univ], ignore_index=True)
+            #univ = univ_part1.append(future_univ)
 
         univ["ticker"] = univ["ticker"].astype(int)
         univ.drop_duplicates(subset=['date', 'ticker'], inplace=True)
