@@ -1,6 +1,9 @@
 from datetime import datetime, timedelta
 from airflow import DAG
-from airflow.providers.google.cloud.operators.bigquery import BigQueryGetDataOperator, BigQueryInsertJobOperator
+from airflow.providers.google.cloud.operators.bigquery import (
+    BigQueryGetDataOperator,
+    BigQueryInsertJobOperator,
+)
 from airflow.utils.dates import days_ago
 
 default_args = {
@@ -14,7 +17,9 @@ default_args = {
 dag = DAG(
     'bigquery_data_transfer',
     default_args=default_args,
-    schedule_interval=timedelta(days=1),  # Set the schedule interval as per your requirement
+    schedule_interval=timedelta(
+        days=1
+    ),  # Set the schedule interval as per your requirement
 )
 
 extract_data_task = BigQueryGetDataOperator(

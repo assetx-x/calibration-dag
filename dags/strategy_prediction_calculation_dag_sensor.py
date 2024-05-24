@@ -1,9 +1,15 @@
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.models import Variable
-from airflow.providers.google.cloud.sensors.gcs import GCSObjectExistenceSensor, GCSObjectUpdateSensor
+from airflow.providers.google.cloud.sensors.gcs import (
+    GCSObjectExistenceSensor,
+    GCSObjectUpdateSensor,
+)
 
-from dags.strategy_prediction_calculation_dag import GS_BUCKET_NAME, list_files_in_bucket
+from dags.strategy_prediction_calculation_dag import (
+    GS_BUCKET_NAME,
+    list_files_in_bucket,
+)
 
 STRATEGY_PATH_BLOB = Variable.get('STRATEGY_PATH_BLOB', 'api_v2_storage/strategies/*')
 
@@ -19,7 +25,7 @@ dag = DAG(
     'gcp_sensor_dag',
     description='GCP Sensor Prediction Calculation. Triggered by a csv file inside the bucket, and send via API to DB',
     default_args=default_args,
-    schedule_interval=timedelta(minutes=5)
+    schedule_interval=timedelta(minutes=5),
 )
 
 
@@ -43,13 +49,13 @@ def create_gcs_file_sensor(obj):
         bucket=GS_BUCKET_NAME,
         object=obj,
         dag=dag,
-        ts_func=list_files_in_bucket
+        ts_func=list_files_in_bucket,
     )
 
 
 [
     create_gcs_file_sensor('growth_predictions_test.csv'),
-    create_gcs_file_sensor('largecap_growth_predictions_test.csv')
+    create_gcs_file_sensor('largecap_growth_predictions_test.csv'),
 ]
 
 

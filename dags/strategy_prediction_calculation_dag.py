@@ -94,7 +94,7 @@ def threaded_post_data_recursively(f_name, to_iterate_dict, t):
         total=3,
         status_forcelist=[401, 429, 500, 502, 503, 504],
         allowed_methods=["HEAD", "GET", "OPTIONS", "POST"],
-        backoff_factor=0.1
+        backoff_factor=0.1,
     )
     adapter = HTTPAdapter(max_retries=retry_strategy)
     http = requests.Session()
@@ -116,15 +116,14 @@ def threaded_post_data_recursively(f_name, to_iterate_dict, t):
                         'Authorization': f'Bearer {_t}',
                     },
                 )
-                print(f'[*] API POST response: [{response.status_code}] {response.content}')
+                print(
+                    f'[*] API POST response: [{response.status_code}] {response.content}'
+                )
                 print(f' calculator {key}')
 
     with ThreadPoolExecutor(max_workers=4) as executor:
         future = executor.submit(
-            post_data_recursively,
-            f_name,
-            to_iterate_dict,
-            t, http
+            post_data_recursively, f_name, to_iterate_dict, t, http
         )
 
 

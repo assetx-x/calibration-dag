@@ -1,7 +1,6 @@
-from ax_gcp_functions import get_security_master_full,v3_feature_importance_edit
+from ax_gcp_functions import get_security_master_full, v3_feature_importance_edit
 
 from dotenv import load_dotenv
-
 
 
 load_dotenv()
@@ -55,18 +54,23 @@ def main():
 
     for sec_id in security_ids:
         try:
-            ticker = security_master[(security_master.dcm_security_id == sec_id)]['ticker'].iloc[0]
-            sector = security_master[(security_master.dcm_security_id == sec_id)]['Sector'].iloc[0]
+            ticker = security_master[(security_master.dcm_security_id == sec_id)][
+                'ticker'
+            ].iloc[0]
+            sector = security_master[(security_master.dcm_security_id == sec_id)][
+                'Sector'
+            ].iloc[0]
 
             fi, model_type = v3_feature_importance_edit(sec_id)
 
             # prediction,model_type = grab_single_name_prediction('value', sec_id)
 
-            pred_dict = {'ticker': ticker,
-                         'sec_id': sec_id,
-                         'model_type': model_type,
-                         'sector': sector
-                         }
+            pred_dict = {
+                'ticker': ticker,
+                'sec_id': sec_id,
+                'model_type': model_type,
+                'sector': sector,
+            }
             holding_dictionary.append(pred_dict)
             print(ticker)
 
@@ -74,18 +78,14 @@ def main():
             pass
 
     holding_df = pd.DataFrame(holding_dictionary)
-    path="gs://dcm-prod-ba2f-us-dcm-data-test/alex/feature_importance_mapper_df.csv"
+    path = "gs://dcm-prod-ba2f-us-dcm-data-test/alex/feature_importance_mapper_df.csv"
     holding_df.to_csv(path)
     print('data written')
 
 
-
-with DAG(dag_id="populate_feature_importance_mapper",start_date=days_ago(1)) as dag:
+with DAG(dag_id="populate_feature_importance_mapper", start_date=days_ago(1)) as dag:
 
     tart_task = PythonOperator(
         task_id="mapper",
         python_callable=main,
     )
-
-
-

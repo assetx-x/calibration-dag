@@ -1,11 +1,13 @@
-from ax_gcp_functions import (get_security_master_full,
-                              v3_feature_importance_edit,
-                              grab_single_name_prediction,
-                              pull_single_name_returns,
-                              get_company_information_from_ticker,
-                              fetch_raw_data,
-                              grab_multiple_predictions,
-                              get_ticker_from_security_id_mapper)
+from ax_gcp_functions import (
+    get_security_master_full,
+    v3_feature_importance_edit,
+    grab_single_name_prediction,
+    pull_single_name_returns,
+    get_company_information_from_ticker,
+    fetch_raw_data,
+    grab_multiple_predictions,
+    get_ticker_from_security_id_mapper,
+)
 
 from ax_feature_importance_helpers import factor_grouping
 
@@ -16,10 +18,10 @@ from ax_miscellaneous_utils import (
     convert_and_round,
     plotly_area_graph_data,
     plotly_area_graph_data_overall,
-    image_fetch)
+    image_fetch,
+)
 
 from dotenv import load_dotenv
-
 
 
 load_dotenv()
@@ -46,13 +48,15 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = json_auth_file
 os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
 print(f"GOOGLE_APPLICATION_CREDENTIALS: {os.environ['GOOGLE_APPLICATION_CREDENTIALS']}")
 print(f"GCS_BUCKET: {os.environ['GCS_BUCKET']}")
-formal_name_mapper_path = os.path.join('plugins', 'data_processing', 'variable_names_formatted_updated.csv')
+formal_name_mapper_path = os.path.join(
+    'plugins', 'data_processing', 'variable_names_formatted_updated.csv'
+)
 
 formal_name_mapper = (
-            pd.read_csv(formal_name_mapper_path)
-            .set_index(["variable_names"])["interpretable_names"]
-            .to_dict()
-        )
+    pd.read_csv(formal_name_mapper_path)
+    .set_index(["variable_names"])["interpretable_names"]
+    .to_dict()
+)
 
 
 growth_factors = [
@@ -168,6 +172,7 @@ MAPPING_DICTIONARY = {
     "Other Factors": other_factors,
 }
 
+
 def signal_to_sentence(signal, feature_importance, ticker):
     signal_text_dict = {
         4: "very bullish",
@@ -176,6 +181,7 @@ def signal_to_sentence(signal, feature_importance, ticker):
         1: "bearish",
         0: "very bearish",
     }
+
 
 def format_comparables(ticker, info):
     company = get_object_or_404(Company, ticker__name=ticker)
@@ -190,36 +196,38 @@ def format_comparables(ticker, info):
 
 
 class CreateInsights(object):
-    def __init__(self,ticker,security_id):
+    def __init__(self, ticker, security_id):
         self.ticker = ticker
         self.security_id = security_id
-        #self.feature_importance = None
+        # self.feature_importance = None
 
     def retrieve_feature_importance(self):
-        fi ,model_type= v3_feature_importance_edit(self.security_id)
+        fi, model_type = v3_feature_importance_edit(self.security_id)
         self.model_type = model_type
         fi['date'] = [i.strftime('%Y-%m-%d') for i in fi['date']]
-        fi.set_index(['date','ticker'],inplace=True)
+        fi.set_index(['date', 'ticker'], inplace=True)
         return fi
 
-    def format_feature_importance(self,feature_importance):
-        return factor_grouping(
-            feature_importance, MAPPING_DICTIONARY
-        )
+    def format_feature_importance(self, feature_importance):
+        return factor_grouping(feature_importance, MAPPING_DICTIONARY)
 
-    def fetch_predictions(self,model_type):
+    def fetch_predictions(self, model_type):
         return grab_single_name_prediction(model_type, self.security_id)
 
     def fetch_pnl(self):
-        single_name_returns = pull_single_name_returns(self.ticker,end='2022-01-01')
+        single_name_returns = pull_single_name_returns(self.ticker, end='2022-01-01')
         # single_name_returns.set_index(['date'], inplace=True)
-        single_name_returns.index = [i.strftime('%Y-%m-%d') for i in single_name_returns.index]
-        ticker_pnl= single_name_returns['ret_1B']
+        single_name_returns.index = [
+            i.strftime('%Y-%m-%d') for i in single_name_returns.index
+        ]
+        ticker_pnl = single_name_returns['ret_1B']
         LINESERIES = [{'time': k, 'value': ticker_pnl.loc[k]} for k in ticker_pnl.index]
 
         return LINESERIES
 
-    def construct_feature_importance_waterfall(self,feature_importance,feature_importance_grouped,expected_value):
+    def construct_feature_importance_waterfall(
+        self, feature_importance, feature_importance_grouped, expected_value
+    ):
         plotly_waterfall_graph_dictionary = {
             k: prediction_waterfall_ploty(
                 feature_importance,
@@ -229,24 +237,29 @@ class CreateInsights(object):
             for k in MAPPING_DICTIONARY.keys()
         }
 
-        plotly_waterfall_graph_dictionary[
-            "Overall"
-        ] = prediction_waterfall_plotly_full(
+        plotly_waterfall_graph_dictionary["Overall"] = prediction_waterfall_plotly_full(
             feature_importance_grouped, expected_value
         )
 
         return plotly_waterfall_graph_dictionary
 
-    def construct_feature_importance_area(self,feature_importance_absolute,feature_importance_absolute_grouped):
-        plotly_area_graph_dictionary = {k: plotly_area_graph_data(feature_importance_absolute[MAPPING_DICTIONARY[k]],
-                                                                  formal_name_mapper) for k in MAPPING_DICTIONARY.keys()
-                                        }
+    def construct_feature_importance_area(
+        self, feature_importance_absolute, feature_importance_absolute_grouped
+    ):
+        plotly_area_graph_dictionary = {
+            k: plotly_area_graph_data(
+                feature_importance_absolute[MAPPING_DICTIONARY[k]], formal_name_mapper
+            )
+            for k in MAPPING_DICTIONARY.keys()
+        }
 
-        plotly_area_graph_dictionary["Overall"] =plotly_area_graph_data_overall(feature_importance_absolute_grouped)
+        plotly_area_graph_dictionary["Overall"] = plotly_area_graph_data_overall(
+            feature_importance_absolute_grouped
+        )
 
         return plotly_area_graph_dictionary
 
-    def factor_attribution(self,fi_grouped_raw):
+    def factor_attribution(self, fi_grouped_raw):
         return {
             "current": {
                 key: round(value * 100, 2)
@@ -258,30 +271,25 @@ class CreateInsights(object):
             },
         }
 
-    def factor_contribution(self,fi_grouped_exposure_mean_date,value_shap,similar_companies_sec_ids):
-
+    def factor_contribution(
+        self, fi_grouped_exposure_mean_date, value_shap, similar_companies_sec_ids
+    ):
 
         expsoure_mean_sum_axis = fi_grouped_exposure_mean_date.sum(axis=1)
-        percentage_df = fi_grouped_exposure_mean_date.div(expsoure_mean_sum_axis, axis=0)
+        percentage_df = fi_grouped_exposure_mean_date.div(
+            expsoure_mean_sum_axis, axis=0
+        )
 
         longitudinal_percentages_average = (
-                percentage_df.iloc[-1]
-                .apply(convert_and_round)
-                .astype(str)
-                + "%"
+            percentage_df.iloc[-1].apply(convert_and_round).astype(str) + "%"
         )
 
         longitudinal_percentages_average_global = (
-                percentage_df.mean().apply(convert_and_round).astype(str)
-                + "%"
+            percentage_df.mean().apply(convert_and_round).astype(str) + "%"
         )
 
         sector_fi = value_shap[
-            (
-                value_shap.index.get_level_values(1).isin(
-                    similar_companies_sec_ids
-                )
-            )
+            (value_shap.index.get_level_values(1).isin(similar_companies_sec_ids))
         ]
         numeric_columns = sector_fi.select_dtypes(include=[np.number]).columns
         sector_fi = sector_fi[numeric_columns]
@@ -290,39 +298,35 @@ class CreateInsights(object):
             sector_fi, MAPPING_DICTIONARY
         )
 
-        sector_fi_grouped_exposure_mean_date = (
-            sector_fi_grouped_exposure.groupby(["date"]).mean()
-        )
+        sector_fi_grouped_exposure_mean_date = sector_fi_grouped_exposure.groupby(
+            ["date"]
+        ).mean()
         sector_expsoure_mean_sum_axis = sector_fi_grouped_exposure_mean_date.sum(axis=1)
-        percentage_df_sector = sector_fi_grouped_exposure_mean_date.div(sector_expsoure_mean_sum_axis, axis=0)
+        percentage_df_sector = sector_fi_grouped_exposure_mean_date.div(
+            sector_expsoure_mean_sum_axis, axis=0
+        )
 
         sector_longitudinal_percentages_average = (
-                percentage_df_sector.iloc[-1]
-                .apply(convert_and_round)
-                .astype(str)
-                + "%"
+            percentage_df_sector.iloc[-1].apply(convert_and_round).astype(str) + "%"
         )
 
         sector_longitudinal_percentages_average_global = (
-                percentage_df_sector.mean()
-                .apply(convert_and_round)
-                .astype(str)
-                + "%"
+            percentage_df_sector.mean().apply(convert_and_round).astype(str) + "%"
         )
 
         factor_contribution = {}
-        factor_contribution[
-            "current_contribution"
-        ] = longitudinal_percentages_average.to_dict()
-        factor_contribution[
-            "historical_contribution"
-        ] = longitudinal_percentages_average_global.to_dict()
-        factor_contribution[
-            "sector_current_contribution"
-        ] = sector_longitudinal_percentages_average.to_dict()
-        factor_contribution[
-            "sector_historical_contribution"
-        ] = sector_longitudinal_percentages_average_global.to_dict()
+        factor_contribution["current_contribution"] = (
+            longitudinal_percentages_average.to_dict()
+        )
+        factor_contribution["historical_contribution"] = (
+            longitudinal_percentages_average_global.to_dict()
+        )
+        factor_contribution["sector_current_contribution"] = (
+            sector_longitudinal_percentages_average.to_dict()
+        )
+        factor_contribution["sector_historical_contribution"] = (
+            sector_longitudinal_percentages_average_global.to_dict()
+        )
 
         return factor_contribution
 
@@ -332,25 +336,18 @@ class CreateInsights(object):
             "dcm_security_id"
         ].values.tolist()
 
-        return similar_companies_sector,similar_companies_sec_ids
+        return similar_companies_sector, similar_companies_sec_ids
 
-    def sector_comparables(self,similar_companies_sector,similar_companies_sec_ids):
+    def sector_comparables(self, similar_companies_sector, similar_companies_sec_ids):
 
-
-        sector_signals = grab_multiple_predictions(
-            "value", similar_companies_sec_ids
-        )
+        sector_signals = grab_multiple_predictions("value", similar_companies_sec_ids)
         sector_signals_terminal_date = sector_signals.date.iloc[-1]
         top_sector_signals = sector_signals[
             (sector_signals.date == sector_signals_terminal_date)
             & (sector_signals.ensemble_qt == 4)
-            ]
+        ]
         filtered_sector_selections = similar_companies_sector[
-            (
-                similar_companies_sector.dcm_security_id.isin(
-                    top_sector_signals.ticker
-                )
-            )
+            (similar_companies_sector.dcm_security_id.isin(top_sector_signals.ticker))
         ]
         leng_filtered = len(filtered_sector_selections)
         comparibles = filtered_sector_selections.sample(
@@ -362,14 +359,16 @@ class CreateInsights(object):
             {k: format_comparables(k, comparibles) for k in comparibles.index}
         ]
 
-        ai_comparables = [(formatted_comparibles[0][i]['ticker'],
-                           formatted_comparibles[0][i]) for i in formatted_comparibles[0].keys()]
+        ai_comparables = [
+            (formatted_comparibles[0][i]['ticker'], formatted_comparibles[0][i])
+            for i in formatted_comparibles[0].keys()
+        ]
 
         return ai_comparables
 
-    def get_raw_feature_summary(self,feature_importance):
+    def get_raw_feature_summary(self, feature_importance):
         raw_data = fetch_raw_data(self.security_id).sort_values(by=['date'])
-        raw_data.set_index(['date','ticker'],inplace=True)
+        raw_data.set_index(['date', 'ticker'], inplace=True)
         recent_values = raw_data.iloc[-2].fillna(0)
         recent_feature_importance = feature_importance.iloc[-1].fillna(0)
 
@@ -377,35 +376,46 @@ class CreateInsights(object):
         for k in MAPPING_DICTIONARY.keys():
             sub_dictionary = {}
             features = MAPPING_DICTIONARY[k]
-            top_factors_group = abs(feature_importance[features]).iloc[-1].sort_values(ascending=False)[0:3].index.tolist()
-            subfactor_df = feature_importance[features].iloc[-1].sort_values(ascending=False)[
-                                0:3].index.tolist()
+            top_factors_group = (
+                abs(feature_importance[features])
+                .iloc[-1]
+                .sort_values(ascending=False)[0:3]
+                .index.tolist()
+            )
+            subfactor_df = (
+                feature_importance[features]
+                .iloc[-1]
+                .sort_values(ascending=False)[0:3]
+                .index.tolist()
+            )
             raw_value_subset = raw_data[features].iloc[-2]
             for factor in top_factors_group:
-                sub_dictionary[formal_name_mapper[factor]] = [round(recent_values[factor],3),
-                                          is_positive_or_negative(recent_feature_importance[factor])]
+                sub_dictionary[formal_name_mapper[factor]] = [
+                    round(recent_values[factor], 3),
+                    is_positive_or_negative(recent_feature_importance[factor]),
+                ]
 
             dictionary_results[k] = sub_dictionary
 
+        return (dictionary_results,)
 
-        return dictionary_results,
-
-    def get_insight_overview(self,fi):
+    def get_insight_overview(self, fi):
         signal = grab_single_name_prediction(self.model_type, self.security_id)
-        bull_ratio,bear_ratio = compute_percentages_hit_ratio(signal)
+        bull_ratio, bear_ratio = compute_percentages_hit_ratio(signal)
 
         current_signal = signal['ensemble_qt'].iloc[-1]
-        past_occurances = len(signal[(signal['ensemble_qt']==current_signal)])
+        past_occurances = len(signal[(signal['ensemble_qt'] == current_signal)])
 
-        return {'cross_sectional_rank':float(current_signal),
-         'hit_ratio_bull':str(round((bull_ratio*100),2)),
-         'hit_ratio_bear': str(round((bear_ratio*100),2)),
-         'past_occurances':float(past_occurances),
-                'sentence': signal_to_sentence(signal, fi, self.ticker)}
-
+        return {
+            'cross_sectional_rank': float(current_signal),
+            'hit_ratio_bull': str(round((bull_ratio * 100), 2)),
+            'hit_ratio_bear': str(round((bear_ratio * 100), 2)),
+            'past_occurances': float(past_occurances),
+            'sentence': signal_to_sentence(signal, fi, self.ticker),
+        }
 
     def get_news(self):
-        return [["News",'Coming Soon']*10]
+        return [["News", 'Coming Soon'] * 10]
 
 
 def compute_percentages_hit_ratio(df):
@@ -419,8 +429,9 @@ def compute_percentages_hit_ratio(df):
 
     return percentage_4_positive, percentage_0_negative
 
+
 def is_positive_or_negative(val):
-    if val >0:
+    if val > 0:
         return 'Positive'
     else:
         return 'Negative'
@@ -454,7 +465,9 @@ def load_data():
 def main():
     security_ids = load_data()
 
-    dictionary_mapper = get_ticker_from_security_id_mapper(security_ids)['ticker'].to_dict()
+    dictionary_mapper = get_ticker_from_security_id_mapper(security_ids)[
+        'ticker'
+    ].to_dict()
 
     security_master = get_security_master_full()
     value_shap = pd.read_csv(
@@ -468,23 +481,34 @@ def main():
             insight_object = CreateInsights(name, sec)
             feature_importance = insight_object.retrieve_feature_importance()
             pnl = insight_object.fetch_pnl()
-            feature_importance_absolute_val, feature_importance_raw = insight_object.format_feature_importance(
-                feature_importance)
+            feature_importance_absolute_val, feature_importance_raw = (
+                insight_object.format_feature_importance(feature_importance)
+            )
             waterfall = insight_object.construct_feature_importance_waterfall(
                 feature_importance.groupby(["date"]).sum(),
                 feature_importance_raw.groupby(["date"]).sum(),
-                -0.04)
+                -0.04,
+            )
 
             area_plot = insight_object.construct_feature_importance_area(
                 abs(feature_importance).groupby(["date"]).sum(),
-                feature_importance_raw.groupby(["date"]).sum())
+                feature_importance_raw.groupby(["date"]).sum(),
+            )
 
-            factor_attribution = insight_object.factor_attribution(feature_importance_raw)
-            similar_companies_sector, similar_companies_sec_ids = insight_object.get_sector_cohort()
-            factor_contribution = insight_object.factor_contribution(feature_importance_raw.groupby(['date']).sum(),
-                                                                     value_shap, similar_companies_sec_ids)
-            comparable_recommendations = insight_object.sector_comparables(similar_companies_sector,
-                                                                           similar_companies_sec_ids)
+            factor_attribution = insight_object.factor_attribution(
+                feature_importance_raw
+            )
+            similar_companies_sector, similar_companies_sec_ids = (
+                insight_object.get_sector_cohort()
+            )
+            factor_contribution = insight_object.factor_contribution(
+                feature_importance_raw.groupby(['date']).sum(),
+                value_shap,
+                similar_companies_sec_ids,
+            )
+            comparable_recommendations = insight_object.sector_comparables(
+                similar_companies_sector, similar_companies_sec_ids
+            )
             insight_overview = insight_object.get_insight_overview(feature_importance)
             key_values = insight_object.get_raw_feature_summary(feature_importance)
             news = insight_object.get_news()
