@@ -27,7 +27,7 @@ up:
 	@echo "\n[ ] SHUTTING DOWN SERVICES\n"
 	docker compose down --volumes --rmi all
 	@echo "\n[ ] PULLING CHANGES FROM GIT\n"
- 	sudo git pull
+	 sudo git pull
 	@echo "\n[ ] RUNNING AIRFLOW CONTAINER\n"
 	docker compose up --build -d
 	@echo "\n[ ] DONE\n"
