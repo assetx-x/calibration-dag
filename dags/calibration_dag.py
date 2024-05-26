@@ -346,150 +346,150 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #         execution_timeout=timedelta(minutes=150),
     #     )
 
-    with TaskGroup("FilterDatesSingleNames", tooltip="FilterDatesSingleNames") as FilterDatesSingleNames:
-        FilterMonthlyDatesFullPopulationWeekly = PythonOperator(
-            task_id="FilterMonthlyDatesFullPopulationWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['FilterMonthlyDatesFullPopulationWeekly']
-        )
-
-        CreateMonthlyDataSingleNamesWeekly = PythonOperator(
-            task_id="CreateMonthlyDataSingleNamesWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['CreateMonthlyDataSingleNamesWeekly']
-        )
-
-        FilterMonthlyDatesFullPopulationWeekly >> CreateMonthlyDataSingleNamesWeekly
-
-    with TaskGroup("Transformation", tooltip="Transformation") as Transformation:
-        CreateYahooDailyPriceRolling = PythonOperator(
-            task_id="CreateYahooDailyPriceRolling",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['CreateYahooDailyPriceRolling']
-        )
-
-        TransformEconomicDataWeekly = PythonOperator(
-            task_id="TransformEconomicDataWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['TransformEconomicDataWeekly']
-        )
-
-        CreateIndustryAverageWeekly = PythonOperator(
-            task_id="CreateIndustryAverageWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['CreateIndustryAverageWeekly']
-        )
-
-        CreateYahooDailyPriceRolling >> TransformEconomicDataWeekly >> CreateIndustryAverageWeekly
-
-    with TaskGroup("MergeEcon", tooltip="MergeEcon") as MergeEcon:
-        QuantamentalMergeEconIndustryWeekly = PythonOperator(
-            task_id="QuantamentalMergeEconIndustryWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['QuantamentalMergeEconIndustryWeekly']
-        )
-
-    with TaskGroup("Standarization", tooltip="Standarization") as Standarization:
-        FactorStandardizationFullPopulationWeekly = PythonOperator(
-            task_id="FactorStandardizationFullPopulationWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['FactorStandardizationFullPopulationWeekly']
-        )
-
-    with TaskGroup("ActiveMatrix", tooltip="ActiveMatrix") as ActiveMatrix:
-        GenerateActiveMatrixWeekly = PythonOperator(
-            task_id="GenerateActiveMatrixWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['GenerateActiveMatrixWeekly']
-        )
-
-    with TaskGroup("AdditionalGanFeatures", tooltip="AdditionalGanFeatures") as AdditionalGanFeatures:
-        GenerateBMEReturnsWeekly = PythonOperator(
-            task_id="GenerateBMEReturnsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['GenerateBMEReturnsWeekly']
-        )
-
-    with TaskGroup("SaveGANInputs", tooltip="SaveGANInputs") as SaveGANInputs:
-        GenerateDataGANWeekly = PythonOperator(
-            task_id="GenerateDataGANWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['GenerateDataGANWeekly']
-        )
-
-    with TaskGroup(
-            "GenerateGANResults", tooltip="GenerateGANResults"
-    ) as GenerateGANResults:
-        ExtractGANFactors = DockerOperator(
-            task_id="ExtractGANFactors",
-            container_name='task__generate_gan',
-            command="echo 'RUNNING GAN STEP'",
-            # command=f"python generate_gan_results.py",
-            api_version='auto',
-            auto_remove='success',
-            image='gan_image',
-            network_mode='host',
-        )
-
-    with TaskGroup("MergeGANResults", tooltip="MergeGANResults") as MergeGANResults:
-        ConsolidateGANResultsWeekly = PythonOperator(
-            task_id="ConsolidateGANResultsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['ConsolidateGANResultsWeekly'],
-        )
-
-        AddFoldIdToGANResultDataWeekly = PythonOperator(
-            task_id="AddFoldIdToGANResultDataWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['AddFoldIdToGANResultDataWeekly'],
-        )
-
-    with TaskGroup("IntermediateModelTraining", tooltip="IntermediateModelTraining") as IntermediateModelTraining:
-        TrainIntermediateModelsWeekly = PythonOperator(
-            task_id="TrainIntermediateModelsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['TrainIntermediateModelsWeekly'],
-        )
-
-
-    with TaskGroup("MergeSignal", tooltip="MergeSignal") as MergeSignal:
-        QuantamentalMergeSignalsWeekly = PythonOperator(
-            task_id="QuantamentalMergeSignalsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['QuantamentalMergeSignalsWeekly'],
-        )
-
-    with TaskGroup("GetAdjustmentFactors", tooltip="GetAdjustmentFactors") as GetAdjustmentFactors:
-            SQLReaderAdjustmentFactors = PythonOperator(
-                task_id="SQLReaderAdjustmentFactors",
-                python_callable=airflow_wrapper,
-                op_kwargs=task_params_manager['SQLReaderAdjustmentFactors'],
-            )
-
-
-    with TaskGroup("GetRawPrices", tooltip="GetRawPrices") as GetRawPrices:
-            CalculateRawPrices = PythonOperator(
-                task_id="CalculateRawPrices",
-                python_callable=airflow_wrapper,
-                op_kwargs=task_params_manager['CalculateRawPrices'],
-            )
+    # with TaskGroup("FilterDatesSingleNames", tooltip="FilterDatesSingleNames") as FilterDatesSingleNames:
+    #     FilterMonthlyDatesFullPopulationWeekly = PythonOperator(
+    #         task_id="FilterMonthlyDatesFullPopulationWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['FilterMonthlyDatesFullPopulationWeekly']
+    #     )
+    #
+    #     CreateMonthlyDataSingleNamesWeekly = PythonOperator(
+    #         task_id="CreateMonthlyDataSingleNamesWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['CreateMonthlyDataSingleNamesWeekly']
+    #     )
+    #
+    #     FilterMonthlyDatesFullPopulationWeekly >> CreateMonthlyDataSingleNamesWeekly
+    #
+    # with TaskGroup("Transformation", tooltip="Transformation") as Transformation:
+    #     CreateYahooDailyPriceRolling = PythonOperator(
+    #         task_id="CreateYahooDailyPriceRolling",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['CreateYahooDailyPriceRolling']
+    #     )
+    #
+    #     TransformEconomicDataWeekly = PythonOperator(
+    #         task_id="TransformEconomicDataWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['TransformEconomicDataWeekly']
+    #     )
+    #
+    #     CreateIndustryAverageWeekly = PythonOperator(
+    #         task_id="CreateIndustryAverageWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['CreateIndustryAverageWeekly']
+    #     )
+    #
+    #     CreateYahooDailyPriceRolling >> TransformEconomicDataWeekly >> CreateIndustryAverageWeekly
+    #
+    # with TaskGroup("MergeEcon", tooltip="MergeEcon") as MergeEcon:
+    #     QuantamentalMergeEconIndustryWeekly = PythonOperator(
+    #         task_id="QuantamentalMergeEconIndustryWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['QuantamentalMergeEconIndustryWeekly']
+    #     )
+    #
+    # with TaskGroup("Standarization", tooltip="Standarization") as Standarization:
+    #     FactorStandardizationFullPopulationWeekly = PythonOperator(
+    #         task_id="FactorStandardizationFullPopulationWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['FactorStandardizationFullPopulationWeekly']
+    #     )
+    #
+    # with TaskGroup("ActiveMatrix", tooltip="ActiveMatrix") as ActiveMatrix:
+    #     GenerateActiveMatrixWeekly = PythonOperator(
+    #         task_id="GenerateActiveMatrixWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['GenerateActiveMatrixWeekly']
+    #     )
+    #
+    # with TaskGroup("AdditionalGanFeatures", tooltip="AdditionalGanFeatures") as AdditionalGanFeatures:
+    #     GenerateBMEReturnsWeekly = PythonOperator(
+    #         task_id="GenerateBMEReturnsWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['GenerateBMEReturnsWeekly']
+    #     )
+    #
+    # with TaskGroup("SaveGANInputs", tooltip="SaveGANInputs") as SaveGANInputs:
+    #     GenerateDataGANWeekly = PythonOperator(
+    #         task_id="GenerateDataGANWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['GenerateDataGANWeekly']
+    #     )
+    #
+    # with TaskGroup(
+    #         "GenerateGANResults", tooltip="GenerateGANResults"
+    # ) as GenerateGANResults:
+    #     ExtractGANFactors = DockerOperator(
+    #         task_id="ExtractGANFactors",
+    #         container_name='task__generate_gan',
+    #         command="echo 'RUNNING GAN STEP'",
+    #         # command=f"python generate_gan_results.py",
+    #         api_version='auto',
+    #         auto_remove='success',
+    #         image='gan_image',
+    #         network_mode='host',
+    #     )
+    #
+    # with TaskGroup("MergeGANResults", tooltip="MergeGANResults") as MergeGANResults:
+    #     ConsolidateGANResultsWeekly = PythonOperator(
+    #         task_id="ConsolidateGANResultsWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['ConsolidateGANResultsWeekly'],
+    #     )
+    #
+    #     AddFoldIdToGANResultDataWeekly = PythonOperator(
+    #         task_id="AddFoldIdToGANResultDataWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['AddFoldIdToGANResultDataWeekly'],
+    #     )
+    #
+    # with TaskGroup("IntermediateModelTraining", tooltip="IntermediateModelTraining") as IntermediateModelTraining:
+    #     TrainIntermediateModelsWeekly = PythonOperator(
+    #         task_id="TrainIntermediateModelsWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['TrainIntermediateModelsWeekly'],
+    #     )
     #
     #
-    # with TaskGroup("PopulationSplit", tooltip="PopulationSplit") as PopulationSplit:
-    #         FilterRussell1000AugmentedWeekly = PythonOperator(
-    #             task_id="FilterRussell1000AugmentedWeekly",
+    # with TaskGroup("MergeSignal", tooltip="MergeSignal") as MergeSignal:
+    #     QuantamentalMergeSignalsWeekly = PythonOperator(
+    #         task_id="QuantamentalMergeSignalsWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['QuantamentalMergeSignalsWeekly'],
+    #     )
+    #
+    # with TaskGroup("GetAdjustmentFactors", tooltip="GetAdjustmentFactors") as GetAdjustmentFactors:
+    #         SQLReaderAdjustmentFactors = PythonOperator(
+    #             task_id="SQLReaderAdjustmentFactors",
     #             python_callable=airflow_wrapper,
-    #             op_kwargs=task_params_manager['FilterRussell1000AugmentedWeekly'],
-    #         )
-    #
-    # with TaskGroup("Residualization", tooltip="Residualization") as Residualization:
-    #         FactorNeutralizationForStackingWeekly = PythonOperator(
-    #             task_id="FactorNeutralizationForStackingWeekly",
-    #             python_callable=airflow_wrapper,
-    #             op_kwargs=task_params_manager['FactorNeutralizationForStackingWeekly'],
+    #             op_kwargs=task_params_manager['SQLReaderAdjustmentFactors'],
     #         )
     #
     #
+    # with TaskGroup("GetRawPrices", tooltip="GetRawPrices") as GetRawPrices:
+    #         CalculateRawPrices = PythonOperator(
+    #             task_id="CalculateRawPrices",
+    #             python_callable=airflow_wrapper,
+    #             op_kwargs=task_params_manager['CalculateRawPrices'],
+    #         )
+
+
+    with TaskGroup("PopulationSplit", tooltip="PopulationSplit") as PopulationSplit:
+            FilterRussell1000AugmentedWeekly = PythonOperator(
+                task_id="FilterRussell1000AugmentedWeekly",
+                python_callable=airflow_wrapper,
+                op_kwargs=task_params_manager['FilterRussell1000AugmentedWeekly'],
+            )
+
+    with TaskGroup("Residualization", tooltip="Residualization") as Residualization:
+            FactorNeutralizationForStackingWeekly = PythonOperator(
+                task_id="FactorNeutralizationForStackingWeekly",
+                python_callable=airflow_wrapper,
+                op_kwargs=task_params_manager['FactorNeutralizationForStackingWeekly'],
+            )
+
+
     # with TaskGroup("ResidualizedStandardization", tooltip="ResidualizedStandardization") as ResidualizedStandardization:
     #         FactorStandardizationNeutralizedForStackingWeekly = PythonOperator(
     #             task_id="FactorStandardizationNeutralizedForStackingWeekly",
@@ -513,20 +513,22 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         # >> DerivedTechnicalDataProcessing
         # >> DerivedSimplePriceFeatureProcessing
         # >> MergeStep
-        FilterDatesSingleNames
-        >> Transformation
-        >> MergeEcon
-        >> Standarization
-        >> ActiveMatrix
-        >> AdditionalGanFeatures
-        >> SaveGANInputs
-        >> GenerateGANResults
-        >> MergeGANResults
-        >> IntermediateModelTraining
-        >> MergeSignal
-        >> GetAdjustmentFactors
-        >> GetRawPrices
-    )  #  PopulationSplit >> Residualization >> ResidualizedStandardization >> AddFoldIdToNormalizedDataPortfolioWeekly
+        # FilterDatesSingleNames
+        # >> Transformation
+        # >> MergeEcon
+        # >> Standarization
+        # >> ActiveMatrix
+        # >> AdditionalGanFeatures
+        # >> SaveGANInputs
+        # >> GenerateGANResults
+        # >> MergeGANResults
+        # >> IntermediateModelTraining
+        # >> MergeSignal
+        # >> GetAdjustmentFactors
+        # >> GetRawPrices
+        PopulationSplit
+        >> Residualization
+    )  # ResidualizedStandardization >> AddFoldIdToNormalizedDataPortfolioWeekly
 
 
 if __name__ == '__main__':
