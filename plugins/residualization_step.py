@@ -146,7 +146,7 @@ class FactorNeutralizationForStackingWeekly(FactorNeutralizationForStacking):
         self.r1k_resid_lc_weekly = None
         FactorNeutralizationForStacking.__init__(self, factors, exclusion_list)
 
-    def _dictionary_format(**kwargs):
+    def _dictionary_format(self, **kwargs):
         return {k:v for k,v in kwargs.items()}
 
     def do_step_action(self, **kwargs):
