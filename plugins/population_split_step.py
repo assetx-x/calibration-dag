@@ -210,10 +210,10 @@ class FilterRussell1000AugmentedWeekly(FilterRussell1000Augmented):
             filtered_df_monthly = self._filter_russell_components(univ_monthly, mode)
             filtered_df_weekly = self._filter_russell_components(univ_weekly, mode)
             r1k_dict_monthly[mode] = filtered_df_monthly[
-                (filtered_df_monthly["date"] >= self.start_date) & (filtered_df_monthly["date"] <= self.end_date)]
+                (filtered_df_monthly["date"] >= pd.Timestamp(self.start_date)) & (filtered_df_monthly["date"] <= pd.Timestamp(self.end_date))]
 
             filtered_weekly_mode_df = filtered_df_weekly[
-                (filtered_df_weekly["date"] >= self.start_date) & (filtered_df_weekly["date"] <= self.end_date)]
+                (filtered_df_weekly["date"] >= pd.Timestamp(self.start_date)) & (filtered_df_weekly["date"] <= pd.Timestamp(self.end_date))]
             if "largecap" in mode:
                 r1k_dict_lc_weekly[mode] = filtered_weekly_mode_df
             else:
