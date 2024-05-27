@@ -130,10 +130,23 @@ class FactorStandardizationNeutralizedForStackingWeekly(FactorStandardizationNeu
         FactorStandardizationNeutralizedForStacking.__init__(self, all_features, exclude_from_standardization,
                                                              target_columns, suffixes_to_exclude)
 
+    @staticmethod
+    def _dictionary_format(**kwargs):
+        return {k: v for k, v in kwargs.items()}
+
     def do_step_action(self, **kwargs):
-        r1k_resid_models_monthly = kwargs["r1k_resid_models"].copy(deep=True).to_dict(orient='dict')[0]
-        r1k_resid_sc_weekly = kwargs["r1k_resid_sc_weekly"].copy(deep=True).to_dict(orient='dict')[0]
-        r1k_resid_lc_weekly = kwargs["r1k_resid_lc_weekly"].copy(deep=True).to_dict(orient='dict')[0]
+        r1k_resid_models_monthly = self._dictionary_format(growth=kwargs["r1k_resid_models_growth"],
+                                                     value=kwargs["r1k_resid_models_value"],
+                                                     largecap_growth=kwargs["r1k_resid_models_largecap_growth"],
+                                                     largecap_value=kwargs["r1k_resid_models_largecap_value"]
+                                                     )
+        r1k_resid_sc_weekly = self._dictionary_format(growth=kwargs["r1k_resid_sc_weekly_growth"],
+                                                       value=kwargs["r1k_resid_sc_weekly_value"],
+                                                       )
+
+        r1k_resid_lc_weekly = self._dictionary_format(largecap_growth=kwargs["r1k_models_lc_weekly_largecap_growth"],
+                                                       largecap_value=kwargs["r1k_models_lc_weekly_largecap_value"],
+                                                       )
 
         assert set(r1k_resid_models_monthly)==set(FILTER_MODES), "FactorStandardizationNeutralizedForStacking - r1k_resid_models_monthly \
         doesn't seem to contain all expected modes. It contains - {0}".format(set(r1k_resid_models_monthly))
@@ -171,17 +184,28 @@ class FactorStandardizationNeutralizedForStackingWeekly(FactorStandardizationNeu
                 r1k_neutral_sc_dict_weekly[mode] = factor_standarization(r1k_resid_sc_weekly[mode], all_features, self.target_columns,
                                                                          self.exclude_from_standardization)
 
-        self.r1k_neutral_normal_models = pd.DataFrame.from_dict(r1k_neutral_dict_monthly, orient='index')
-        self.r1k_neutral_normal_sc_weekly = pd.DataFrame.from_dict(r1k_neutral_sc_dict_weekly, orient='index')
-        self.r1k_neutral_normal_lc_weekly = pd.DataFrame.from_dict(r1k_neutral_lc_dict_weekly, orient='index')
-        return {"r1k_neutral_normal_models" : self.r1k_neutral_normal_models,
-                "r1k_neutral_normal_sc_weekly" : self.r1k_neutral_normal_sc_weekly,
-                "r1k_neutral_normal_lc_weekly" : self.r1k_neutral_normal_lc_weekly}
+        self.r1k_neutral_normal_models = pd.DataFrame.from_dict(list(r1k_neutral_dict_monthly.items()),
+                                                       columns=['Key', 0]).set_index('Key')
+        self.r1k_neutral_normal_sc_weekly = pd.DataFrame.from_dict(list(r1k_neutral_sc_dict_weekly.items()),
+                                                          columns=['Key', 0]).set_index('Key')
+        self.r1k_neutral_normal_lc_weekly = pd.DataFrame.from_dict(list(r1k_neutral_lc_dict_weekly.items()),
+                                                          columns=['Key', 0]).set_index('Key')
+
+
+
+        return self._get_additional_step_results()
 
     def _get_additional_step_results(self):
-        return {"r1k_neutral_normal_models" : self.r1k_neutral_normal_models,
-                "r1k_neutral_normal_sc_weekly" : self.r1k_neutral_normal_sc_weekly,
-                "r1k_neutral_normal_lc_weekly" : self.r1k_neutral_normal_lc_weekly}
+        return {"r1k_neutral_normal_models_growth": self.r1k_neutral_normal_models.loc['growth'][0],
+                "r1k_neutral_normal_models_value": self.r1k_neutral_normal_models.loc['value'][0],
+                "r1k_neutral_normal_models_largecap_value": self.r1k_neutral_normal_models.loc['largecap_growth'][0],
+                "r1k_neutral_normal_models_largecap_growth": self.r1k_neutral_normal_models.loc['largecap_value'][0],
+                "r1k_neutral_normal_sc_weekly_growth": self.r1k_neutral_normal_sc_weekly.loc['growth'][0],
+                "r1k_neutral_normal_sc_weekly_value": self.r1k_neutral_normal_sc_weekly.loc['value'][0],
+                "r1k_neutral_normal_lc_weekly_largecap_growth": self.r1k_neutral_normal_lc_weekly.loc['largecap_growth'][0],
+                "r1k_neutral_normal_lc_weekly_largecap_value": self.r1k_neutral_normal_lc_weekly.loc['largecap_value'][0],
+                }
+
 
 
 

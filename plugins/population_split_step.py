@@ -234,7 +234,7 @@ class FilterRussell1000AugmentedWeekly(FilterRussell1000Augmented):
                 "r1k_models_sc_weekly_growth": self.r1k_models_sc_weekly.loc['growth'][0],
                 "r1k_models_sc_weekly_value": self.r1k_models_sc_weekly.loc['value'][0],
                 "r1k_models_lc_weekly_largecap_growth": self.r1k_models_lc_weekly.loc['largecap_growth'][0],
-                "r1k_models_lc_weekly_value": self.r1k_models_lc_weekly.loc['largecap_value'][0],
+                "r1k_models_lc_weekly_largecap_value": self.r1k_models_lc_weekly.loc['largecap_value'][0],
                 }
 
 

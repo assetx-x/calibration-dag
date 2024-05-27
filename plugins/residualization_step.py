@@ -164,7 +164,7 @@ class FactorNeutralizationForStackingWeekly(FactorNeutralizationForStacking):
                                 )
 
         r1k_models_lc_weekly = self._dictionary_format(largecap_growth=kwargs["r1k_models_lc_weekly_largecap_growth"],
-                                largecap_value=kwargs["r1k_models_lc_weekly_value"],
+                                largecap_value=kwargs["r1k_models_lc_weekly_largecap_value"],
                                 )
 
 
@@ -186,9 +186,11 @@ class FactorNeutralizationForStackingWeekly(FactorNeutralizationForStacking):
                 r1k_resid_sc_dict_weekly[mode] = neutralize_data(r1k_models_sc_weekly[mode], self.factors, self.exclusion_list)
 
 
-        self.r1k_resid_models = pd.DataFrame.from_dict(r1k_resid_dict_monthly, orient='index')
-        self.r1k_resid_sc_weekly = pd.DataFrame.from_dict(r1k_resid_sc_dict_weekly, orient='index')
-        self.r1k_resid_lc_weekly = pd.DataFrame.from_dict(r1k_resid_lc_dict_weekly, orient='index')
+        self.r1k_resid_models = pd.DataFrame.from_dict(list(r1k_resid_dict_monthly.items()), columns=['Key', 0]).set_index('Key')
+        self.r1k_resid_sc_weekly = pd.DataFrame.from_dict(list(r1k_resid_sc_dict_weekly.items()), columns=['Key', 0]).set_index('Key')
+        self.r1k_resid_lc_weekly = pd.DataFrame.from_dict(list(r1k_resid_lc_dict_weekly.items()), columns=['Key', 0]).set_index('Key')
+
+
 
 
         return self._get_additional_step_results()
@@ -203,7 +205,7 @@ class FactorNeutralizationForStackingWeekly(FactorNeutralizationForStacking):
                 "r1k_resid_sc_weekly_growth": self.r1k_resid_sc_weekly.loc['growth'][0],
                 "r1k_resid_sc_weekly_value": self.r1k_resid_sc_weekly.loc['value'][0],
                 "r1k_resid_lc_weekly_largecap_growth": self.r1k_resid_lc_weekly.loc['largecap_growth'][0],
-                "r1k_resid_lc_weekly_value": self.r1k_resid_lc_weekly.loc['largecap_value'][0],
+                "r1k_resid_lc_weekly_largecap_value": self.r1k_resid_lc_weekly.loc['largecap_value'][0],
                 }
 
 
