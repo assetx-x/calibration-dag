@@ -109,6 +109,7 @@ class QuandlDataCleanup(DataReaderClass):
         price = kwargs['daily_price_data'].copy(deep=True)
         #price = price.drop(['ticker'], axis=1)
         price.rename(columns={"ticker": "dcm_security_id"}, inplace=True)
+        price['date'] = price['date'].apply(pd.Timestamp)
         raw = kwargs['raw_quandl_data'].copy(deep=True)
 
         raw = self._resolve_duplicates(raw)
