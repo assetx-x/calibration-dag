@@ -219,9 +219,9 @@ class FilterRussell1000AugmentedWeekly(FilterRussell1000Augmented):
             else:
                 r1k_dict_sc_weekly[mode] = filtered_weekly_mode_df
 
-        self.r1k_models = pd.DataFrame.from_dict(r1k_dict_monthly, orient='index')
-        self.r1k_models_sc_weekly = pd.DataFrame.from_dict(r1k_dict_sc_weekly, orient='index')
-        self.r1k_models_lc_weekly = pd.DataFrame.from_dict(r1k_dict_lc_weekly, orient='index')
+        self.r1k_models = pd.DataFrame(list(r1k_dict_monthly.items()), columns=['Key', 0]).set_index('Key')
+        self.r1k_models_sc_weekly = pd.DataFrame(list(r1k_dict_sc_weekly.items()), columns=['Key', 0]).set_index('Key')
+        self.r1k_models_lc_weekly = pd.DataFrame(list(r1k_dict_lc_weekly.items()), columns=['Key', 0]).set_index('Key')
 
         return {"r1k_models": self.r1k_models,
                 "r1k_models_sc_weekly": self.r1k_models_sc_weekly,
