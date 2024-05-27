@@ -660,7 +660,14 @@ filter_r1k_weekly_params = {
 
 filter_r1k_weekly = DataFormatter(class_=FilterRussell1000AugmentedWeekly,
              class_parameters=filter_r1k_weekly_params,
-             provided_data={'PopulationSplit':['r1k_models','r1k_models_sc_weekly','r1k_models_lc_weekly']},
+             provided_data={'PopulationSplit':['r1k_models_growth',
+                                               'r1k_models_value',
+                                               'r1k_models_largecap_value',
+                                               'r1k_models_largecap_growth',
+                                               'r1k_models_sc_weekly_growth',
+                                               'r1k_models_sc_weekly_value',
+                                               'r1k_models_lc_weekly_largecap_growth',
+                                               'r1k_models_lc_weekly_value']},
              required_data={'GetAdjustmentFactors':['adjustment_factor_data'],
                             'MergeSignal':['data_full_population_signal','data_full_population_signal_weekly',
                                            ],
@@ -687,9 +694,23 @@ residulaization_params = {'factors':["SPY_beta", "log_mktcap", "ret_5B", "ret_21
 
 fnstacking_weekly = DataFormatter(class_=FactorNeutralizationForStackingWeekly,
              class_parameters=residulaization_params,
-             provided_data={'Residualization':['r1k_resid_models','r1k_resid_sc_weekly','r1k_resid_lc_weekly']},
+             provided_data={'Residualization':['r1k_resid_models_growth',
+                                               'r1k_resid_models_value',
+                                               'r1k_resid_models_largecap_value',
+                                               'r1k_resid_models_largecap_growth',
+                                               'r1k_resid_sc_weekly_growth',
+                                               'r1k_resid_sc_weekly_value',
+                                               'r1k_resid_lc_weekly_largecap_growth',
+                                               'r1k_resid_lc_weekly_value']},
              required_data={'GetAdjustmentFactors':['adjustment_factor_data'],
-                            'PopulationSplit':['r1k_models','r1k_models_sc_weekly','r1k_models_lc_weekly']}
+                            'PopulationSplit':['r1k_models_growth',
+                                               'r1k_models_value',
+                                               'r1k_models_largecap_value',
+                                               'r1k_models_largecap_growth',
+                                               'r1k_models_sc_weekly_growth',
+                                               'r1k_models_sc_weekly_value',
+                                               'r1k_models_lc_weekly_largecap_growth',
+                                               'r1k_models_lc_weekly_value']}
                                   )
 
 ######## ResidualizedStandardization

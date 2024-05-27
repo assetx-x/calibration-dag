@@ -223,14 +223,19 @@ class FilterRussell1000AugmentedWeekly(FilterRussell1000Augmented):
         self.r1k_models_sc_weekly = pd.DataFrame(list(r1k_dict_sc_weekly.items()), columns=['Key', 0]).set_index('Key')
         self.r1k_models_lc_weekly = pd.DataFrame(list(r1k_dict_lc_weekly.items()), columns=['Key', 0]).set_index('Key')
 
-        return {"r1k_models": self.r1k_models,
-                "r1k_models_sc_weekly": self.r1k_models_sc_weekly,
-                "r1k_models_lc_weekly": self.r1k_models_lc_weekly}
+        return self._get_additional_step_results()
 
     def _get_additional_step_results(self):
-        return {"r1k_models": self.r1k_models,
-                "r1k_models_sc_weekly": self.r1k_models_sc_weekly,
-                "r1k_models_lc_weekly": self.r1k_models_lc_weekly}
+
+        return {"r1k_models_growth": self.r1k_models.loc['growth'][0],
+                "r1k_models_value": self.r1k_models.loc['value'][0],
+                "r1k_models_largecap_value": self.r1k_models.loc['largecap_growth'][0],
+                "r1k_models_largecap_growth": self.r1k_models.loc['largecap_value'][0],
+                "r1k_models_sc_weekly_growth": self.r1k_models_sc_weekly.loc['growth'][0],
+                "r1k_models_sc_weekly_value": self.r1k_models_sc_weekly.loc['value'][0],
+                "r1k_models_lc_weekly_largecap_growth": self.r1k_models_lc_weekly.loc['largecap_growth'][0],
+                "r1k_models_lc_weekly_value": self.r1k_models_lc_weekly.loc['largecap_value'][0],
+                }
 
 
 def ols_res(x, y):

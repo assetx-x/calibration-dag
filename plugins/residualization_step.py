@@ -146,11 +146,25 @@ class FactorNeutralizationForStackingWeekly(FactorNeutralizationForStacking):
         self.r1k_resid_lc_weekly = None
         FactorNeutralizationForStacking.__init__(self, factors, exclusion_list)
 
+    def _dictionary_format(**kwargs):
+        return {k:v for k,v in kwargs.items()}
+
     def do_step_action(self, **kwargs):
         # Strangely dict -> dataframe -> dict conversion seems to introduce a nested dictionary with a 0 key.
-        r1k_models_monthly = kwargs["r1k_models"].copy(deep=True).to_dict(orient='dict')[0]
-        r1k_models_sc_weekly = kwargs["r1k_models_sc_weekly"].copy(deep=True).to_dict(orient='dict')[0]
-        r1k_models_lc_weekly = kwargs["r1k_models_lc_weekly"].copy(deep=True).to_dict(orient='dict')[0]
+
+        r1k_models_monthly = self._dictionary_format(growth=kwargs["r1k_models_growth"],
+                                        value=kwargs["r1k_models_value"],
+                                        largecap_growth=kwargs["r1k_models_largecap_growth"],
+                                        largecap_value=kwargs["r1k_models_largecap_value"]
+                                        )
+
+        r1k_models_sc_weekly = self._dictionary_format(growth=kwargs["r1k_models_sc_weekly_growth"],
+                                value=kwargs["r1k_models_sc_weekly_value"],
+                                )
+
+        r1k_models_lc_weekly = self._dictionary_format(largecap_growth=kwargs["r1k_models_lc_weekly_largecap_growth"],
+                                largecap_value=kwargs["r1k_models_lc_weekly_value"],
+                                )
 
 
         assert set(r1k_models_monthly)==set(FILTER_MODES), "FactorNeutralizationForStacking - r1k_models_monthly doesn't seem to \
@@ -176,9 +190,20 @@ class FactorNeutralizationForStackingWeekly(FactorNeutralizationForStacking):
         self.r1k_resid_lc_weekly = pd.DataFrame.from_dict(r1k_resid_lc_dict_weekly, orient='index')
 
 
-        return {'r1k_resid_models':self.r1k_resid_models,
-                'r1k_resid_sc_weekly':self.r1k_resid_sc_weekly,
-                'r1k_resid_lc_weekly':self.r1k_resid_lc_weekly}
+        return self._get_additional_step_results()
+
+
+
+    def _get_additional_step_results(self):
+        return {"r1k_resid_models_growth": self.r1k_resid_models.loc['growth'][0],
+                "r1k_resid_models_value": self.r1k_resid_models.loc['value'][0],
+                "r1k_resid_models_largecap_value": self.r1k_resid_models.loc['largecap_growth'][0],
+                "r1k_resid_models_largecap_growth": self.r1k_resid_models.loc['largecap_value'][0],
+                "r1k_resid_sc_weekly_growth": self.r1k_resid_sc_weekly.loc['growth'][0],
+                "r1k_resid_sc_weekly_value": self.r1k_resid_sc_weekly.loc['value'][0],
+                "r1k_resid_lc_weekly_largecap_growth": self.r1k_resid_lc_weekly.loc['largecap_growth'][0],
+                "r1k_resid_lc_weekly_value": self.r1k_resid_lc_weekly.loc['largecap_value'][0],
+                }
 
 
 
