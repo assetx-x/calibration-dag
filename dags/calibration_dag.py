@@ -189,21 +189,21 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #         >> SQLMinuteToDailyEquityPrices
     #     )
     #
-    with TaskGroup("EconData", tooltip="EconData") as EconData:
-        DownloadEconomicData = PythonOperator(
-            task_id="DownloadEconomicData",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['DownloadEconomicData'],
-        )
-
-    with TaskGroup(
-        "FundamentalCleanup", tooltip="FundamentalCleanup"
-    ) as FundamentalCleanup:
-        QuandlDataCleanup = PythonOperator(
-            task_id="QuandlDataCleanup",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['QuandlDataCleanup'],
-        )
+    # with TaskGroup("EconData", tooltip="EconData") as EconData:
+    #     DownloadEconomicData = PythonOperator(
+    #         task_id="DownloadEconomicData",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['DownloadEconomicData'],
+    #     )
+    #
+    # with TaskGroup(
+    #     "FundamentalCleanup", tooltip="FundamentalCleanup"
+    # ) as FundamentalCleanup:
+    #     QuandlDataCleanup = PythonOperator(
+    #         task_id="QuandlDataCleanup",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['QuandlDataCleanup'],
+    #     )
     #
     # with TaskGroup("Targets", tooltip="Targets") as Targets:
     #     CalculateTargetReturns = PythonOperator(
