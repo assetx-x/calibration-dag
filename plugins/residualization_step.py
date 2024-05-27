@@ -186,9 +186,9 @@ class FactorNeutralizationForStackingWeekly(FactorNeutralizationForStacking):
                 r1k_resid_sc_dict_weekly[mode] = neutralize_data(r1k_models_sc_weekly[mode], self.factors, self.exclusion_list)
 
 
-        self.r1k_resid_models = pd.DataFrame.from_dict(list(r1k_resid_dict_monthly.items()), columns=['Key', 0]).set_index('Key')
-        self.r1k_resid_sc_weekly = pd.DataFrame.from_dict(list(r1k_resid_sc_dict_weekly.items()), columns=['Key', 0]).set_index('Key')
-        self.r1k_resid_lc_weekly = pd.DataFrame.from_dict(list(r1k_resid_lc_dict_weekly.items()), columns=['Key', 0]).set_index('Key')
+        self.r1k_resid_models = pd.DataFrame(list(r1k_resid_dict_monthly.items()), columns=['Key', 0]).set_index('Key')
+        self.r1k_resid_sc_weekly = pd.DataFrame(list(r1k_resid_sc_dict_weekly.items()), columns=['Key', 0]).set_index('Key')
+        self.r1k_resid_lc_weekly = pd.DataFrame(list(r1k_resid_lc_dict_weekly.items()), columns=['Key', 0]).set_index('Key')
 
 
 

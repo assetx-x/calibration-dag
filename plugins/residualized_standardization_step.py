@@ -184,11 +184,11 @@ class FactorStandardizationNeutralizedForStackingWeekly(FactorStandardizationNeu
                 r1k_neutral_sc_dict_weekly[mode] = factor_standarization(r1k_resid_sc_weekly[mode], all_features, self.target_columns,
                                                                          self.exclude_from_standardization)
 
-        self.r1k_neutral_normal_models = pd.DataFrame.from_dict(list(r1k_neutral_dict_monthly.items()),
+        self.r1k_neutral_normal_models = pd.DataFrame(list(r1k_neutral_dict_monthly.items()),
                                                        columns=['Key', 0]).set_index('Key')
-        self.r1k_neutral_normal_sc_weekly = pd.DataFrame.from_dict(list(r1k_neutral_sc_dict_weekly.items()),
+        self.r1k_neutral_normal_sc_weekly = pd.DataFrame(list(r1k_neutral_sc_dict_weekly.items()),
                                                           columns=['Key', 0]).set_index('Key')
-        self.r1k_neutral_normal_lc_weekly = pd.DataFrame.from_dict(list(r1k_neutral_lc_dict_weekly.items()),
+        self.r1k_neutral_normal_lc_weekly = pd.DataFrame(list(r1k_neutral_lc_dict_weekly.items()),
                                                           columns=['Key', 0]).set_index('Key')
 
 
