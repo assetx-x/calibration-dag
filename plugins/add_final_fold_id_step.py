@@ -107,13 +107,13 @@ class AddFoldIdToNormalizedDataPortfolioWeekly(AddFoldIdToNormalizedDataPortfoli
         r1k_foldId_lc_dict_weekly = {}
         for mode in r1k_neutral_models_monthly:
             print("Adding foldId to r1k data for {0} model".format(mode))
-            r1k_foldId_dict_monthly[mode]['date'] = r1k_foldId_dict_monthly[mode]['date'].apply(pd.Timestamp)
+            r1k_neutral_models_monthly[mode]['date'] = r1k_neutral_models_monthly[mode]['date'].apply(pd.Timestamp)
             r1k_foldId_dict_monthly[mode] = self._add_foldId(r1k_neutral_models_monthly[mode])
             if "largecap" in mode:
-                r1k_foldId_lc_dict_weekly[mode]['date'] = r1k_foldId_lc_dict_weekly[mode]['date'].apply(pd.Timestamp)
+                r1k_neutral_lc_weekly[mode]['date'] = r1k_neutral_lc_weekly[mode]['date'].apply(pd.Timestamp)
                 r1k_foldId_lc_dict_weekly[mode] = self._add_foldId(r1k_neutral_lc_weekly[mode])
             else:
-                r1k_foldId_sc_dict_weekly[mode]['date'] = r1k_foldId_sc_dict_weekly[mode]['date'].apply(pd.Timestamp)
+                r1k_neutral_sc_weekly[mode]['date'] = r1k_neutral_sc_weekly[mode]['date'].apply(pd.Timestamp)
                 r1k_foldId_sc_dict_weekly[mode] = self._add_foldId(r1k_neutral_sc_weekly[mode])
 
 
