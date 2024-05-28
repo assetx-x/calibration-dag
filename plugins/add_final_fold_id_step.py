@@ -39,13 +39,14 @@ class AddFoldIdToNormalizedDataPortfolio(DataReaderClass):
 
     def do_step_action(self, **kwargs):
         r1k_neutral_normal_models = kwargs["r1k_neutral_normal_models"].copy(deep=True).to_dict(orient='dict')[0]
-
+        self.cut_dates = pd.to_datetime(self.cut_dates)
         assert set(r1k_neutral_normal_models)==set(FILTER_MODES), "AddFoldIdToNormalizedData - r1k_neutral_normal_models \
         doesn't seem to contain all expected modes. It contains- {0}".format(set(r1k_neutral_normal_models))
 
         r1k_foldId_dict = {}
         for mode in r1k_neutral_normal_models:
             print("Adding foldId to r1k data for {0} model".format(mode))
+            r1k_foldId_dict[mode]['date'] = r1k_foldId_dict[mode]['date'].apply(pd.Timestamp)
             r1k_foldId_dict[mode] = self._add_foldId(r1k_neutral_normal_models[mode])
 
         self.r1k_neutral_normal_models_with_foldId = pd.DataFrame.from_dict(r1k_foldId_dict, orient='index')
