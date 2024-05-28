@@ -490,12 +490,12 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #         )
 
 
-    with TaskGroup("ResidualizedStandardization", tooltip="ResidualizedStandardization") as ResidualizedStandardization:
-            FactorStandardizationNeutralizedForStackingWeekly = PythonOperator(
-                task_id="FactorStandardizationNeutralizedForStackingWeekly",
-                python_callable=airflow_wrapper,
-                op_kwargs=task_params_manager['FactorStandardizationNeutralizedForStackingWeekly'],
-            )
+    # with TaskGroup("ResidualizedStandardization", tooltip="ResidualizedStandardization") as ResidualizedStandardization:
+    #         FactorStandardizationNeutralizedForStackingWeekly = PythonOperator(
+    #             task_id="FactorStandardizationNeutralizedForStackingWeekly",
+    #             python_callable=airflow_wrapper,
+    #             op_kwargs=task_params_manager['FactorStandardizationNeutralizedForStackingWeekly'],
+    #         )
 
     with TaskGroup("AddFinalFoldId", tooltip="AddFinalFoldId") as AddFinalFoldId:
             AddFoldIdToNormalizedDataPortfolioWeekly = PythonOperator(
@@ -528,8 +528,8 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         # >> GetRawPrices
         #PopulationSplit
         #Residualization
-        ResidualizedStandardization
-        >> AddFoldIdToNormalizedDataPortfolioWeekly
+        #ResidualizedStandardization
+        AddFoldIdToNormalizedDataPortfolioWeekly
     )
 
 

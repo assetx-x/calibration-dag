@@ -86,8 +86,8 @@ class AddFoldIdToNormalizedDataPortfolioWeekly(AddFoldIdToNormalizedDataPortfoli
         r1k_neutral_sc_weekly = self._dictionary_format(growth=kwargs["r1k_neutral_normal_sc_weekly_growth"],
                                                        value=kwargs["r1k_neutral_normal_sc_weekly_value"],
                                                        )
-        r1k_neutral_lc_weekly = self._dictionary_format(growth=kwargs["r1k_neutral_normal_lc_weekly_largecap_growth"],
-                                                       value=kwargs["r1k_neutral_normal_lc_weekly_largecap_value"],
+        r1k_neutral_lc_weekly = self._dictionary_format(largecap_growth=kwargs["r1k_neutral_normal_lc_weekly_largecap_growth"],
+                                                       largecap_value=kwargs["r1k_neutral_normal_lc_weekly_largecap_value"],
                                                        )
 
         assert set(r1k_neutral_models_monthly)==set(FILTER_MODES), "AddFoldIdToNormalizedDataWeekly - r1k_neutral_models_monthly \
