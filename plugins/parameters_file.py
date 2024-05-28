@@ -3,15 +3,14 @@ import talib
 import os
 import datetime
 from core_classes import construct_required_path,construct_destination_path, DataFormatter
+
 parent_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 plugins_folder = os.path.join(parent_directory, "plugins")
 data_processing_folder = os.path.join(plugins_folder, "data_processing")
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(data_processing_folder,'dcm-prod.json')
-os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
 JUMP_DATES_CSV = os.path.join(data_processing_folder,'intervals_for_jump.csv')
-from dotenv import load_dotenv
-
-load_dotenv()
+# from dotenv import load_dotenv
+#
+# load_dotenv()
 
 RUN_DATE = datetime.datetime.today().strftime('%Y-%m-%d')
 
