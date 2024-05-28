@@ -17,7 +17,6 @@ from core_classes import construct_required_path,construct_destination_path
 from joblib import dump, load
 from sklearn.model_selection import GroupKFold, GridSearchCV, cross_val_score
 from sklearn.linear_model import LinearRegression, LassoCV, RidgeCV, ElasticNetCV
-from sklearn.linear_model.coordinate_descent import _alpha_grid
 from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
 from time import time
 from multiprocessing import Pool
