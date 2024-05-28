@@ -144,8 +144,8 @@ class FactorStandardizationNeutralizedForStackingWeekly(FactorStandardizationNeu
                                                        value=kwargs["r1k_resid_sc_weekly_value"],
                                                        )
 
-        r1k_resid_lc_weekly = self._dictionary_format(largecap_growth=kwargs["r1k_models_lc_weekly_largecap_growth"],
-                                                       largecap_value=kwargs["r1k_models_lc_weekly_largecap_value"],
+        r1k_resid_lc_weekly = self._dictionary_format(largecap_growth=kwargs["r1k_resid_lc_weekly_largecap_growth"],
+                                                       largecap_value=kwargs["r1k_resid_lc_weekly_largecap_value"],
                                                        )
 
         assert set(r1k_resid_models_monthly)==set(FILTER_MODES), "FactorStandardizationNeutralizedForStacking - r1k_resid_models_monthly \
