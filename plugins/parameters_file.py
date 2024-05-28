@@ -774,6 +774,43 @@ afi_step_weekly = DataFormatter(class_=AddFoldIdToNormalizedDataPortfolioWeekly,
                                   )
 
 
+########## RollingModelEstimator
+from rolling_model_estimation import RollingModelEstimationWeekly
+
+rolling_model_estimator_params = {
+        'date_combinations': [[2023, 9]],
+        'ensemble_weights': {"enet": 0.03333333333333333, "et": 0.3, "gbm": 0.2, "lasso": 0.03333333333333333, "ols": 0.03333333333333333, "rf": 0.4},
+        'training_modes': {"value": "load_from_s3", "growth": "load_from_s3", "largecap_value": "load_from_s3", "largecap_growth": "load_from_s3"} ,# load_from_s3, append, full_train
+        'bucket': "{}-{}-dcm-data-temp".format(os.environ['GOOGLE_PROJECT_ID'],os.environ['GOOGLE_REGION_ID']),
+        'key_base': "saved_rolling_models_gan",
+        'local_save_dir': "rolling_models_gan",
+        'model_codes': {"value": 1, "growth": 2, "largecap_value": 6, "largecap_growth": 7},
+        'target_cols': {"1": "future_ret_5B_std", "2": "future_ret_5B_std", "6": "future_ret_5B_std", "7": "future_ret_5B_std"},
+        'return_cols': {"1": "future_ret_5B", "2": "future_ret_5B", "6": "future_ret_5B", "7": "future_ret_5B"},
+    }
+
+#PROVIDES_FIELDS =  ["signals", "signals_weekly", "rolling_model_info"]
+#REQUIRES_FIELDS =  ["r1k_neutral_normal_models_with_foldId", "r1k_sc_with_foldId_weekly", "r1k_lc_with_foldId_weekly"]
+
+rolling_model_est = DataFormatter(class_=RollingModelEstimationWeekly,
+             class_parameters=rolling_model_estimator_params,
+             provided_data={'FinalModelTraining':['r1k_neutral_normal_models_with_foldId_growth',
+                                              'r1k_neutral_normal_models_with_foldId_value',
+                                              'r1k_neutral_normal_models_with_foldId_largecap_value',
+                                              'r1k_neutral_normal_models_with_foldId_largecap_growth',
+                                              'r1k_sc_with_foldId_weekly_growth',
+                                              'r1k_sc_with_foldId_weekly_value',
+                                              'r1k_lc_with_foldId_weekly_largecap_growth',
+                                              'r1k_lc_with_foldId_weekly_largecap_value']},
+             required_data={'AddFinalFoldId':['r1k_neutral_normal_models_with_foldId_growth',
+                                              'r1k_neutral_normal_models_with_foldId_value',
+                                              'r1k_neutral_normal_models_with_foldId_largecap_value',
+                                              'r1k_neutral_normal_models_with_foldId_largecap_growth',
+                                              'r1k_sc_with_foldId_weekly_growth',
+                                              'r1k_sc_with_foldId_weekly_value',
+                                              'r1k_lc_with_foldId_weekly_largecap_growth',
+                                              'r1k_lc_with_foldId_weekly_largecap_value']}
+                                  )
 
 
 PARAMS_DICTIONARY = {'CalibrationDatesJump':calibration_jump_params,
@@ -824,7 +861,8 @@ PARAMS_DICTIONARY = {'CalibrationDatesJump':calibration_jump_params,
                      'FilterRussell1000AugmentedWeekly':filter_r1k_weekly,
                      'FactorNeutralizationForStackingWeekly':fnstacking_weekly,
                      'FactorStandardizationNeutralizedForStackingWeekly':fnstackingneutral_weekly,
-                     'AddFoldIdToNormalizedDataPortfolioWeekly':afi_step_weekly
+                     'AddFoldIdToNormalizedDataPortfolioWeekly':afi_step_weekly,
+                     'RollingModelEstimationWeekly':rolling_model_est
                      }
 
 

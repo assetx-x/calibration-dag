@@ -497,11 +497,18 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #             op_kwargs=task_params_manager['FactorStandardizationNeutralizedForStackingWeekly'],
     #         )
 
-    with TaskGroup("AddFinalFoldId", tooltip="AddFinalFoldId") as AddFinalFoldId:
-            AddFoldIdToNormalizedDataPortfolioWeekly = PythonOperator(
-                task_id="AddFoldIdToNormalizedDataPortfolioWeekly",
+    # with TaskGroup("AddFinalFoldId", tooltip="AddFinalFoldId") as AddFinalFoldId:
+    #         AddFoldIdToNormalizedDataPortfolioWeekly = PythonOperator(
+    #             task_id="AddFoldIdToNormalizedDataPortfolioWeekly",
+    #             python_callable=airflow_wrapper,
+    #             op_kwargs=task_params_manager['AddFoldIdToNormalizedDataPortfolioWeekly'],
+    #         )
+
+    with TaskGroup("FinalModelTraining", tooltip="FinalModelTraining") as FinalModelTraining:
+            RollingModelEstimationWeekly = PythonOperator(
+                task_id="RollingModelEstimationWeekly",
                 python_callable=airflow_wrapper,
-                op_kwargs=task_params_manager['AddFoldIdToNormalizedDataPortfolioWeekly'],
+                op_kwargs=task_params_manager['RollingModelEstimationWeekly'],
             )
 
     (
@@ -529,7 +536,8 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         #PopulationSplit
         #Residualization
         #ResidualizedStandardization
-        AddFoldIdToNormalizedDataPortfolioWeekly
+        #AddFinalFoldId
+        FinalModelTraining
     )
 
 
