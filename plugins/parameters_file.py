@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+
 from commonlib import talib_STOCHRSI, MA, talib_PPO
 import talib
 import os
@@ -71,6 +73,10 @@ from residualized_standardization_step import (
     FactorStandardizationNeutralizedForStackingWeekly,
 )
 from add_final_fold_id_step import AddFoldIdToNormalizedDataPortfolioWeekly
+
+parent_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+env_file = os.path.join(parent_directory, ".env")
+load_dotenv(env_file)
 
 parent_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 plugins_folder = os.path.join(parent_directory, "plugins")
