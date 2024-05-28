@@ -16,7 +16,6 @@ import os
 
 load_dotenv()
 
-from parameters_file import PARAMS_DICTIONARY
 
 # Add the path to the "plugins" folder to sys.path
 # Assuming the "calibration-dag" directory is the parent directory of your DAGs folder.
@@ -29,6 +28,8 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
 os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
 
 JUMP_DATES_CSV = os.path.join(data_processing_folder, 'intervals_for_jump.csv')
+
+from parameters_file import PARAMS_DICTIONARY
 
 
 def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='dcm-prod-ba2f'):
