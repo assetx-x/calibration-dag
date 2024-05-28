@@ -717,9 +717,17 @@ fnstacking_weekly = DataFormatter(class_=FactorNeutralizationForStackingWeekly,
 
 from residualized_standardization_step import FactorStandardizationNeutralizedForStackingWeekly
 
+fnstackneut_params = {'all_features': True,
+                  'exclude_from_standardization': ["fq", "divyield_Industrials", "PPO_21_126_ConsumerDiscretionary", "DNDGRG3M086SBEA", "DEXUSUK", "GS10", "IPDCONGD", "T5YFFM",
+                                        "USTRADE", "CUSR0000SA0L2", "RETAILx", "bm_Financials", "DCOILWTICO", "T10YFFM", "CPITRNSL", "CP3Mx", "CUSR0000SAC", "EWJ_volume",
+                                        "SPY_close", "VIXCLS", "PPO_21_126_InformationTechnology", "WPSID62", "GS5", "CPFF", "CUSR0000SA0L5", "T1YFFM", "PPO_21_126_Energy",
+                                        "bm_Utilities", "PPO_21_126_Financials", "HWI", "RPI", "PPO_21_126_Industrials", "divyield_ConsumerStaples", "EWG_close", "macd_diff_ConsumerStaples",
+                                        "AAAFFM", "fold_id", "Sector", "IndustryGroup"],
+                  'target_columns': ["future_asset_growth_qoq", "future_ret_10B", "future_ret_1B", "future_ret_21B", "future_ret_42B", "future_ret_5B", "future_revenue_growth_qoq"],
+                  'suffixes_to_exclude': ["_std"]}
 
 fnstackingneutral_weekly = DataFormatter(class_=FactorStandardizationNeutralizedForStackingWeekly,
-             class_parameters=residulaization_params,
+             class_parameters=fnstackneut_params,
              provided_data={'ResidualizedStandardization':['r1k_neutral_normal_models_growth',
                                                            'r1k_neutral_normal_models_value',
                                                            'r1k_neutral_normal_models_largecap_value',
