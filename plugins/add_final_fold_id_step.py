@@ -32,7 +32,7 @@ class AddFoldIdToNormalizedDataPortfolio(DataReaderClass):
         pass
 
     def _add_foldId(self, df):
-        df["fold_id"] = pd.cut(df["date"], self.cut_dates, labels = pd.np.arange(len(self.cut_dates)-1), right =False)
+        df["fold_id"] = pd.cut(df["date"], self.cut_dates, labels = np.arange(len(self.cut_dates)-1), right =False)
         df["fold_id"] = pd.Series(df["fold_id"].cat.codes).astype(int)
         df = df.set_index(["date", "ticker"]).reset_index()
         return df
