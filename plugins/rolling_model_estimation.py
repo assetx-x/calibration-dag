@@ -466,6 +466,13 @@ class RollingModelEstimation(DataReaderClass):
         self.target_cols = target_cols
         self.return_cols = return_cols
 
+
+    def _get_data_lineage(self):
+        pass
+
+    def _prepare_to_pull_data(self):
+        pass
+
     def _get_results_filename(self, model):
         if model == "value":
             results_file = 'results_v.joblib'
