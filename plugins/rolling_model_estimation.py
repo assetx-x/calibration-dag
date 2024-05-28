@@ -8,12 +8,13 @@ from datetime import datetime
 import os
 from core_classes import StatusType
 from google.cloud import storage
+import gcsfs
 import statsmodels.api as sm
 from collections import defaultdict
 current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
 from core_classes import construct_required_path,construct_destination_path
-from sklearn.externals.joblib import dump, load
+from joblib import dump, load
 from sklearn.model_selection import GroupKFold, GridSearchCV, cross_val_score
 from sklearn.linear_model import LinearRegression, LassoCV, RidgeCV, ElasticNetCV
 from sklearn.linear_model.coordinate_descent import _alpha_grid
