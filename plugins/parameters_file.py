@@ -754,13 +754,23 @@ add_fold_params = {'cut_dates' :["2010-12-31", "2012-09-28", "2014-06-30", "2016
 
 
 afi_step_weekly = DataFormatter(class_=AddFoldIdToNormalizedDataPortfolioWeekly,
-             class_parameters=residulaization_params,
-             provided_data={'AddFinalFoldId':['r1k_neutral_normal_models_with_foldId',
-                                                           'r1k_sc_with_foldId_weekly',
-                                                           'r1k_lc_with_foldId_weekly']},
-             required_data={'ResidualizedStandardization':['r1k_neutral_normal_models',
-                                                           'r1k_neutral_normal_sc_weekly',
-                                                           'r1k_neutral_normal_lc_weekly']}
+             class_parameters=add_fold_params,
+             provided_data={'AddFinalFoldId':['r1k_neutral_normal_models_with_foldId_growth',
+                                              'r1k_neutral_normal_models_with_foldId_value',
+                                              'r1k_neutral_normal_models_with_foldId_largecap_value',
+                                              'r1k_neutral_normal_models_with_foldId_largecap_growth',
+                                              'r1k_sc_with_foldId_weekly_growth',
+                                              'r1k_sc_with_foldId_weekly_value',
+                                              'r1k_lc_with_foldId_weekly_largecap_growth',
+                                              'r1k_lc_with_foldId_weekly_largecap_value']},
+             required_data={'ResidualizedStandardization':['r1k_neutral_normal_models_growth',
+                                                           'r1k_neutral_normal_models_value',
+                                                           'r1k_neutral_normal_models_largecap_value',
+                                                           'r1k_neutral_normal_models_largecap_growth',
+                                                           'r1k_neutral_normal_sc_weekly_growth',
+                                                           'r1k_neutral_normal_sc_weekly_value',
+                                                           'r1k_neutral_normal_lc_weekly_largecap_growth',
+                                                           'r1k_neutral_normal_lc_weekly_largecap_value']}
                                   )
 
 

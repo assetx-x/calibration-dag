@@ -482,12 +482,12 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #             op_kwargs=task_params_manager['FilterRussell1000AugmentedWeekly'],
     #         )
 
-    with TaskGroup("Residualization", tooltip="Residualization") as Residualization:
-            FactorNeutralizationForStackingWeekly = PythonOperator(
-                task_id="FactorNeutralizationForStackingWeekly",
-                python_callable=airflow_wrapper,
-                op_kwargs=task_params_manager['FactorNeutralizationForStackingWeekly'],
-            )
+    # with TaskGroup("Residualization", tooltip="Residualization") as Residualization:
+    #         FactorNeutralizationForStackingWeekly = PythonOperator(
+    #             task_id="FactorNeutralizationForStackingWeekly",
+    #             python_callable=airflow_wrapper,
+    #             op_kwargs=task_params_manager['FactorNeutralizationForStackingWeekly'],
+    #         )
 
 
     with TaskGroup("ResidualizedStandardization", tooltip="ResidualizedStandardization") as ResidualizedStandardization:
@@ -496,13 +496,13 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
                 python_callable=airflow_wrapper,
                 op_kwargs=task_params_manager['FactorStandardizationNeutralizedForStackingWeekly'],
             )
-    #
-    # with TaskGroup("AddFinalFoldId", tooltip="AddFinalFoldId") as AddFinalFoldId:
-    #         AddFoldIdToNormalizedDataPortfolioWeekly = PythonOperator(
-    #             task_id="AddFoldIdToNormalizedDataPortfolioWeekly",
-    #             python_callable=airflow_wrapper,
-    #             op_kwargs=task_params_manager['AddFoldIdToNormalizedDataPortfolioWeekly'],
-    #         )
+
+    with TaskGroup("AddFinalFoldId", tooltip="AddFinalFoldId") as AddFinalFoldId:
+            AddFoldIdToNormalizedDataPortfolioWeekly = PythonOperator(
+                task_id="AddFoldIdToNormalizedDataPortfolioWeekly",
+                python_callable=airflow_wrapper,
+                op_kwargs=task_params_manager['AddFoldIdToNormalizedDataPortfolioWeekly'],
+            )
 
     (
         # DataPull
@@ -527,9 +527,10 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         # >> GetAdjustmentFactors
         # >> GetRawPrices
         #PopulationSplit
-        Residualization
-        >> ResidualizedStandardization
-    )  # ResidualizedStandardization >> AddFoldIdToNormalizedDataPortfolioWeekly
+        #Residualization
+        ResidualizedStandardization
+        >> AddFoldIdToNormalizedDataPortfolioWeekly
+    )
 
 
 if __name__ == '__main__':
