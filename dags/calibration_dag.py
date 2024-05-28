@@ -14,9 +14,9 @@ import gcsfs
 
 import os
 
-from parameters_file import PARAMS_DICTIONARY
-
 load_dotenv()
+
+from parameters_file import PARAMS_DICTIONARY
 
 # Add the path to the "plugins" folder to sys.path
 # Assuming the "calibration-dag" directory is the parent directory of your DAGs folder.
