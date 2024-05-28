@@ -1,14 +1,15 @@
-from core_classes import GCPReader,download_yahoo_data,DataReaderClass
+from core_classes import GCPReader, download_yahoo_data, DataReaderClass
 import pandas as pd
 import numpy as np
 from datetime import datetime
 from core_classes import StatusType
-from market_timeline import pick_trading_week_dates,pick_trading_month_dates
-from commonlib import talib_STOCHRSI, MA,talib_PPO, talib_TRIX
+from market_timeline import pick_trading_week_dates, pick_trading_month_dates
+from commonlib import talib_STOCHRSI, MA, talib_PPO, talib_TRIX
 import talib
+
 current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
-from core_classes import construct_required_path,construct_destination_path
+from core_classes import construct_required_path, construct_destination_path
 
 
 class QuantamentalMergeEconIndustry(DataReaderClass):
@@ -19,11 +20,25 @@ class QuantamentalMergeEconIndustry(DataReaderClass):
     '''
 
     PROVIDES_FIELDS = ["merged_data_econ_industry", "econ_data_final"]
-    REQUIRES_FIELDS = ["monthly_merged_data_single_names", "security_master", "industry_average",
-                       "sector_average", "transformed_econ_data"]
+    REQUIRES_FIELDS = [
+        "monthly_merged_data_single_names",
+        "security_master",
+        "industry_average",
+        "sector_average",
+        "transformed_econ_data",
+    ]
 
-    def __init__(self, industry_cols, security_master_cols, sector_cols, key_sectors, econ_cols, start_date, end_date,
-                 normalize_econ=True):
+    def __init__(
+        self,
+        industry_cols,
+        security_master_cols,
+        sector_cols,
+        key_sectors,
+        econ_cols,
+        start_date,
+        end_date,
+        normalize_econ=True,
+    ):
         self.data = None
         self.econ_data_final = None
         self.sector_cols = sector_cols
@@ -53,21 +68,33 @@ class QuantamentalMergeEconIndustry(DataReaderClass):
         return econ_data
 
     def _generate_econ_data(self, transformed_econ_data, sector_average, max_end_date):
-        econ_data = transformed_econ_data[(transformed_econ_data["date"] >= self.start_date) &
-                                          (transformed_econ_data["date"] <= max_end_date)].reset_index(drop=True)
+        econ_data = transformed_econ_data[
+            (transformed_econ_data["date"] >= self.start_date)
+            & (transformed_econ_data["date"] <= max_end_date)
+        ].reset_index(drop=True)
         econ_data = econ_data.sort_values(["date"])
 
         sector_averages_summary = []
         for sector in self.key_sectors:
             short_name = sector.replace(" ", "")
-            df = sector_average[sector_average["Sector"] == sector].drop("Sector", axis=1).set_index("date")[
-                self.sector_cols]
+            df = (
+                sector_average[sector_average["Sector"] == sector]
+                .drop("Sector", axis=1)
+                .set_index("date")[self.sector_cols]
+            )
 
-            df.columns = list(map(lambda x: "{0}_{1}".format(x, short_name), df.columns))
+            df.columns = list(
+                map(lambda x: "{0}_{1}".format(x, short_name), df.columns)
+            )
             sector_averages_summary.append(df)
 
         sector_averages_with_renamed_cols = pd.concat(sector_averages_summary, axis=1)
-        econ_data = pd.merge(econ_data, sector_averages_with_renamed_cols.reset_index(), how="left", on=["date"])
+        econ_data = pd.merge(
+            econ_data,
+            sector_averages_with_renamed_cols.reset_index(),
+            how="left",
+            on=["date"],
+        )
         econ_data = self._remove_bad_cols_from_econ_data(econ_data)
         return econ_data
 
@@ -75,23 +102,33 @@ class QuantamentalMergeEconIndustry(DataReaderClass):
         econ_data = econ_data[["date"] + self.econ_cols]  # Select key features
         if self.normalize_econ:
             for col in self.econ_cols:
-                econ_data[col] = econ_data[col].transform(lambda x: (x - x.mean()) / x.std())
+                econ_data[col] = econ_data[col].transform(
+                    lambda x: (x - x.mean()) / x.std()
+                )
         return econ_data
 
-    def _merge_data(self, monthly_merged_data, security_master, industry_average, econ_data):
+    def _merge_data(
+        self, monthly_merged_data, security_master, industry_average, econ_data
+    ):
 
-        merged_data = pd.merge(monthly_merged_data.rename(columns={"ticker": "dcm_security_id"}),
-                               security_master[self.security_master_cols],
-                               how="left", on=["dcm_security_id"])
-
+        merged_data = pd.merge(
+            monthly_merged_data.rename(columns={"ticker": "dcm_security_id"}),
+            security_master[self.security_master_cols],
+            how="left",
+            on=["dcm_security_id"],
+        )
 
         industry_average.set_index(['date', 'IndustryGroup'], inplace=True)
-        merged_data = pd.merge(merged_data, industry_average[self.industry_cols].rename(columns={col: col + "_indgrp"
-                                                                                                 for col in
-                                                                                                 industry_average.columns}).reset_index(),
-                               how="left", on=["date", "IndustryGroup"])
+        merged_data = pd.merge(
+            merged_data,
+            industry_average[self.industry_cols]
+            .rename(columns={col: col + "_indgrp" for col in industry_average.columns})
+            .reset_index(),
+            how="left",
+            on=["date", "IndustryGroup"],
+        )
         merged_data["dcm_security_id"] = merged_data["dcm_security_id"].astype(int)
-        merged_data = merged_data.rename(columns={"dcm_security_id" : "ticker"})
+        merged_data = merged_data.rename(columns={"dcm_security_id": "ticker"})
 
         merged_data = pd.merge(merged_data, econ_data, how="left", on=["date"])
         merged_data = merged_data.set_index(["date", "ticker"])
@@ -107,21 +144,33 @@ class QuantamentalMergeEconIndustry(DataReaderClass):
         sector_average = sector_data.reset_index()
         transformed_econ_data = kwargs["transformed_econ_data"]
 
-        self.start_date = self.start_date if pd.notnull(self.start_date) else self.task_params.start_dt
-        self.end_date = self.end_date if pd.notnull(self.end_date) else self.task_params.end_dt
+        self.start_date = (
+            self.start_date
+            if pd.notnull(self.start_date)
+            else self.task_params.start_dt
+        )
+        self.end_date = (
+            self.end_date if pd.notnull(self.end_date) else self.task_params.end_dt
+        )
 
         max_end_date = min(monthly_merged_data["date"].max(), self.end_date)
-        econ_data = self._generate_econ_data(transformed_econ_data, sector_average, max_end_date)
+        econ_data = self._generate_econ_data(
+            transformed_econ_data, sector_average, max_end_date
+        )
         self.econ_data_final = econ_data.copy()  # Has all features (for gan)
         econ_data = self._normalize_econ_data(econ_data)
 
-        merged_data = self._merge_data(monthly_merged_data, security_master, industry_average, econ_data)
+        merged_data = self._merge_data(
+            monthly_merged_data, security_master, industry_average, econ_data
+        )
         self.data = merged_data.reset_index()
         return StatusType.Success
 
     def _get_additional_step_results(self):
-        return {self.__class__.PROVIDES_FIELDS[0]: self.data,
-                self.__class__.PROVIDES_FIELDS[1]: self.econ_data_final}
+        return {
+            self.__class__.PROVIDES_FIELDS[0]: self.data,
+            self.__class__.PROVIDES_FIELDS[1]: self.econ_data_final,
+        }
 
 
 class QuantamentalMergeEconIndustryWeekly(QuantamentalMergeEconIndustry):
@@ -131,18 +180,48 @@ class QuantamentalMergeEconIndustryWeekly(QuantamentalMergeEconIndustry):
 
     '''
 
-    PROVIDES_FIELDS = ["merged_data_econ_industry", "merged_data_econ_industry_weekly", "econ_data_final",
-                       "econ_data_final_weekly"]
-    REQUIRES_FIELDS = ["monthly_merged_data_single_names", "weekly_merged_data_single_names", "security_master",
-                       "industry_average", "sector_average", "transformed_econ_data",
-                       "industry_average_weekly", "sector_average_weekly", "transformed_econ_data_weekly"]
+    PROVIDES_FIELDS = [
+        "merged_data_econ_industry",
+        "merged_data_econ_industry_weekly",
+        "econ_data_final",
+        "econ_data_final_weekly",
+    ]
+    REQUIRES_FIELDS = [
+        "monthly_merged_data_single_names",
+        "weekly_merged_data_single_names",
+        "security_master",
+        "industry_average",
+        "sector_average",
+        "transformed_econ_data",
+        "industry_average_weekly",
+        "sector_average_weekly",
+        "transformed_econ_data_weekly",
+    ]
 
-    def __init__(self, industry_cols, security_master_cols, sector_cols, key_sectors, econ_cols, start_date, end_date,
-                 normalize_econ=True):
+    def __init__(
+        self,
+        industry_cols,
+        security_master_cols,
+        sector_cols,
+        key_sectors,
+        econ_cols,
+        start_date,
+        end_date,
+        normalize_econ=True,
+    ):
         self.weekly_data = None
         self.econ_data_final_weekly = None
-        QuantamentalMergeEconIndustry.__init__(self, industry_cols, security_master_cols, sector_cols,
-                                               key_sectors, econ_cols, start_date, end_date, normalize_econ)
+        QuantamentalMergeEconIndustry.__init__(
+            self,
+            industry_cols,
+            security_master_cols,
+            sector_cols,
+            key_sectors,
+            econ_cols,
+            start_date,
+            end_date,
+            normalize_econ,
+        )
 
     def _get_data_lineage(self):
         pass
@@ -161,73 +240,169 @@ class QuantamentalMergeEconIndustryWeekly(QuantamentalMergeEconIndustry):
         sector_average = kwargs["sector_average"].reset_index()
         sector_average['date'] = sector_average['date'].apply(pd.Timestamp)
         transformed_econ_data = kwargs["transformed_econ_data"]
-        transformed_econ_data['date'] = transformed_econ_data['date'].apply(pd.Timestamp)
+        transformed_econ_data['date'] = transformed_econ_data['date'].apply(
+            pd.Timestamp
+        )
         industry_average_weekly = kwargs["industry_average_weekly"].reset_index()
-        industry_average_weekly['date'] = industry_average_weekly['date'].apply(pd.Timestamp)
+        industry_average_weekly['date'] = industry_average_weekly['date'].apply(
+            pd.Timestamp
+        )
         sector_average_weekly = kwargs["sector_average_weekly"].reset_index()
-        sector_average_weekly['date'] = sector_average_weekly['date'].apply(pd.Timestamp)
+        sector_average_weekly['date'] = sector_average_weekly['date'].apply(
+            pd.Timestamp
+        )
         transformed_econ_data_weekly = kwargs["transformed_econ_data_weekly"]
-        transformed_econ_data_weekly['date'] = transformed_econ_data_weekly['date'].apply(pd.Timestamp)
+        transformed_econ_data_weekly['date'] = transformed_econ_data_weekly[
+            'date'
+        ].apply(pd.Timestamp)
 
-        self.start_date = self.start_date if pd.notnull(self.start_date) else self.task_params.start_dt
-        self.end_date = self.end_date if pd.notnull(self.end_date) else self.task_params.end_dt
+        self.start_date = (
+            self.start_date
+            if pd.notnull(self.start_date)
+            else self.task_params.start_dt
+        )
+        self.end_date = (
+            self.end_date if pd.notnull(self.end_date) else self.task_params.end_dt
+        )
 
         max_end_date = min(monthly_merged_data["date"].max(), self.end_date)
-        econ_data = self._generate_econ_data(transformed_econ_data, sector_average, max_end_date)
+        econ_data = self._generate_econ_data(
+            transformed_econ_data, sector_average, max_end_date
+        )
         # return econ_data
         self.econ_data_final = econ_data.copy()  # Has all features (for gan)
         econ_data = self._normalize_econ_data(econ_data)
-        monthly_data = self._merge_data(monthly_merged_data, security_master, industry_average, econ_data)
+        monthly_data = self._merge_data(
+            monthly_merged_data, security_master, industry_average, econ_data
+        )
 
         self.data = monthly_data.reset_index()
 
         max_end_date = min(weekly_merged_data["date"].max(), self.end_date)
-        econ_data_weekly = self._generate_econ_data(transformed_econ_data_weekly, sector_average_weekly, max_end_date)
+        econ_data_weekly = self._generate_econ_data(
+            transformed_econ_data_weekly, sector_average_weekly, max_end_date
+        )
         self.econ_data_final_weekly = econ_data_weekly.copy()
         econ_data_weekly = self._normalize_econ_data(econ_data_weekly)
-        weekly_data = self._merge_data(weekly_merged_data, security_master, industry_average_weekly, econ_data_weekly)
+        weekly_data = self._merge_data(
+            weekly_merged_data,
+            security_master,
+            industry_average_weekly,
+            econ_data_weekly,
+        )
         self.weekly_data = weekly_data.reset_index()
 
-        return {'merged_data_econ_industry': self.data, 'merged_data_econ_industry_weekly': self.weekly_data,
-                'econ_data_final': self.econ_data_final, 'econ_data_final_weekly': self.econ_data_final_weekly}
+        return {
+            'merged_data_econ_industry': self.data,
+            'merged_data_econ_industry_weekly': self.weekly_data,
+            'econ_data_final': self.econ_data_final,
+            'econ_data_final_weekly': self.econ_data_final_weekly,
+        }
 
         # return self.data,self.weekly_data,self.econ_data_final,self.econ_data_final_weekly
 
 
+WMEIW_params = {
+    'industry_cols': [
+        "volatility_126",
+        "PPO_12_26",
+        "PPO_21_126",
+        "netmargin",
+        "macd_diff",
+        "pe",
+        "debt2equity",
+        "bm",
+        "ret_63B",
+        "ebitda_to_ev",
+        "divyield",
+    ],
+    'security_master_cols': ["dcm_security_id", "Sector", "IndustryGroup"],
+    'sector_cols': ["volatility_126", "PPO_21_126", "macd_diff", "divyield", "bm"],
+    'key_sectors': [
+        "Energy",
+        "Information Technology",
+        "Financials",
+        "Utilities",
+        "Consumer Discretionary",
+        "Industrials",
+        "Consumer Staples",
+    ],
+    'econ_cols': [
+        "RETAILx",
+        "USTRADE",
+        "SPY_close",
+        "bm_Financials",
+        "T10YFFM",
+        "T5YFFM",
+        "CPITRNSL",
+        "DCOILWTICO",
+        "EWJ_volume",
+        "HWI",
+        "CUSR0000SA0L2",
+        "CUSR0000SA0L5",
+        "T1YFFM",
+        "DNDGRG3M086SBEA",
+        "AAAFFM",
+        "RPI",
+        "macd_diff_ConsumerStaples",
+        "DEXUSUK",
+        "CPFF",
+        "PPO_21_126_Industrials",
+        "PPO_21_126_Financials",
+        "CP3Mx",
+        "divyield_ConsumerStaples",
+        "VIXCLS",
+        "GS10",
+        "bm_Utilities",
+        "EWG_close",
+        "CUSR0000SAC",
+        "GS5",
+        "divyield_Industrials",
+        "WPSID62",
+        "IPDCONGD",
+        "PPO_21_126_InformationTechnology",
+        "PPO_21_126_Energy",
+        "PPO_21_126_ConsumerDiscretionary",
+    ],
+    'start_date': "1997-12-15",
+    'end_date': RUN_DATE,
+    'normalize_econ': False,
+}
 
 
-WMEIW_params = {'industry_cols':["volatility_126", "PPO_12_26", "PPO_21_126", "netmargin", "macd_diff", "pe", "debt2equity", "bm", "ret_63B", "ebitda_to_ev", "divyield"],
- 'security_master_cols':["dcm_security_id", "Sector", "IndustryGroup"],
- 'sector_cols':["volatility_126", "PPO_21_126", "macd_diff", "divyield", "bm"],
- 'key_sectors':["Energy", "Information Technology", "Financials", "Utilities", "Consumer Discretionary", "Industrials", "Consumer Staples"],
- 'econ_cols':["RETAILx", "USTRADE", "SPY_close", "bm_Financials", "T10YFFM", "T5YFFM", "CPITRNSL", "DCOILWTICO", "EWJ_volume", "HWI",
-              "CUSR0000SA0L2", "CUSR0000SA0L5", "T1YFFM", "DNDGRG3M086SBEA", "AAAFFM", "RPI", "macd_diff_ConsumerStaples", "DEXUSUK",
-              "CPFF", "PPO_21_126_Industrials", "PPO_21_126_Financials", "CP3Mx", "divyield_ConsumerStaples", "VIXCLS", "GS10", "bm_Utilities",
-              "EWG_close", "CUSR0000SAC", "GS5", "divyield_Industrials", "WPSID62", "IPDCONGD", "PPO_21_126_InformationTechnology", "PPO_21_126_Energy",
-              "PPO_21_126_ConsumerDiscretionary"],
- 'start_date': "1997-12-15",
- 'end_date': RUN_DATE,
- 'normalize_econ':False
-    }
-
-
-QuantamentalMergeEconIndustryWeekly_params = {'params':WMEIW_params,
-                                   'class':QuantamentalMergeEconIndustryWeekly,
-                                       'start_date':RUN_DATE,
-                                'provided_data': {'merged_data_econ_industry': construct_destination_path('merge_econ'),
-                                                  'merged_data_econ_industry_weekly': construct_destination_path('merge_econ'),
-                                                  'econ_data_final': construct_destination_path('merge_econ'),
-                                                  'econ_data_final_weekly': construct_destination_path('merge_econ'),
-                                                 },
-                                'required_data': {'monthly_merged_data_single_names':construct_required_path('filter_dates_single_name','monthly_merged_data_single_names'),
-                                                  'security_master': construct_required_path('data_pull','security_master'),
-                                                  'weekly_merged_data_single_names': construct_required_path('filter_dates_single_name','weekly_merged_data_single_names'),
-                                                  'industry_average':construct_required_path('transformation','industry_average'),
-                                                  'sector_average': construct_required_path('transformation','sector_average'),
-                                                  'transformed_econ_data': construct_required_path('transformation','transformed_econ_data'),
-                                                  'industry_average_weekly':construct_required_path('transformation','industry_average_weekly'),
-                                                  'sector_average_weekly': construct_required_path('transformation','sector_average_weekly'),
-                                                  'transformed_econ_data_weekly': construct_required_path('transformation','transformed_econ_data_weekly')
-                                                 }}
-
-
+QuantamentalMergeEconIndustryWeekly_params = {
+    'params': WMEIW_params,
+    'class': QuantamentalMergeEconIndustryWeekly,
+    'start_date': RUN_DATE,
+    'provided_data': {
+        'merged_data_econ_industry': construct_destination_path('merge_econ'),
+        'merged_data_econ_industry_weekly': construct_destination_path('merge_econ'),
+        'econ_data_final': construct_destination_path('merge_econ'),
+        'econ_data_final_weekly': construct_destination_path('merge_econ'),
+    },
+    'required_data': {
+        'monthly_merged_data_single_names': construct_required_path(
+            'filter_dates_single_name', 'monthly_merged_data_single_names'
+        ),
+        'security_master': construct_required_path('data_pull', 'security_master'),
+        'weekly_merged_data_single_names': construct_required_path(
+            'filter_dates_single_name', 'weekly_merged_data_single_names'
+        ),
+        'industry_average': construct_required_path(
+            'transformation', 'industry_average'
+        ),
+        'sector_average': construct_required_path('transformation', 'sector_average'),
+        'transformed_econ_data': construct_required_path(
+            'transformation', 'transformed_econ_data'
+        ),
+        'industry_average_weekly': construct_required_path(
+            'transformation', 'industry_average_weekly'
+        ),
+        'sector_average_weekly': construct_required_path(
+            'transformation', 'sector_average_weekly'
+        ),
+        'transformed_econ_data_weekly': construct_required_path(
+            'transformation', 'transformed_econ_data_weekly'
+        ),
+    },
+}

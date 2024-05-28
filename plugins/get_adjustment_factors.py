@@ -1,5 +1,5 @@
 import pandas as pd
-from core_classes import GCPReader,download_yahoo_data,DataReaderClass
+from core_classes import GCPReader, download_yahoo_data, DataReaderClass
 import pandas as pd
 import numpy as np
 from google.cloud import bigquery
@@ -10,7 +10,7 @@ from google.cloud import storage
 
 current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
-from core_classes import construct_required_path,construct_destination_path
+from core_classes import construct_required_path, construct_destination_path
 
 
 class SQLReaderAdjustmentFactors(GCPReader):
@@ -19,6 +19,7 @@ class SQLReaderAdjustmentFactors(GCPReader):
     Reads daily equity adjustment factors from redshift provided a date range and universe date
 
     '''
+
     PROVIDES_FIELDS = ["adjustment_factor_data"]
 
     def __init__(self, start_date, end_date):
@@ -44,8 +45,6 @@ class SQLReaderAdjustmentFactors(GCPReader):
         data = data.to_dataframe()
         return data
 
-
-
     def compose_query(self):
         date_st = self.start_date
         date_end = self.end_date
@@ -60,16 +59,12 @@ class SQLReaderAdjustmentFactors(GCPReader):
         return {"table_name": "equity_adjustment_factors"}
 
 
-
-SQLReaderAdjustmentFactors_params = {'params':
-                                            {"start_date" : "2000-01-03","end_date" : RUN_DATE},
-                                            'class':SQLReaderAdjustmentFactors,
-                                      'start_date':RUN_DATE,
-                                        'provided_data': {'adjustment_factor_data': construct_destination_path('get_adjustment_factors')},
-                                            'required_data': {}
-
-                                            }
-
-
-
-
+SQLReaderAdjustmentFactors_params = {
+    'params': {"start_date": "2000-01-03", "end_date": RUN_DATE},
+    'class': SQLReaderAdjustmentFactors,
+    'start_date': RUN_DATE,
+    'provided_data': {
+        'adjustment_factor_data': construct_destination_path('get_adjustment_factors')
+    },
+    'required_data': {},
+}

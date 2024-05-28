@@ -106,20 +106,44 @@ def get_config():
         __config = pyhocon.ConfigFactory.parse_string(config_str)
     return __config
 
+
 class TrainingMode(Enum):
     conditional = 1
     sdf = 2
 
+
 def linear_pred_loss(y_true, y_pred):
-    from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
+    from tensorflow.keras.layers import (
+        Input,
+        Dense,
+        Reshape,
+        Flatten,
+        Dropout,
+        LSTM,
+        TimeDistributed,
+        Lambda,
+    )
     from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
     from tensorflow.keras.models import Sequential, Model
     from tensorflow.keras.optimizers import Adam
     from tensorflow.keras import losses
-    from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+    from tensorflow.keras.backend import (
+        sum as k_sum,
+        tile,
+        stack,
+        expand_dims as k_expand_dims,
+        square,
+        constant,
+    )
     from tensorflow.keras.utils import plot_model
-    from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
+    from tensorflow.keras.callbacks import (
+        TensorBoard,
+        ModelCheckpoint,
+        ReduceLROnPlateau,
+    )
+
     return k_sum(y_pred)
+
 
 def create_directory_if_does_not_exists(dir_path):
     try:
@@ -128,6 +152,7 @@ def create_directory_if_does_not_exists(dir_path):
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise
+
 
 def delete_directory_content(directory, del_subdirs=True, delete_root_dir=False):
     for root, dirs, files in os.walk(directory, topdown=False):
@@ -139,34 +164,57 @@ def delete_directory_content(directory, del_subdirs=True, delete_root_dir=False)
     if delete_root_dir:
         os.rmdir(directory)
 
+
 def load_data(data_dir):
     print("loading data with shapes.....")
     print(f'Data directory > {data_dir}')
-    df = pd.read_csv(os.path.join(data_dir, "company_data.csv"), index_col=0).fillna(0.0)
+    df = pd.read_csv(os.path.join(data_dir, "company_data.csv"), index_col=0).fillna(
+        0.0
+    )
     econ_data = pd.read_csv(os.path.join(data_dir, "econ_data_final.csv"), index_col=0)
-    active_matrix = pd.read_csv(os.path.join(data_dir, "active_matrix.csv"), index_col=0).fillna(0)
-    return_data = pd.read_csv(os.path.join(data_dir, "future_returns.csv"), index_col=0).fillna(0.0)
+    active_matrix = pd.read_csv(
+        os.path.join(data_dir, "active_matrix.csv"), index_col=0
+    ).fillna(0)
+    return_data = pd.read_csv(
+        os.path.join(data_dir, "future_returns.csv"), index_col=0
+    ).fillna(0.0)
     active_matrix.columns = [int(i) for i in active_matrix.columns]
     return_data.columns = [int(i) for i in return_data.columns]
 
     # Needs conversion for fixed format
     df["date"] = df["date"].apply(pd.Timestamp)
     econ_data["date"] = econ_data["date"].apply(pd.Timestamp)
-    active_matrix.index = pd.DatetimeIndex(list(map(pd.Timestamp, list(active_matrix.index))))
-    return_data.index = pd.DatetimeIndex(list(map(pd.Timestamp, list(return_data.index))))
+    active_matrix.index = pd.DatetimeIndex(
+        list(map(pd.Timestamp, list(active_matrix.index)))
+    )
+    return_data.index = pd.DatetimeIndex(
+        list(map(pd.Timestamp, list(return_data.index)))
+    )
 
-    company_data = df.groupby(["date", "ticker"]).mean().sort_index().to_panel().transpose(1, 2, 0).fillna(0.0)
+    company_data = (
+        df.groupby(["date", "ticker"])
+        .mean()
+        .sort_index()
+        .to_panel()
+        .transpose(1, 2, 0)
+        .fillna(0.0)
+    )
     econ_data = econ_data.set_index(["date"]).sort_index()
 
     # Enforce common timeline
-    common_timeline = pd.DatetimeIndex(econ_data.index).intersection(pd.DatetimeIndex(company_data.items)) \
+    common_timeline = (
+        pd.DatetimeIndex(econ_data.index)
+        .intersection(pd.DatetimeIndex(company_data.items))
         .intersection(return_data.index)
+    )
     # This is just to make data sets a multiple of 10
     # common_timeline = common_timeline[1:]
     econ_data = econ_data[econ_data.index.isin(common_timeline)]
     econ_data = econ_data.dropna(axis=1, how="any")
     econ_data = econ_data.fillna(0.0)
-    good_tickers = company_data.major_axis.intersection(active_matrix.columns).intersection(return_data.columns)
+    good_tickers = company_data.major_axis.intersection(
+        active_matrix.columns
+    ).intersection(return_data.columns)
     active_matrix = active_matrix[active_matrix.index.isin(common_timeline)]
     active_matrix = active_matrix[good_tickers]
     company_data = company_data[common_timeline, good_tickers, :]
@@ -178,8 +226,16 @@ def load_data(data_dir):
     print("active_matrix: {0}".format(active_matrix.shape))
     return company_data, econ_data, return_data, active_matrix
 
-def build_timeseries_modified(econ_data, company_data, return_data, per_moment_time_weights, per_company_time_weights,
-                              average_weights, time_steps):
+
+def build_timeseries_modified(
+    econ_data,
+    company_data,
+    return_data,
+    per_moment_time_weights,
+    per_company_time_weights,
+    average_weights,
+    time_steps,
+):
 
     dim_time = company_data.shape[0] - time_steps  # time
     n_assets = company_data.shape[1]  # comapny
@@ -196,19 +252,38 @@ def build_timeseries_modified(econ_data, company_data, return_data, per_moment_t
     output = np.zeros((dim_time, time_steps))
 
     for i in range(dim_time):
-        econ[i] = econ_data[i:time_steps + i]
-        comp[i] = company_data[i:time_steps + i]
-        rets[i] = return_data[i:time_steps + i]
+        econ[i] = econ_data[i : time_steps + i]
+        comp[i] = company_data[i : time_steps + i]
+        rets[i] = return_data[i : time_steps + i]
         mom_weights[i] = per_moment_time_weights
         comp_weights[i] = per_company_time_weights
         avg_weights[i] = average_weights
     # print("length of time-series i/o", econ.shape, comp.shape, returns.shape, output.shape)
-    return econ, comp, rets, mom_weights, comp_weights, avg_weights, neg_ones, pos_ones, output
+    return (
+        econ,
+        comp,
+        rets,
+        mom_weights,
+        comp_weights,
+        avg_weights,
+        neg_ones,
+        pos_ones,
+        output,
+    )
 
 
 class DataGeneratorMultiBatchFast(object):
-    def __init__(self, data, x_cols, econ_cols, y_col, batch_size, time_steps, data_splits=None,
-                 data_split_integer_override=None):
+    def __init__(
+        self,
+        data,
+        x_cols,
+        econ_cols,
+        y_col,
+        batch_size,
+        time_steps,
+        data_splits=None,
+        data_split_integer_override=None,
+    ):
         data_splits = data_splits or [0.7, 0.1, 0.2]
         company_data, econ_data, return_data, active_matrix = data
         nobs = company_data.shape[0]  # - time_steps
@@ -256,15 +331,44 @@ class DataGeneratorMultiBatchFast(object):
 
         # This may be redundant but is done for better readability for now
         macro_factor = self.macro_factor.iloc[initial_index:final_index, :].values
-        characteristics = self.characteristics[self.characteristics.items[initial_index:final_index], :, :].values
+        characteristics = self.characteristics[
+            self.characteristics.items[initial_index:final_index], :, :
+        ].values
         returns = self.returns.iloc[initial_index:final_index].values
-        average_weights = self.average_weight * (-1.0 if self.generation_mode is TrainingMode.conditional else 1.0)
+        average_weights = self.average_weight * (
+            -1.0 if self.generation_mode is TrainingMode.conditional else 1.0
+        )
 
-        econ, comp, rets, mom_weights, comp_weights, avg_weights, neg_ones, pos_ones, out = \
-            build_timeseries_modified(macro_factor, characteristics, returns, per_moment_time_weights,
-                                      per_company_time_weights,
-                                      average_weights, self.time_steps)
-        self.train_data_holder = (econ, comp, rets, mom_weights, comp_weights, avg_weights, neg_ones, pos_ones, out)
+        (
+            econ,
+            comp,
+            rets,
+            mom_weights,
+            comp_weights,
+            avg_weights,
+            neg_ones,
+            pos_ones,
+            out,
+        ) = build_timeseries_modified(
+            macro_factor,
+            characteristics,
+            returns,
+            per_moment_time_weights,
+            per_company_time_weights,
+            average_weights,
+            self.time_steps,
+        )
+        self.train_data_holder = (
+            econ,
+            comp,
+            rets,
+            mom_weights,
+            comp_weights,
+            avg_weights,
+            neg_ones,
+            pos_ones,
+            out,
+        )
 
     def build_validation_data(self):
         initial_index = self.n_train
@@ -281,14 +385,41 @@ class DataGeneratorMultiBatchFast(object):
 
         # This may be redundant but is done for better readability for now
         macro_factor = self.macro_factor.iloc[initial_index:final_index, :].values
-        characteristics = self.characteristics[self.characteristics.items[initial_index:final_index], :, :].values
+        characteristics = self.characteristics[
+            self.characteristics.items[initial_index:final_index], :, :
+        ].values
         returns = self.returns.iloc[initial_index:final_index].values
 
-        econ, comp, rets, mom_weights, comp_weights, avg_weights, neg_ones, pos_ones, out = \
-            build_timeseries_modified(macro_factor, characteristics, returns, per_moment_time_weights,
-                                      per_company_time_weights,
-                                      average_weights, self.time_steps)
-        self.valid_data_holder = (econ, comp, rets, mom_weights, comp_weights, avg_weights, neg_ones, pos_ones, out)
+        (
+            econ,
+            comp,
+            rets,
+            mom_weights,
+            comp_weights,
+            avg_weights,
+            neg_ones,
+            pos_ones,
+            out,
+        ) = build_timeseries_modified(
+            macro_factor,
+            characteristics,
+            returns,
+            per_moment_time_weights,
+            per_company_time_weights,
+            average_weights,
+            self.time_steps,
+        )
+        self.valid_data_holder = (
+            econ,
+            comp,
+            rets,
+            mom_weights,
+            comp_weights,
+            avg_weights,
+            neg_ones,
+            pos_ones,
+            out,
+        )
 
     def build_test_data(self):
         pass
@@ -297,31 +428,63 @@ class DataGeneratorMultiBatchFast(object):
         self.generation_mode = training_mode
 
     def generate_train_data(self):
-        econ, comp, rets, mom_weights, comp_weights, avg_weights, neg_ones, pos_ones, out = self.train_data_holder
+        (
+            econ,
+            comp,
+            rets,
+            mom_weights,
+            comp_weights,
+            avg_weights,
+            neg_ones,
+            pos_ones,
+            out,
+        ) = self.train_data_holder
 
         start_index = 0
         while True:
             # Termination is controlled by steps per epoch
             end_index = start_index + self.batch_size
-            inputs = [econ[start_index:end_index], comp[start_index:end_index], rets[start_index:end_index],
-                      mom_weights[start_index:end_index], comp_weights[start_index:end_index],
-                      avg_weights[start_index:end_index],
-                      neg_ones[start_index:end_index], pos_ones[start_index:end_index]]
+            inputs = [
+                econ[start_index:end_index],
+                comp[start_index:end_index],
+                rets[start_index:end_index],
+                mom_weights[start_index:end_index],
+                comp_weights[start_index:end_index],
+                avg_weights[start_index:end_index],
+                neg_ones[start_index:end_index],
+                pos_ones[start_index:end_index],
+            ]
             outputs = out[start_index:end_index]
             start_index += self.time_steps
             yield (inputs, outputs)
 
     def generate_validation_data(self):
-        econ, comp, rets, mom_weights, comp_weights, avg_weights, neg_ones, pos_ones, out = self.valid_data_holder
+        (
+            econ,
+            comp,
+            rets,
+            mom_weights,
+            comp_weights,
+            avg_weights,
+            neg_ones,
+            pos_ones,
+            out,
+        ) = self.valid_data_holder
 
         start_index = 0
         while True:
             # Termination is controlled by steps per epoch
             end_index = start_index + self.batch_size
-            inputs = [econ[start_index:end_index], comp[start_index:end_index], rets[start_index:end_index],
-                      mom_weights[start_index:end_index], comp_weights[start_index:end_index],
-                      avg_weights[start_index:end_index],
-                      neg_ones[start_index:end_index], pos_ones[start_index:end_index]]
+            inputs = [
+                econ[start_index:end_index],
+                comp[start_index:end_index],
+                rets[start_index:end_index],
+                mom_weights[start_index:end_index],
+                comp_weights[start_index:end_index],
+                avg_weights[start_index:end_index],
+                neg_ones[start_index:end_index],
+                pos_ones[start_index:end_index],
+            ]
             outputs = out[start_index:end_index]
             start_index += self.time_steps
             yield (inputs, outputs)
@@ -340,17 +503,42 @@ class DataGeneratorMultiBatchFast(object):
         per_company_time_weights[per_company_time_weights == -inf] = 0.0
 
         macro_factor = self.macro_factor.iloc[initial_index:final_index, :].values
-        characteristics = self.characteristics[self.characteristics.items[initial_index:final_index], :, :].values
+        characteristics = self.characteristics[
+            self.characteristics.items[initial_index:final_index], :, :
+        ].values
         returns = self.returns.iloc[initial_index:final_index].values
 
-        econ, comp, rets, mom_weights, comp_weights, avg_weights, neg_ones, pos_ones, out = \
-            build_timeseries_modified(macro_factor, characteristics, returns, per_moment_time_weights,
-                                      per_company_time_weights,
-                                      average_weights, self.time_steps)
+        (
+            econ,
+            comp,
+            rets,
+            mom_weights,
+            comp_weights,
+            avg_weights,
+            neg_ones,
+            pos_ones,
+            out,
+        ) = build_timeseries_modified(
+            macro_factor,
+            characteristics,
+            returns,
+            per_moment_time_weights,
+            per_company_time_weights,
+            average_weights,
+            self.time_steps,
+        )
 
         # Termination is controlled by steps per epoch
-        inputs = [econ, comp, rets, mom_weights, comp_weights, avg_weights,
-                  neg_ones, pos_ones]
+        inputs = [
+            econ,
+            comp,
+            rets,
+            mom_weights,
+            comp_weights,
+            avg_weights,
+            neg_ones,
+            pos_ones,
+        ]
         outputs = out[start_index:end_index]
         return (inputs, outputs)
 
@@ -369,14 +557,33 @@ class DataGeneratorMultiBatchFast(object):
 
         # This may be redundant but is done for better readability for now
         macro_factor = self.macro_factor.iloc[initial_index:final_index, :].values
-        characteristics = self.characteristics[self.characteristics.items[initial_index:final_index], :, :].values
+        characteristics = self.characteristics[
+            self.characteristics.items[initial_index:final_index], :, :
+        ].values
         returns = self.returns.iloc[initial_index:final_index].values
-        average_weights = self.average_weight * (-1.0 if self.generation_mode is TrainingMode.conditional else 1.0)
+        average_weights = self.average_weight * (
+            -1.0 if self.generation_mode is TrainingMode.conditional else 1.0
+        )
 
-        econ, comp, rets, mom_weights, comp_weights, avg_weights, neg_ones, pos_ones, out = \
-            build_timeseries_modified(macro_factor, characteristics, returns, per_moment_time_weights,
-                                      per_company_time_weights,
-                                      average_weights, self.time_steps)
+        (
+            econ,
+            comp,
+            rets,
+            mom_weights,
+            comp_weights,
+            avg_weights,
+            neg_ones,
+            pos_ones,
+            out,
+        ) = build_timeseries_modified(
+            macro_factor,
+            characteristics,
+            returns,
+            per_moment_time_weights,
+            per_company_time_weights,
+            average_weights,
+            self.time_steps,
+        )
 
         # Hack to save time for predictions
         self.full_return_sequences = rets
@@ -384,9 +591,16 @@ class DataGeneratorMultiBatchFast(object):
 
 
 class AssetPricingGAN(object):
-    def __init__(self, n_macro_features=1, n_company_fetures=2, n_assets=1, time_steps=250, batch_size=10,
-                 optimizer="adam",
-                 training_loss="mean_squared_error"):
+    def __init__(
+        self,
+        n_macro_features=1,
+        n_company_fetures=2,
+        n_assets=1,
+        time_steps=250,
+        batch_size=10,
+        optimizer="adam",
+        training_loss="mean_squared_error",
+    ):
         self.n_macro_features = n_macro_features
         self.n_company_fetures = n_company_fetures
         self.n_assets = n_assets
@@ -399,32 +613,94 @@ class AssetPricingGAN(object):
         self.sdf_network = self.__build_network("sdf")
         self.conditional_network = self.__build_network("conditional")
         final_loss = self.create_loss()
-        from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
-        from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+        from tensorflow.keras.layers import (
+            Input,
+            Dense,
+            Reshape,
+            Flatten,
+            Dropout,
+            LSTM,
+            TimeDistributed,
+            Lambda,
+        )
+        from tensorflow.keras.layers import (
+            concatenate,
+            multiply,
+            Dot,
+            subtract,
+            Multiply,
+        )
         from tensorflow.keras.models import Sequential, Model
         from tensorflow.keras.optimizers import Adam
         from tensorflow.keras import losses
-        from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+        from tensorflow.keras.backend import (
+            sum as k_sum,
+            tile,
+            stack,
+            expand_dims as k_expand_dims,
+            square,
+            constant,
+        )
         from tensorflow.keras.utils import plot_model
-        from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
-        self.gan_model = Model([self.macro_input_layer, self.company_input_layer, self.return_sequences,
-                                self.moment_weight_input_layer, self.company_weight_input_layer,
-                                self.overall_loss_weight_input_layer,
-                                self.discount_factor_multiplier, self.discount_factor_substraction],
-                               final_loss)
+        from tensorflow.keras.callbacks import (
+            TensorBoard,
+            ModelCheckpoint,
+            ReduceLROnPlateau,
+        )
+
+        self.gan_model = Model(
+            [
+                self.macro_input_layer,
+                self.company_input_layer,
+                self.return_sequences,
+                self.moment_weight_input_layer,
+                self.company_weight_input_layer,
+                self.overall_loss_weight_input_layer,
+                self.discount_factor_multiplier,
+                self.discount_factor_substraction,
+            ],
+            final_loss,
+        )
         self.compile_model("Initial network architecture")
         # plot_model(self.gan_model, os.path.join(data_dir, "full_asset_pricing_model_architecture.png"), show_shapes=True)
         print("Full model compiled")
 
     def prepare_training_callbacks(self, model_saving_period):
-        from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
-        from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+        from tensorflow.keras.layers import (
+            Input,
+            Dense,
+            Reshape,
+            Flatten,
+            Dropout,
+            LSTM,
+            TimeDistributed,
+            Lambda,
+        )
+        from tensorflow.keras.layers import (
+            concatenate,
+            multiply,
+            Dot,
+            subtract,
+            Multiply,
+        )
         from tensorflow.keras.models import Sequential, Model
         from tensorflow.keras.optimizers import Adam
         from tensorflow.keras import losses
-        from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+        from tensorflow.keras.backend import (
+            sum as k_sum,
+            tile,
+            stack,
+            expand_dims as k_expand_dims,
+            square,
+            constant,
+        )
         from tensorflow.keras.utils import plot_model
-        from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
+        from tensorflow.keras.callbacks import (
+            TensorBoard,
+            ModelCheckpoint,
+            ReduceLROnPlateau,
+        )
+
         tensorboard_path = "/nn_results/gan_model/model/run_3_mb/tensorboard/test"
         model_path = "/nn_results/gan_model/model/run_3_mb/model/test/gan-model-{epoch:03d}_{loss:.2f}.hdf5"
         create_directory_if_does_not_exists(tensorboard_path)
@@ -442,8 +718,18 @@ class AssetPricingGAN(object):
         #                                  verbose=1, save_weights_only=True, period=model_saving_period),
         #                  ReduceLROnPlateau(monitor='loss', factor=0.9, patience=3, verbose=1, mode='auto',
         #                                    min_delta=0.001, cooldown=3, min_lr=0.000001)]
-        keras_callbacks = [ReduceLROnPlateau(monitor='loss', factor=0.9, patience=3, verbose=1, mode='auto',
-                                             min_delta=0.000001, cooldown=3, min_lr=0.00000001)]
+        keras_callbacks = [
+            ReduceLROnPlateau(
+                monitor='loss',
+                factor=0.9,
+                patience=3,
+                verbose=1,
+                mode='auto',
+                min_delta=0.000001,
+                cooldown=3,
+                min_lr=0.00000001,
+            )
+        ]
         return keras_callbacks
 
     def compile_model(self, msg=""):
@@ -453,109 +739,274 @@ class AssetPricingGAN(object):
         print(msg)
 
     def create_loss(self):
-        from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
-        from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+        from tensorflow.keras.layers import (
+            Input,
+            Dense,
+            Reshape,
+            Flatten,
+            Dropout,
+            LSTM,
+            TimeDistributed,
+            Lambda,
+        )
+        from tensorflow.keras.layers import (
+            concatenate,
+            multiply,
+            Dot,
+            subtract,
+            Multiply,
+        )
         from tensorflow.keras.models import Sequential, Model
         from tensorflow.keras.optimizers import Adam
         from tensorflow.keras import losses
-        from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+        from tensorflow.keras.backend import (
+            sum as k_sum,
+            tile,
+            stack,
+            expand_dims as k_expand_dims,
+            square,
+            constant,
+        )
         from tensorflow.keras.utils import plot_model
-        from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
+        from tensorflow.keras.callbacks import (
+            TensorBoard,
+            ModelCheckpoint,
+            ReduceLROnPlateau,
+        )
         import tensorflow
-        f_factor = Dot(2, name="f_factor")([self.return_sequences, self.sdf_network.output])
+
+        f_factor = Dot(2, name="f_factor")(
+            [self.return_sequences, self.sdf_network.output]
+        )
         if len(f_factor.shape) == 4:  # If the shape is (None, 1, 1, 1)
             f_factor = tensorflow.squeeze(f_factor, axis=-1)
         # discount_factor = Multiply(name="negative_f_factor")([self.discount_factor_multiplier, f_factor])
-        negative_f_factor = multiply([self.discount_factor_multiplier, f_factor], name="negative_f_factor")
-        discount_factor = subtract([self.discount_factor_substraction, negative_f_factor], name="discount_factor")
+        negative_f_factor = multiply(
+            [self.discount_factor_multiplier, f_factor], name="negative_f_factor"
+        )
+        discount_factor = subtract(
+            [self.discount_factor_substraction, negative_f_factor],
+            name="discount_factor",
+        )
         # tiled_returns = tile(k_expand_dims(self.return_sequences), (1,1,1,self.conditional_network.output.shape[3]))
-        tiled_returns = Lambda(lambda x: stack([x for i in range(8)], 3), name="tiled_returns")(self.return_sequences)
+        tiled_returns = Lambda(
+            lambda x: stack([x for i in range(8)], 3), name="tiled_returns"
+        )(self.return_sequences)
         tiled_discount_factor = Lambda(
-            lambda x: tile(k_expand_dims(x), (1, 1,) + tuple(self.conditional_network.output.shape[2:])),
-            name="tiled_discount_factor")(discount_factor)
+            lambda x: tile(
+                k_expand_dims(x),
+                (
+                    1,
+                    1,
+                )
+                + tuple(self.conditional_network.output.shape[2:]),
+            ),
+            name="tiled_discount_factor",
+        )(discount_factor)
 
-        moment_factors = multiply([tiled_discount_factor, tiled_returns, self.conditional_network.output],
-                                  name="moment_factors_terms")
-        time_averaged_loss = Lambda(lambda x: k_sum(x, axis=1), name="time_averaged_losses_per_company_moment")(
-            moment_factors)
-        tiled_moment_weights = Lambda(lambda x: tile(k_expand_dims(x), (1, 1, time_averaged_loss.shape[-1])),
-                                      name="tiled_moment_weights")(self.moment_weight_input_layer)
-        weighted_moment_factors = multiply([tiled_moment_weights, time_averaged_loss], name="weighted_moments")
-        per_company_loss = Lambda(lambda x: k_sum(square(x), axis=2), name="loss_per_company")(weighted_moment_factors)
-        weighted_per_company_loss = multiply([self.company_weight_input_layer, per_company_loss],
-                                             name="weighted_loss_per_company")
-        total_loss = Lambda(lambda x: k_sum(x, 1), name="overall_loss")(weighted_per_company_loss)
-        final_loss = multiply([self.overall_loss_weight_input_layer, total_loss], name="final_loss")
+        moment_factors = multiply(
+            [tiled_discount_factor, tiled_returns, self.conditional_network.output],
+            name="moment_factors_terms",
+        )
+        time_averaged_loss = Lambda(
+            lambda x: k_sum(x, axis=1), name="time_averaged_losses_per_company_moment"
+        )(moment_factors)
+        tiled_moment_weights = Lambda(
+            lambda x: tile(k_expand_dims(x), (1, 1, time_averaged_loss.shape[-1])),
+            name="tiled_moment_weights",
+        )(self.moment_weight_input_layer)
+        weighted_moment_factors = multiply(
+            [tiled_moment_weights, time_averaged_loss], name="weighted_moments"
+        )
+        per_company_loss = Lambda(
+            lambda x: k_sum(square(x), axis=2), name="loss_per_company"
+        )(weighted_moment_factors)
+        weighted_per_company_loss = multiply(
+            [self.company_weight_input_layer, per_company_loss],
+            name="weighted_loss_per_company",
+        )
+        total_loss = Lambda(lambda x: k_sum(x, 1), name="overall_loss")(
+            weighted_per_company_loss
+        )
+        final_loss = multiply(
+            [self.overall_loss_weight_input_layer, total_loss], name="final_loss"
+        )
         return final_loss
 
     def set_training_mode(self, training_mode):
-        layers_to_freeze_prefix = "conditional" if training_mode is TrainingMode.sdf else "sdf"
+        layers_to_freeze_prefix = (
+            "conditional" if training_mode is TrainingMode.sdf else "sdf"
+        )
         for k in self.gan_model.layers:
             k.trainable = True
-        layers_to_freeze = [k for k in self.gan_model.layers if k.name.startswith(layers_to_freeze_prefix)]
+        layers_to_freeze = [
+            k
+            for k in self.gan_model.layers
+            if k.name.startswith(layers_to_freeze_prefix)
+        ]
         for k in layers_to_freeze:
             k.trainable = False
-        self.compile_model("Architecture of model set to train {0}".format(training_mode))
+        self.compile_model(
+            "Architecture of model set to train {0}".format(training_mode)
+        )
 
     def create_input_layers(self):
-        from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
-        from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+        from tensorflow.keras.layers import (
+            Input,
+            Dense,
+            Reshape,
+            Flatten,
+            Dropout,
+            LSTM,
+            TimeDistributed,
+            Lambda,
+        )
+        from tensorflow.keras.layers import (
+            concatenate,
+            multiply,
+            Dot,
+            subtract,
+            Multiply,
+        )
         from tensorflow.keras.models import Sequential, Model
         from tensorflow.keras.optimizers import Adam
         from tensorflow.keras import losses
-        from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+        from tensorflow.keras.backend import (
+            sum as k_sum,
+            tile,
+            stack,
+            expand_dims as k_expand_dims,
+            square,
+            constant,
+        )
         from tensorflow.keras.utils import plot_model
-        from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
-        self.macro_input_layer = Input(shape=(self.time_steps, self.n_macro_features), name="macro_data")
-        self.company_input_layer = Input(shape=(self.time_steps, self.n_assets, self.n_company_fetures),
-                                         name="company_data")
-        self.return_sequences = Input(shape=(self.time_steps, self.n_assets), name="company_returns")
+        from tensorflow.keras.callbacks import (
+            TensorBoard,
+            ModelCheckpoint,
+            ReduceLROnPlateau,
+        )
 
-        self.moment_weight_input_layer = Input(shape=(self.n_assets,), name="weight_per_moment")
-        self.company_weight_input_layer = Input(shape=(self.n_assets,), name="weight_per_company")
+        self.macro_input_layer = Input(
+            shape=(self.time_steps, self.n_macro_features), name="macro_data"
+        )
+        self.company_input_layer = Input(
+            shape=(self.time_steps, self.n_assets, self.n_company_fetures),
+            name="company_data",
+        )
+        self.return_sequences = Input(
+            shape=(self.time_steps, self.n_assets), name="company_returns"
+        )
+
+        self.moment_weight_input_layer = Input(
+            shape=(self.n_assets,), name="weight_per_moment"
+        )
+        self.company_weight_input_layer = Input(
+            shape=(self.n_assets,), name="weight_per_company"
+        )
         self.overall_loss_weight_input_layer = Input(shape=(1,), name="loss_weight")
 
-        self.discount_factor_multiplier = Input(shape=(self.time_steps, 1), name="discount_factor_multiplier")
-        self.discount_factor_substraction = Input(shape=(self.time_steps, 1), name="discount_factor_substraction")
+        self.discount_factor_multiplier = Input(
+            shape=(self.time_steps, 1), name="discount_factor_multiplier"
+        )
+        self.discount_factor_substraction = Input(
+            shape=(self.time_steps, 1), name="discount_factor_substraction"
+        )
 
-        self.flattened_company_inputs = Reshape((self.time_steps or -1, self.n_assets * self.n_company_fetures,),
-                                                name="flat_company_data")(self.company_input_layer)
+        self.flattened_company_inputs = Reshape(
+            (
+                self.time_steps or -1,
+                self.n_assets * self.n_company_fetures,
+            ),
+            name="flat_company_data",
+        )(self.company_input_layer)
 
     def __build_network(self, cfg_section_name):
-        from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
-        from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+        from tensorflow.keras.layers import (
+            Input,
+            Dense,
+            Reshape,
+            Flatten,
+            Dropout,
+            LSTM,
+            TimeDistributed,
+            Lambda,
+        )
+        from tensorflow.keras.layers import (
+            concatenate,
+            multiply,
+            Dot,
+            subtract,
+            Multiply,
+        )
         from tensorflow.keras.models import Sequential, Model
         from tensorflow.keras.optimizers import Adam
         from tensorflow.keras import losses
-        from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+        from tensorflow.keras.backend import (
+            sum as k_sum,
+            tile,
+            stack,
+            expand_dims as k_expand_dims,
+            square,
+            constant,
+        )
         from tensorflow.keras.utils import plot_model
-        from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
+        from tensorflow.keras.callbacks import (
+            TensorBoard,
+            ModelCheckpoint,
+            ReduceLROnPlateau,
+        )
+
         cfg_section = get_config()[cfg_section_name]
         lstm_layer = self.macro_input_layer
         for k in range(cfg_section["n_rnn_hidden_layers"]):
-            lstm_layer = LSTM(**cfg_section["rnn_hidden_layer"], name="{0}-rnn-{1}".format(cfg_section_name, k))(
-                lstm_layer)
-        ffn_input = concatenate([lstm_layer, self.flattened_company_inputs],
-                                name="{0}-ffn-input".format(cfg_section_name))
+            lstm_layer = LSTM(
+                **cfg_section["rnn_hidden_layer"],
+                name="{0}-rnn-{1}".format(cfg_section_name, k),
+            )(lstm_layer)
+        ffn_input = concatenate(
+            [lstm_layer, self.flattened_company_inputs],
+            name="{0}-ffn-input".format(cfg_section_name),
+        )
         ffn = ffn_input
         for k in range(cfg_section["n_ffn_hidden_layers"]):
-            ffn = TimeDistributed(Dense(**cfg_section["ffn_hidden_layer"]),
-                                  name="{0}-fnn-{1}".format(cfg_section_name, k + 1))(ffn)
-            if cfg_section.get("ffn_droput_layer", None) and cfg_section["ffn_droput_layer"]["rate"]:
-                ffn = TimeDistributed(Dropout(**cfg_section["ffn_droput_layer"]),
-                                      name="{0}-dropout-{1}".format(cfg_section_name, k + 1))(ffn)
+            ffn = TimeDistributed(
+                Dense(**cfg_section["ffn_hidden_layer"]),
+                name="{0}-fnn-{1}".format(cfg_section_name, k + 1),
+            )(ffn)
+            if (
+                cfg_section.get("ffn_droput_layer", None)
+                and cfg_section["ffn_droput_layer"]["rate"]
+            ):
+                ffn = TimeDistributed(
+                    Dropout(**cfg_section["ffn_droput_layer"]),
+                    name="{0}-dropout-{1}".format(cfg_section_name, k + 1),
+                )(ffn)
         output_multiplier = cfg_section["output_layer_units_multiplier"]
-        ffn_output_raw = TimeDistributed(Dense(self.n_assets * output_multiplier),
-                                         name="{0}-output-raw".format(cfg_section_name))(ffn)
-        ffn_output = Reshape((self.time_steps, self.n_assets, output_multiplier),
-                             name="{0}-output".format(cfg_section_name))(ffn_output_raw)
+        ffn_output_raw = TimeDistributed(
+            Dense(self.n_assets * output_multiplier),
+            name="{0}-output-raw".format(cfg_section_name),
+        )(ffn)
+        ffn_output = Reshape(
+            (self.time_steps, self.n_assets, output_multiplier),
+            name="{0}-output".format(cfg_section_name),
+        )(ffn_output_raw)
 
-        network_model = Model([self.macro_input_layer, self.company_input_layer], ffn_output)
+        network_model = Model(
+            [self.macro_input_layer, self.company_input_layer], ffn_output
+        )
         # plot_model(network_model, os.path.join(data_dir, "full_asset_pricing_model_architecture_{0}.png".format(cfg_section_name)), show_shapes=True)
         return network_model
 
-    def train_network(self, data_generator, epochs=1, epochs_discriminator=None, gan_iterations=1, verbose=1,
-                      run_validation=False, shuffle=False):
+    def train_network(
+        self,
+        data_generator,
+        epochs=1,
+        epochs_discriminator=None,
+        gan_iterations=1,
+        verbose=1,
+        run_validation=False,
+        shuffle=False,
+    ):
         epoch_counter = 0
         cbs = self.prepare_training_callbacks(epochs)
         # Too much space
@@ -563,7 +1014,11 @@ class AssetPricingGAN(object):
         steps_per_epoch = 1
         for gan_iter in range(gan_iterations):
             for training_mode in [TrainingMode.sdf, TrainingMode.conditional]:
-                print("Setting training mode of gan_iteration #{0} to {1}".format(gan_iter, training_mode))
+                print(
+                    "Setting training mode of gan_iteration #{0} to {1}".format(
+                        gan_iter, training_mode
+                    )
+                )
                 if training_mode == TrainingMode.sdf:
                     current_epochs = epochs
                 else:
@@ -571,22 +1026,40 @@ class AssetPricingGAN(object):
                 self.set_training_mode(training_mode)
                 data_generator.set_training_mode(training_mode)
                 if run_validation:
-                    self.history = self.gan_model.fit_generator(data_generator.generate_train_data(), steps_per_epoch,
-                                                                epoch_counter + current_epochs, verbose,
-                                                                validation_data=data_generator.generate_validation_data(),
-                                                                validation_steps=steps_per_epoch, validation_freq=1,
-                                                                callbacks=cbs, initial_epoch=epoch_counter,
-                                                                shuffle=shuffle)
+                    self.history = self.gan_model.fit_generator(
+                        data_generator.generate_train_data(),
+                        steps_per_epoch,
+                        epoch_counter + current_epochs,
+                        verbose,
+                        validation_data=data_generator.generate_validation_data(),
+                        validation_steps=steps_per_epoch,
+                        validation_freq=1,
+                        callbacks=cbs,
+                        initial_epoch=epoch_counter,
+                        shuffle=shuffle,
+                    )
                 else:
-                    self.history = self.gan_model.fit_generator(data_generator.generate_train_data(), steps_per_epoch,
-                                                                epoch_counter + current_epochs, verbose,
-                                                                callbacks=cbs, initial_epoch=epoch_counter,
-                                                                shuffle=shuffle)
+                    self.history = self.gan_model.fit_generator(
+                        data_generator.generate_train_data(),
+                        steps_per_epoch,
+                        epoch_counter + current_epochs,
+                        verbose,
+                        callbacks=cbs,
+                        initial_epoch=epoch_counter,
+                        shuffle=shuffle,
+                    )
                 epoch_counter += epochs
 
-    def train_network_stateful(self, data_generator, epochs=1, epochs_discriminator=None, gan_iterations=1, verbose=1,
-                               run_validation=True,
-                               shuffle=False):
+    def train_network_stateful(
+        self,
+        data_generator,
+        epochs=1,
+        epochs_discriminator=None,
+        gan_iterations=1,
+        verbose=1,
+        run_validation=True,
+        shuffle=False,
+    ):
         epoch_counter = 0
         cbs = self.prepare_training_callbacks(epochs)
         nobs = data_generator.n_train - self.time_steps
@@ -595,7 +1068,11 @@ class AssetPricingGAN(object):
         validation_steps_per_epoch = int(ceil(nobs_val / self.batch_size))
         for gan_iter in range(gan_iterations):
             for training_mode in [TrainingMode.sdf, TrainingMode.conditional]:
-                print("Setting training mode of gan_iteration #{0} to {1}".format(gan_iter, training_mode))
+                print(
+                    "Setting training mode of gan_iteration #{0} to {1}".format(
+                        gan_iter, training_mode
+                    )
+                )
                 if training_mode == TrainingMode.sdf:
                     current_epochs = epochs
                 else:
@@ -605,32 +1082,69 @@ class AssetPricingGAN(object):
                 for i in range(current_epochs):
                     print("epoch {0}".format(i))
                     if run_validation:
-                        self.history = self.gan_model.fit_generator(data_generator.generate_train_data(),
-                                                                    steps_per_epoch, epoch_counter + 1, verbose,
-                                                                    validation_data=data_generator.generate_validation_data(),
-                                                                    validation_steps=validation_steps_per_epoch,
-                                                                    validation_freq=1,
-                                                                    callbacks=cbs, initial_epoch=epoch_counter,
-                                                                    shuffle=shuffle)
+                        self.history = self.gan_model.fit_generator(
+                            data_generator.generate_train_data(),
+                            steps_per_epoch,
+                            epoch_counter + 1,
+                            verbose,
+                            validation_data=data_generator.generate_validation_data(),
+                            validation_steps=validation_steps_per_epoch,
+                            validation_freq=1,
+                            callbacks=cbs,
+                            initial_epoch=epoch_counter,
+                            shuffle=shuffle,
+                        )
                     else:
-                        self.history = self.gan_model.fit_generator(data_generator.generate_train_data(),
-                                                                    steps_per_epoch, epoch_counter + 1, verbose,
-                                                                    callbacks=cbs, initial_epoch=epoch_counter,
-                                                                    shuffle=shuffle)
+                        self.history = self.gan_model.fit_generator(
+                            data_generator.generate_train_data(),
+                            steps_per_epoch,
+                            epoch_counter + 1,
+                            verbose,
+                            callbacks=cbs,
+                            initial_epoch=epoch_counter,
+                            shuffle=shuffle,
+                        )
                     epoch_counter += 1
                     self.gan_model.reset_states()
 
 
 class SDFExtraction(object):  # This is a complete version with data and gan network
     def __init__(self, data_dir, insample_cut_date):
-        from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
-        from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+        from tensorflow.keras.layers import (
+            Input,
+            Dense,
+            Reshape,
+            Flatten,
+            Dropout,
+            LSTM,
+            TimeDistributed,
+            Lambda,
+        )
+        from tensorflow.keras.layers import (
+            concatenate,
+            multiply,
+            Dot,
+            subtract,
+            Multiply,
+        )
         from tensorflow.keras.models import Sequential, Model
         from tensorflow.keras.optimizers import Adam
         from tensorflow.keras import losses
-        from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+        from tensorflow.keras.backend import (
+            sum as k_sum,
+            tile,
+            stack,
+            expand_dims as k_expand_dims,
+            square,
+            constant,
+        )
         from tensorflow.keras.utils import plot_model
-        from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
+        from tensorflow.keras.callbacks import (
+            TensorBoard,
+            ModelCheckpoint,
+            ReduceLROnPlateau,
+        )
+
         self.data_dir = data_dir
         self.insample_cut_date = pd.Timestamp(insample_cut_date)
         self.saved_weight_path = os.path.join(data_dir, "saved_weights.h5")
@@ -654,13 +1168,25 @@ class SDFExtraction(object):  # This is a complete version with data and gan net
         data_split_integer_override = [n_train, 0, n_test]
         batch_size = n_train - time_steps
 
-        self.data_generator = DataGeneratorMultiBatchFast((company_data, econ_data, return_data, active_matrix),
-                                                          x_cols, econ_cols, y_col, batch_size, time_steps,
-                                                          data_splits, data_split_integer_override)
-        gan_network = AssetPricingGAN(n_macro_features, n_company_features, n_assets, time_steps=time_steps,
-                                      batch_size=batch_size,
-                                      training_loss=linear_pred_loss,
-                                      optimizer=Adam(lr=0.00001, decay=0.0, epsilon=1e-8))
+        self.data_generator = DataGeneratorMultiBatchFast(
+            (company_data, econ_data, return_data, active_matrix),
+            x_cols,
+            econ_cols,
+            y_col,
+            batch_size,
+            time_steps,
+            data_splits,
+            data_split_integer_override,
+        )
+        gan_network = AssetPricingGAN(
+            n_macro_features,
+            n_company_features,
+            n_assets,
+            time_steps=time_steps,
+            batch_size=batch_size,
+            training_loss=linear_pred_loss,
+            optimizer=Adam(lr=0.00001, decay=0.0, epsilon=1e-8),
+        )
 
         self.n_macro_features = gan_network.n_macro_features
         self.n_company_fetures = gan_network.n_company_fetures
@@ -668,16 +1194,18 @@ class SDFExtraction(object):  # This is a complete version with data and gan net
         self.time_steps = gan_network.time_steps
         self.batch_size = gan_network.batch_size
         self.gan_model = gan_network.gan_model
-        get_saved_weights(self.gan_model,skip=False)
-        #if saved_weight_path:
+        get_saved_weights(self.gan_model, skip=False)
+        # if saved_weight_path:
         #    self.gan_model.load_weights(saved_weight_path)  # load weights
         self.create_input_layers()
         self.sdf_network = self.__build_network()
         self.weighted_layers = ["sdf-rnn-0", "sdf-fnn-1", "sdf-fnn-2", "sdf-output-raw"]
         print(self.sdf_network.summary())
         self.__populate_sdf_network_weights()
-        self.intermediate_model = Model(inputs=self.sdf_network.input,
-                                        outputs=self.sdf_network.get_layer("sdf-rnn-0").output)
+        self.intermediate_model = Model(
+            inputs=self.sdf_network.input,
+            outputs=self.sdf_network.get_layer("sdf-rnn-0").output,
+        )
         self.sdf_output = None
         self.return_sequences = None
         self.f_factor = None
@@ -699,66 +1227,156 @@ class SDFExtraction(object):  # This is a complete version with data and gan net
         print(nobs)
         steps = int(ceil(nobs / self.batch_size))
         print(steps)
-        self.sdf_output = self.sdf_network.predict(self.data_generator.get_full_data(), steps)
+        self.sdf_output = self.sdf_network.predict(
+            self.data_generator.get_full_data(), steps
+        )
         self.return_sequences = self.data_generator.full_return_sequences
-        self.norm_constant = self.sdf_output[:self.data_generator.n_train, 0, :].sum(axis=1).mean()
+        self.norm_constant = (
+            self.sdf_output[: self.data_generator.n_train, 0, :].sum(axis=1).mean()
+        )
 
     def create_input_layers(self):
-        from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
-        from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+        from tensorflow.keras.layers import (
+            Input,
+            Dense,
+            Reshape,
+            Flatten,
+            Dropout,
+            LSTM,
+            TimeDistributed,
+            Lambda,
+        )
+        from tensorflow.keras.layers import (
+            concatenate,
+            multiply,
+            Dot,
+            subtract,
+            Multiply,
+        )
         from tensorflow.keras.models import Sequential, Model
         from tensorflow.keras.optimizers import Adam
         from tensorflow.keras import losses
-        from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+        from tensorflow.keras.backend import (
+            sum as k_sum,
+            tile,
+            stack,
+            expand_dims as k_expand_dims,
+            square,
+            constant,
+        )
         from tensorflow.keras.utils import plot_model
-        from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
-        self.macro_input_layer = Input(shape=(self.time_steps, self.n_macro_features), name="macro_data")
-        self.company_input_layer = Input(shape=(self.time_steps, self.n_assets, self.n_company_fetures),
-                                         name="company_data")
-        self.return_sequences = Input(shape=(self.time_steps, self.n_assets), name="company_returns")
-        self.flattened_company_inputs = Reshape((self.time_steps or -1, self.n_assets * self.n_company_fetures,),
-                                                name="flat_company_data")(self.company_input_layer)
+        from tensorflow.keras.callbacks import (
+            TensorBoard,
+            ModelCheckpoint,
+            ReduceLROnPlateau,
+        )
+
+        self.macro_input_layer = Input(
+            shape=(self.time_steps, self.n_macro_features), name="macro_data"
+        )
+        self.company_input_layer = Input(
+            shape=(self.time_steps, self.n_assets, self.n_company_fetures),
+            name="company_data",
+        )
+        self.return_sequences = Input(
+            shape=(self.time_steps, self.n_assets), name="company_returns"
+        )
+        self.flattened_company_inputs = Reshape(
+            (
+                self.time_steps or -1,
+                self.n_assets * self.n_company_fetures,
+            ),
+            name="flat_company_data",
+        )(self.company_input_layer)
 
     def __build_network(self):
-        from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, LSTM, TimeDistributed, Lambda
-        from tensorflow.keras.layers import concatenate, multiply, Dot, subtract, Multiply
+        from tensorflow.keras.layers import (
+            Input,
+            Dense,
+            Reshape,
+            Flatten,
+            Dropout,
+            LSTM,
+            TimeDistributed,
+            Lambda,
+        )
+        from tensorflow.keras.layers import (
+            concatenate,
+            multiply,
+            Dot,
+            subtract,
+            Multiply,
+        )
         from tensorflow.keras.models import Sequential, Model
         from tensorflow.keras.optimizers import Adam
         from tensorflow.keras import losses
-        from tensorflow.keras.backend import sum as k_sum, tile, stack, expand_dims as k_expand_dims, square, constant
+        from tensorflow.keras.backend import (
+            sum as k_sum,
+            tile,
+            stack,
+            expand_dims as k_expand_dims,
+            square,
+            constant,
+        )
         from tensorflow.keras.utils import plot_model
-        from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, ReduceLROnPlateau
+        from tensorflow.keras.callbacks import (
+            TensorBoard,
+            ModelCheckpoint,
+            ReduceLROnPlateau,
+        )
+
         cfg_section_name = "sdf"
         cfg_section = get_config()[cfg_section_name]
         lstm_layer = self.macro_input_layer
         for k in range(cfg_section["n_rnn_hidden_layers"]):
-            lstm_layer = LSTM(**cfg_section["rnn_hidden_layer"], name="{0}-rnn-{1}".format(cfg_section_name, k))(
-                lstm_layer)
-        ffn_input = concatenate([lstm_layer, self.flattened_company_inputs],
-                                name="{0}-ffn-input".format(cfg_section_name))
+            lstm_layer = LSTM(
+                **cfg_section["rnn_hidden_layer"],
+                name="{0}-rnn-{1}".format(cfg_section_name, k),
+            )(lstm_layer)
+        ffn_input = concatenate(
+            [lstm_layer, self.flattened_company_inputs],
+            name="{0}-ffn-input".format(cfg_section_name),
+        )
         ffn = ffn_input
         for k in range(cfg_section["n_ffn_hidden_layers"]):
-            ffn = TimeDistributed(Dense(**cfg_section["ffn_hidden_layer"]),
-                                  name="{0}-fnn-{1}".format(cfg_section_name, k + 1))(ffn)
-            if cfg_section.get("ffn_droput_layer", None) and cfg_section["ffn_droput_layer"]["rate"]:
-                ffn = TimeDistributed(Dropout(**cfg_section["ffn_droput_layer"]),
-                                      name="{0}-dropout-{1}".format(cfg_section_name, k + 1))(ffn)
+            ffn = TimeDistributed(
+                Dense(**cfg_section["ffn_hidden_layer"]),
+                name="{0}-fnn-{1}".format(cfg_section_name, k + 1),
+            )(ffn)
+            if (
+                cfg_section.get("ffn_droput_layer", None)
+                and cfg_section["ffn_droput_layer"]["rate"]
+            ):
+                ffn = TimeDistributed(
+                    Dropout(**cfg_section["ffn_droput_layer"]),
+                    name="{0}-dropout-{1}".format(cfg_section_name, k + 1),
+                )(ffn)
         output_multiplier = cfg_section["output_layer_units_multiplier"]
-        ffn_output_raw = TimeDistributed(Dense(self.n_assets * output_multiplier),
-                                         name="{0}-output-raw".format(cfg_section_name))(ffn)
-        ffn_output = Reshape((self.time_steps, self.n_assets, output_multiplier),
-                             name="{0}-output".format(cfg_section_name))(ffn_output_raw)
+        ffn_output_raw = TimeDistributed(
+            Dense(self.n_assets * output_multiplier),
+            name="{0}-output-raw".format(cfg_section_name),
+        )(ffn)
+        ffn_output = Reshape(
+            (self.time_steps, self.n_assets, output_multiplier),
+            name="{0}-output".format(cfg_section_name),
+        )(ffn_output_raw)
 
-        network_model = Model([self.macro_input_layer, self.company_input_layer], ffn_output)
+        network_model = Model(
+            [self.macro_input_layer, self.company_input_layer], ffn_output
+        )
         # plot_model(network_model, os.path.join(data_dir, "full_asset_pricing_model_architecture_{0}.png".format(cfg_section_name)), show_shapes=True)
         return network_model
 
     def extract_hidden_states(self):
-        intermediate_output = self.intermediate_model.predict(self.data_generator.get_full_data())
+        intermediate_output = self.intermediate_model.predict(
+            self.data_generator.get_full_data()
+        )
         states = intermediate_output[:, 0, :]
         econ_data = self.data_generator.macro_factor
         hidden_states = pd.DataFrame(states, index=econ_data.index[1:])
-        hidden_states.columns = list(map(lambda x: "hidden_state_{0}".format(x), hidden_states.columns))
+        hidden_states.columns = list(
+            map(lambda x: "hidden_state_{0}".format(x), hidden_states.columns)
+        )
         self.hidden_states = hidden_states
 
     def construct_f_factor(self):
@@ -766,24 +1384,26 @@ class SDFExtraction(object):  # This is a complete version with data and gan net
         nobs = self.data_generator.n - self.data_generator.time_steps
         self.predict_sdf()
         raw = np.dot(self.return_sequences, self.sdf_output)
-        self.f_factor = pd.Series(raw[:, 0, nobs - 1, 0, 0], index=econ_data.index[1:]) / self.norm_constant
+        self.f_factor = (
+            pd.Series(raw[:, 0, nobs - 1, 0, 0], index=econ_data.index[1:])
+            / self.norm_constant
+        )
 
     def generate_all_factors(self):
         self.extract_hidden_states()
         self.construct_f_factor()
-        all_factors = pd.concat([self.f_factor.shift(), self.f_factor, self.hidden_states], axis=1). \
-            rename(columns={0: "f_t", 1: "f_t+1"})
-        mean_vals = all_factors[:self.insample_cut_date].mean()
+        all_factors = pd.concat(
+            [self.f_factor.shift(), self.f_factor, self.hidden_states], axis=1
+        ).rename(columns={0: "f_t", 1: "f_t+1"})
+        mean_vals = all_factors[: self.insample_cut_date].mean()
         all_factors = all_factors.fillna(mean_vals)
         self.all_factors = all_factors
-
-
 
     def save_factors(self):
         # Save locally
         local_filename = 'all_factors.h5'
 
-        local_storage_path = os.path.join(os.getcwd(),local_filename)
+        local_storage_path = os.path.join(os.getcwd(), local_filename)
         self.all_factors.to_hdf(local_storage_path, key="df", format="table")
 
         # Initialize a GCS client
@@ -791,7 +1411,9 @@ class SDFExtraction(object):  # This is a complete version with data and gan net
 
         # Define GCS bucket name and destination file name
         bucket_name = 'dcm-prod-ba2f-us-dcm-data-test'
-        gcs_destination = 'calibration_data/live/save_gan_inputs/save_gan_inputs/all_factors.h5'
+        gcs_destination = (
+            'calibration_data/live/save_gan_inputs/save_gan_inputs/all_factors.h5'
+        )
 
         # Get the bucket and blob
         bucket = client.bucket(bucket_name)
@@ -805,11 +1427,12 @@ class SDFExtraction(object):  # This is a complete version with data and gan net
         print(f"File {local_filename} successfully uploaded to {gcs_destination}")
 
 
-
 def get_saved_weights(gan_model, skip=True):
 
     bucket_name = 'dcm-prod-ba2f-us-dcm-data-test'
-    source_blob_name = 'calibration_data/live/save_gan_inputs/save_gan_inputs/saved_weights.h5'
+    source_blob_name = (
+        'calibration_data/live/save_gan_inputs/save_gan_inputs/saved_weights.h5'
+    )
     destination_file_name = os.path.join(os.getcwd(), 'saved_weights.h5')
     if skip == True:
         print('skipping model download from storage')
@@ -827,6 +1450,7 @@ def get_saved_weights(gan_model, skip=True):
     print('loading weights....')
     gan_model.load_weights(destination_file_name)
     print('finished loading weights')
+
 
 def extract_factors(data_dir, insample_cut_date):
     sdf_network = SDFExtraction(data_dir, insample_cut_date)

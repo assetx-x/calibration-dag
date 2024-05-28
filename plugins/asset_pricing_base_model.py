@@ -1,4 +1,3 @@
-
 BASE_LAYER = 'tensorflow.keras.layers.{}'
 
 LAYER_MODULES = [
@@ -71,32 +70,69 @@ class PricingBaseModel:
         self.print_imported_modules()
 
     def import_base_layers(self):
-        layer_submodules = ['Input', 'Dense', 'Reshape', 'Flatten', 'Dropout', 'LSTM',
-                            'TimeDistributed', 'Lambda', 'concatenate', 'multiply',
-                            'Dot', 'subtract', 'Multiply']
-        self.imported_modules.update({submodule: BASE_LAYER.format(submodule) for submodule in layer_submodules})
+        layer_submodules = [
+            'Input',
+            'Dense',
+            'Reshape',
+            'Flatten',
+            'Dropout',
+            'LSTM',
+            'TimeDistributed',
+            'Lambda',
+            'concatenate',
+            'multiply',
+            'Dot',
+            'subtract',
+            'Multiply',
+        ]
+        self.imported_modules.update(
+            {submodule: BASE_LAYER.format(submodule) for submodule in layer_submodules}
+        )
 
     def import_base_models(self):
         model_submodules = ['Sequential', 'Model']
-        self.imported_modules.update({submodule: BASE_MODEL.format(submodule) for submodule in model_submodules})
+        self.imported_modules.update(
+            {submodule: BASE_MODEL.format(submodule) for submodule in model_submodules}
+        )
 
     def import_optimizers_losses(self):
         optimizers_losses_submodules = ['optimizers.Adam', 'losses']
         self.imported_modules.update(
-            {submodule: BASE_OPTIM_LOSS.format(submodule) for submodule in optimizers_losses_submodules})
+            {
+                submodule: BASE_OPTIM_LOSS.format(submodule)
+                for submodule in optimizers_losses_submodules
+            }
+        )
 
     def import_backends(self):
-        backend_submodules = ['sum', 'tile', 'stack', 'expand_dims', 'square', 'constant']
-        self.imported_modules.update({submodule: BASE_BACKEND.format(submodule) for submodule in backend_submodules})
+        backend_submodules = [
+            'sum',
+            'tile',
+            'stack',
+            'expand_dims',
+            'square',
+            'constant',
+        ]
+        self.imported_modules.update(
+            {
+                submodule: BASE_BACKEND.format(submodule)
+                for submodule in backend_submodules
+            }
+        )
 
     def import_callbacks(self):
         callback_submodules = ['TensorBoard', 'ModelCheckpoint', 'ReduceLROnPlateau']
-        self.imported_modules.update({submodule: BASE_CALLBACK.format(submodule) for submodule in callback_submodules})
+        self.imported_modules.update(
+            {
+                submodule: BASE_CALLBACK.format(submodule)
+                for submodule in callback_submodules
+            }
+        )
 
     def import_miscellaneous(self):
-        self.imported_modules.update({
-            'plot_model': 'tensorflow.keras.utils.plot_model'
-        })
+        self.imported_modules.update(
+            {'plot_model': 'tensorflow.keras.utils.plot_model'}
+        )
 
     def print_imported_modules(self):
         for module, imported_module in self.imported_modules.items():

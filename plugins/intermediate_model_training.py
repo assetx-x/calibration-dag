@@ -10,7 +10,11 @@ from joblib import dump, load
 
 from sklearn.model_selection import GroupKFold, GridSearchCV, cross_val_score
 from sklearn.linear_model import LinearRegression, LassoCV, RidgeCV, ElasticNetCV
-from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
+from sklearn.ensemble import (
+    RandomForestRegressor,
+    ExtraTreesRegressor,
+    GradientBoostingRegressor,
+)
 from time import time
 import tempfile
 import pyhocon
@@ -68,6 +72,7 @@ def airflow_wrapper(**kwargs):
             print(gcs_path)
             data_value.to_csv(gcs_path)
 
+
 def feature_importance(X, y, algo, grid, folds, n_jobs=6):
 
     print(algo.__class__)
@@ -84,7 +89,9 @@ def feature_importance(X, y, algo, grid, folds, n_jobs=6):
         algo = cv.best_estimator_
         print(cv.best_params_)
         score = pd.DataFrame(cv.cv_results_).loc[cv.best_index_]
-        score = score[score.index.str.startswith('split') & score.index.str.endswith('test_score')]
+        score = score[
+            score.index.str.startswith('split') & score.index.str.endswith('test_score')
+        ]
 
     else:
         if 'cv' in algo.get_params().keys():
@@ -98,11 +105,8 @@ def feature_importance(X, y, algo, grid, folds, n_jobs=6):
     lapsed = {'fit': fit_time}
     print(lapsed)
 
-    return {
-        'estimator': algo,
-        'cv_score': score,
-        'lapsed': lapsed
-    }
+    return {'estimator': algo, 'cv_score': score, 'lapsed': lapsed}
+
 
 def train_ml_model(folds, X, y, algo, grid, n_jobs=11):
     from sklearn.model_selection import GroupKFold, GridSearchCV, cross_val_score
@@ -113,6 +117,7 @@ def train_ml_model(folds, X, y, algo, grid, n_jobs=11):
         GradientBoostingRegressor,
     )
     from sklearn.externals.joblib import dump, load
+
     print(algo.__class__)
 
     n_folds = folds.nunique()
@@ -157,16 +162,16 @@ class TrainIntermediateModels(DataReaderClass):
 
     # SEED = 20190213
     def __init__(
-            self,
-            y_col,
-            X_cols,
-            return_col,
-            ensemble_weights,
-            bucket,
-            key_base,
-            source_path,
-            local_save_dir,
-            load_from_s3,
+        self,
+        y_col,
+        X_cols,
+        return_col,
+        ensemble_weights,
+        bucket,
+        key_base,
+        source_path,
+        local_save_dir,
+        load_from_s3,
     ):
         self.data = None
         self.econ_model_info = None
@@ -193,8 +198,7 @@ class TrainIntermediateModels(DataReaderClass):
         pass
 
     def _train_models(self, df):
-        models = ['ols', 'lasso', 'enet', 'rf', 'et', 'gbm'
-                  ]
+        models = ['ols', 'lasso', 'enet', 'rf', 'et', 'gbm']
         oos_id = df["fold_id"].max()
         df = df[df["fold_id"] < oos_id].reset_index(drop=True)
         df = df.set_index(["date", "ticker"]).sort_index()
@@ -238,7 +242,9 @@ class TrainIntermediateModels(DataReaderClass):
         folds = df["fold_id"]
 
         results = {
-            k: feature_importance(X, y, algos[k], grids[k], folds, self.n_jobs)["estimator"]
+            k: feature_importance(X, y, algos[k], grids[k], folds, self.n_jobs)[
+                "estimator"
+            ]
             for k in models
         }
         print(results)
@@ -254,7 +260,11 @@ class TrainIntermediateModels(DataReaderClass):
             dump(model, local_filename)
 
             # Define the GCS path
-            print('saving to path : {}'.format(os.path.join(self.source_path, local_filename)))
+            print(
+                'saving to path : {}'.format(
+                    os.path.join(self.source_path, local_filename)
+                )
+            )
             blob = bucket.blob(os.path.join(self.source_path, local_filename))
             # Upload to GCS
             blob.upload_from_filename(local_filename)
@@ -263,9 +273,7 @@ class TrainIntermediateModels(DataReaderClass):
             # Delete local file
             os.remove(local_filename)
 
-        self.econ_model_info = pd.DataFrame(
-            [self.key_base], columns=["relative_path"]
-        )
+        self.econ_model_info = pd.DataFrame([self.key_base], columns=["relative_path"])
         return results
 
     def _load_models(self):
@@ -287,7 +295,7 @@ class TrainIntermediateModels(DataReaderClass):
         return pred
 
     def generate_ensemble_prediction(
-            self, df, algos, target_variable_name, return_column_name, feature_cols
+        self, df, algos, target_variable_name, return_column_name, feature_cols
     ):
         ensemble_weights = self.ensemble_weights
         df = df.set_index(["date", "ticker"])
@@ -407,16 +415,16 @@ class TrainIntermediateModelsWeekly(TrainIntermediateModels):
     ]
 
     def __init__(
-            self,
-            y_col,
-            X_cols,
-            return_col,
-            ensemble_weights,
-            bucket,
-            key_base,
-            source_path,  # This parameter needs to be passed to the superclass
-            local_save_dir,
-            load_from_s3,
+        self,
+        y_col,
+        X_cols,
+        return_col,
+        ensemble_weights,
+        bucket,
+        key_base,
+        source_path,  # This parameter needs to be passed to the superclass
+        local_save_dir,
+        load_from_s3,
     ):
         self.weekly_data = None
         TrainIntermediateModels.__init__(
@@ -467,23 +475,64 @@ class TrainIntermediateModelsWeekly(TrainIntermediateModels):
         }
 
 
-TMW_params = {'y_col': "future_return_RF_100_std",
-        'X_cols': ["EWG_close", "HWI", "IPDCONGD", "DEXUSUK", "CPFF", "GS5", "CUSR0000SAC",
-                   "T5YFFM", "PPO_21_126_InformationTechnology", "macd_diff_ConsumerStaples",
-                   "PPO_21_126_Industrials", "VIXCLS", "PPO_21_126_Energy", "T1YFFM", "WPSID62",
-                   "CUSR0000SA0L2", "EWJ_volume", "PPO_21_126_ConsumerDiscretionary", "DCOILWTICO",
-                   "GS10", "RPI", "CPITRNSL", "divyield_ConsumerStaples", "bm_Financials", "USTRADE",
-                   "T10YFFM", "divyield_Industrials", "AAAFFM", "RETAILx", "bm_Utilities", "SPY_close",
-                   "log_mktcap", "volatility_126", "momentum", "bm", "PPO_12_26", "SPY_beta", "log_dollar_volume",
-                   "fcf_yield"],
-        'return_col': "future_ret_21B",
-        'ensemble_weights': {"enet": 0.03333333333333333, "et": 0.3, "gbm": 0.2, "lasso": 0.03333333333333333, "ols": 0.03333333333333333, "rf": 0.4},
-        'load_from_s3': False,
-        'bucket':'dcm-prod-ba2f-us-dcm-data-test',
-        'key_base' :"gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/live/saved_econ_models_gan",
-        'source_path': 'calibration_data/live/saved_econ_models_gan',
-        'local_save_dir': "econ_models_gan"
-    }
+TMW_params = {
+    'y_col': "future_return_RF_100_std",
+    'X_cols': [
+        "EWG_close",
+        "HWI",
+        "IPDCONGD",
+        "DEXUSUK",
+        "CPFF",
+        "GS5",
+        "CUSR0000SAC",
+        "T5YFFM",
+        "PPO_21_126_InformationTechnology",
+        "macd_diff_ConsumerStaples",
+        "PPO_21_126_Industrials",
+        "VIXCLS",
+        "PPO_21_126_Energy",
+        "T1YFFM",
+        "WPSID62",
+        "CUSR0000SA0L2",
+        "EWJ_volume",
+        "PPO_21_126_ConsumerDiscretionary",
+        "DCOILWTICO",
+        "GS10",
+        "RPI",
+        "CPITRNSL",
+        "divyield_ConsumerStaples",
+        "bm_Financials",
+        "USTRADE",
+        "T10YFFM",
+        "divyield_Industrials",
+        "AAAFFM",
+        "RETAILx",
+        "bm_Utilities",
+        "SPY_close",
+        "log_mktcap",
+        "volatility_126",
+        "momentum",
+        "bm",
+        "PPO_12_26",
+        "SPY_beta",
+        "log_dollar_volume",
+        "fcf_yield",
+    ],
+    'return_col': "future_ret_21B",
+    'ensemble_weights': {
+        "enet": 0.03333333333333333,
+        "et": 0.3,
+        "gbm": 0.2,
+        "lasso": 0.03333333333333333,
+        "ols": 0.03333333333333333,
+        "rf": 0.4,
+    },
+    'load_from_s3': False,
+    'bucket': 'dcm-prod-ba2f-us-dcm-data-test',
+    'key_base': "gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/live/saved_econ_models_gan",
+    'source_path': 'calibration_data/live/saved_econ_models_gan',
+    'local_save_dir': "econ_models_gan",
+}
 
 TrainIntermediateModelsWeekly_params = {
     'params': TMW_params,
@@ -506,6 +555,3 @@ TrainIntermediateModelsWeekly_params = {
         ),
     },
 }
-
-
-

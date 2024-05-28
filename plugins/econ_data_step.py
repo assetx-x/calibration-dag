@@ -1,6 +1,6 @@
-from core_classes import GCPReader,download_yahoo_data,DataReaderClass
+from core_classes import GCPReader, download_yahoo_data, DataReaderClass
 from market_timeline import marketTimeline
-from abc import ABC,ABCMeta, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 from google.cloud import storage
 from enum import Enum
 import pandas as pd
@@ -8,7 +8,8 @@ import io
 import os
 from pandas_datareader import data as web
 import yfinance as yf
-#import fix_yahoo_finance as fyf
+
+# import fix_yahoo_finance as fyf
 import sys
 from fredapi import Fred
 import pandas
@@ -17,11 +18,12 @@ import gc
 import numpy as np
 from fredapi import Fred
 from datetime import datetime
-from core_classes import construct_required_path,construct_destination_path
+from core_classes import construct_required_path, construct_destination_path
 
 
 current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
+
 
 class DownloadEconomicData(DataReaderClass):
     '''
@@ -29,6 +31,7 @@ class DownloadEconomicData(DataReaderClass):
     Reads Economic Data From FRED API
 
     '''
+
     REQUIRES_FIELDS = ["econ_transformation"]
     PROVIDES_FIELDS = ["econ_data"]
 
@@ -46,8 +49,14 @@ class DownloadEconomicData(DataReaderClass):
         pass
 
     def _prepare_to_pull_data(self, **kwargs):
-        self.start_date = self.start_date if pd.notnull(self.start_date) else self.task_params.start_dt
-        self.end_date = self.end_date if pd.notnull(self.end_date) else self.task_params.end_dt
+        self.start_date = (
+            self.start_date
+            if pd.notnull(self.start_date)
+            else self.task_params.start_dt
+        )
+        self.end_date = (
+            self.end_date if pd.notnull(self.end_date) else self.task_params.end_dt
+        )
         self.fred_connection = Fred(api_key=self.fred_api_key)
 
     def _create_data_names(self, econ_trans):
@@ -78,7 +87,9 @@ class DownloadEconomicData(DataReaderClass):
         econ_trans = kwargs["econ_transformation"]
         data_names = self._create_data_names(econ_trans)
         for etf_name in self.sector_etfs:
-            data_names.pop(etf_name + "_close", None)  # Use .pop(key, None) to avoid KeyError if key does not exist
+            data_names.pop(
+                etf_name + "_close", None
+            )  # Use .pop(key, None) to avoid KeyError if key does not exist
             data_names.pop(etf_name + "_volume", None)
         all_data = []
         for concept in data_names:
@@ -89,12 +100,16 @@ class DownloadEconomicData(DataReaderClass):
                     # Special handling for 'SP500'
                     if concept != 'SP500':
                         try:
-                            data = self.fred_connection.get_series_first_release(concept)
+                            data = self.fred_connection.get_series_first_release(
+                                concept
+                            )
                         except Exception as e:
-                            data = self.fred_connection.get_series_latest_release(concept)
+                            data = self.fred_connection.get_series_latest_release(
+                                concept
+                            )
                     else:
                         data = self.fred_connection.get_series(concept)
-                data = data.loc[self.start_date:self.end_date]
+                data = data.loc[self.start_date : self.end_date]
                 data.name = data_names[concept]
                 data.index = data.index.normalize()
                 data = data.to_frame()
@@ -107,9 +122,12 @@ class DownloadEconomicData(DataReaderClass):
         if 'WPSFD49502' not in [d.columns[0] for d in all_data]:
             # Try to download 'WPSFD49502' one more time
             try:
-                data = self.fred_connection.get_series(
-                    'WPSFD49502') if self.use_latest else self.fred_connection.get_series_first_release('WPSFD49502')
-                data = data.loc[self.start_date:self.end_date]
+                data = (
+                    self.fred_connection.get_series('WPSFD49502')
+                    if self.use_latest
+                    else self.fred_connection.get_series_first_release('WPSFD49502')
+                )
+                data = data.loc[self.start_date : self.end_date]
                 data.name = 'WPSFD49502'
                 data.index = data.index.normalize()
                 data = data.to_frame()
@@ -117,10 +135,14 @@ class DownloadEconomicData(DataReaderClass):
                 all_data.append(data)
             except Exception as e:
                 # If there's an error in the second attempt, raise an exception
-                raise Exception("Failed to download 'WPSFD49502' on the second attempt.")
+                raise Exception(
+                    "Failed to download 'WPSFD49502' on the second attempt."
+                )
 
         result = pd.concat(all_data, axis=1)
-        result = result.loc[list(map(lambda x: marketTimeline.isTradingDay(x), result.index))]
+        result = result.loc[
+            list(map(lambda x: marketTimeline.isTradingDay(x), result.index))
+        ]
         result = result.fillna(method="ffill")
         result.index.name = "date"
         return result
@@ -138,17 +160,20 @@ class DownloadEconomicData(DataReaderClass):
         return self.data
 
 
-
 ################ AIRFLOW ##################
 
-DOWNLOAD_ECONOMIC_DATA_PARAMS = {"params": {"sector_etfs": ["SPY", "MDY", "EWG", "EWH", "EWJ", "EWW", "EWS", "EWU"],
-                                   "start_date": "1997-01-01",
-                                   "end_date": RUN_DATE,
-                                   },
-                          "start_date": RUN_DATE,
-                          'class': DownloadEconomicData,
-                          'provided_data': {'econ_data': construct_destination_path('econ_data')},
-                          'required_data': {'econ_transformation': construct_required_path('data_pull','econ_transformation')}
-                          }
-
-
+DOWNLOAD_ECONOMIC_DATA_PARAMS = {
+    "params": {
+        "sector_etfs": ["SPY", "MDY", "EWG", "EWH", "EWJ", "EWW", "EWS", "EWU"],
+        "start_date": "1997-01-01",
+        "end_date": RUN_DATE,
+    },
+    "start_date": RUN_DATE,
+    'class': DownloadEconomicData,
+    'provided_data': {'econ_data': construct_destination_path('econ_data')},
+    'required_data': {
+        'econ_transformation': construct_required_path(
+            'data_pull', 'econ_transformation'
+        )
+    },
+}

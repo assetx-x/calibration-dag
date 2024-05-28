@@ -1,5 +1,3 @@
-
-
 import os
 import pickle
 import numpy as np
@@ -35,8 +33,11 @@ def get_all_sectors():
 
     return query_results
 
+
 def get_all_tickers():
-    sm_query = "select distinct dcm_security_id from marketdata.security_master_20230603"
+    sm_query = (
+        "select distinct dcm_security_id from marketdata.security_master_20230603"
+    )
     client = bigquery.Client()
     query_results = client.query(sm_query).to_dataframe()
 
@@ -90,6 +91,7 @@ def get_security_master_full():
     client = bigquery.Client()
     security_master_tickers = client.query(sm_query).to_dataframe()
     return security_master_tickers
+
 
 def get_sector_names_from_ticker(ticker):
     sm_query = "select * from marketdata.security_master_20230603"
@@ -378,7 +380,7 @@ def get_ticker_from_security_id_mapper(security_id):
 
     """
 
-    if len(security_id)==1:
+    if len(security_id) == 1:
         sm_query = "select ticker,dcm_security_id from marketdata.security_master_20230603 where dcm_security_id={}".format(
             security_id[0]
         )
@@ -404,8 +406,7 @@ def get_ticker_from_security_id_mapper(security_id):
     return query_results
 
 
-def map_trading_book_to_predictions(trading_book,tick_to_secid,all_curr_signals):
-
+def map_trading_book_to_predictions(trading_book, tick_to_secid, all_curr_signals):
 
     signal_to_text = {
         4: "Strong Buy",
@@ -417,23 +418,31 @@ def map_trading_book_to_predictions(trading_book,tick_to_secid,all_curr_signals)
 
     trading_book_tickers = [i['ticker'] for i in trading_book]
 
-    signals_from_trading_book = all_curr_signals[(all_curr_signals.ticker.isin(trading_book_tickers))][['ticker',
-                                                                                                        'signal']].set_index(['ticker'])['signal'].to_dict()
+    signals_from_trading_book = (
+        all_curr_signals[(all_curr_signals.ticker.isin(trading_book_tickers))][
+            ['ticker', 'signal']
+        ]
+        .set_index(['ticker'])['signal']
+        .to_dict()
+    )
 
     def verify_signal_exists(asset, tick_to_secid, signals_from_trading_book):
         asset_sec_id = asset
         if asset_sec_id in signals_from_trading_book.keys():
             prediction = signal_to_text[signals_from_trading_book[asset_sec_id]]
-            #asset["AssetX Signal"] = prediction
+            # asset["AssetX Signal"] = prediction
             return prediction
 
         else:
-            #asset["AssetX Signal"] = "No Forecast"
+            # asset["AssetX Signal"] = "No Forecast"
             return "No Forecast"
 
-    trading_book_signals =[verify_signal_exists(asset, tick_to_secid, signals_from_trading_book) for asset in trading_book_tickers]
+    trading_book_signals = [
+        verify_signal_exists(asset, tick_to_secid, signals_from_trading_book)
+        for asset in trading_book_tickers
+    ]
 
-    return dict(zip(trading_book_tickers,trading_book_signals))
+    return dict(zip(trading_book_tickers, trading_book_signals))
 
 
 def get_top_prediction_by_signal(date, signal):
@@ -448,8 +457,6 @@ def get_top_prediction_by_signal(date, signal):
     ][0:10]
 
 
-
-
 def select_all_distinct_tickers_from_factor_attribution():
     value_tickers_query = "select distinct ticker from marketdata.value_shap"
     growth_tickers_query = "select distinct ticker from marketdata.growth_shap"
@@ -457,27 +464,41 @@ def select_all_distinct_tickers_from_factor_attribution():
     client = bigquery.Client()
     value_tickers = client.query(value_tickers_query).to_dataframe()
     growth_tickers = client.query(growth_tickers_query).to_dataframe()
-    return list(set(growth_tickers['ticker'].tolist() + value_tickers['ticker'].tolist()))
+    return list(
+        set(growth_tickers['ticker'].tolist() + value_tickers['ticker'].tolist())
+    )
 
 
 def grab_single_name_prediction(model_type, ticker):
     if model_type == 'value':
-            sm_query = ("select * from marketdata.value_predictions_2023 where ticker = {}".format(ticker))
-            client = bigquery.Client()
-            data = client.query(sm_query).to_dataframe()
-
-            if len(data)==0:
-                sm_query = ("select * from marketdata.growth_predictions_2023 where ticker = {}".format(ticker))
-                data = client.query(sm_query).to_dataframe()
-
-    else:
-
-        sm_query = ("select * from marketdata.growth_predictions_2023 where ticker = {}".format(ticker))
+        sm_query = (
+            "select * from marketdata.value_predictions_2023 where ticker = {}".format(
+                ticker
+            )
+        )
         client = bigquery.Client()
         data = client.query(sm_query).to_dataframe()
 
-        if len(data)==0:
-            sm_query = ("select * from marketdata.value_predictions_2023 where ticker = {}".format(ticker))
+        if len(data) == 0:
+            sm_query = "select * from marketdata.growth_predictions_2023 where ticker = {}".format(
+                ticker
+            )
+            data = client.query(sm_query).to_dataframe()
+
+    else:
+
+        sm_query = (
+            "select * from marketdata.growth_predictions_2023 where ticker = {}".format(
+                ticker
+            )
+        )
+        client = bigquery.Client()
+        data = client.query(sm_query).to_dataframe()
+
+        if len(data) == 0:
+            sm_query = "select * from marketdata.value_predictions_2023 where ticker = {}".format(
+                ticker
+            )
             data = client.query(sm_query).to_dataframe()
 
     data.sort_values(by=['date'], inplace=True)
@@ -485,26 +506,34 @@ def grab_single_name_prediction(model_type, ticker):
     return data
 
 
-def grab_multiple_predictions(model_type,ticker):
+def grab_multiple_predictions(model_type, ticker):
     if model_type == 'value':
         try:
-            sm_query = ("select * from marketdata.value_predictions_2023 where ticker in {}".format(tuple(ticker)))
+            sm_query = "select * from marketdata.value_predictions_2023 where ticker in {}".format(
+                tuple(ticker)
+            )
             client = bigquery.Client()
             data = client.query(sm_query).to_dataframe()
 
         except Exception:
-            sm_query = ("select * from marketdata.growth_predictions_2023 where ticker in {}".format(tuple(ticker)))
+            sm_query = "select * from marketdata.growth_predictions_2023 where ticker in {}".format(
+                tuple(ticker)
+            )
             client = bigquery.Client()
             data = client.query(sm_query).to_dataframe()
 
     else:
         try:
-            sm_query = ("select * from marketdata.growth_predictions_2023 where ticker in {}".format(tuple(ticker)))
+            sm_query = "select * from marketdata.growth_predictions_2023 where ticker in {}".format(
+                tuple(ticker)
+            )
             client = bigquery.Client()
             data = client.query(sm_query).to_dataframe()
 
         except Exception:
-            sm_query = ("select * from marketdata.value_predictions_2023 where ticker in {}".format(tuple(ticker)))
+            sm_query = "select * from marketdata.value_predictions_2023 where ticker in {}".format(
+                tuple(ticker)
+            )
             client = bigquery.Client()
             data = client.query(sm_query).to_dataframe()
 
@@ -512,7 +541,8 @@ def grab_multiple_predictions(model_type,ticker):
     # data.set_index(['date'],inplace=True)
     return data
 
-def pull_single_name_returns(ticker,end='2023-10-01'):
+
+def pull_single_name_returns(ticker, end='2023-10-01'):
     """sm_query = ("select * from marketdata.past_returns_2009 where ticker = {}".format(ticker))
     client = bigquery.Client()
     data = client.query(sm_query).to_dataframe()
@@ -520,12 +550,11 @@ def pull_single_name_returns(ticker,end='2023-10-01'):
     # Need to add catch for if we dont have the data
     return data.sort_values(by=['date'])"""
 
-    ticker_pnl =yf.download([ticker],end=end)
+    ticker_pnl = yf.download([ticker], end=end)
     ticker_pnl['ret_1B'] = ticker_pnl['Adj Close'].pct_change()
     ticker_pnl.dropna(inplace=True)
     ticker_pnl.index.rename('date', inplace=True)
     return ticker_pnl
-
 
 
 def calculate_looped_returns_from_past_signals(returns_df, strike_dates, col):
@@ -541,13 +570,17 @@ def calculate_looped_returns_from_past_signals(returns_df, strike_dates, col):
         index = returns_df.index.get_loc(strike_date)
 
         # Extract the next N days of returns
-        next_days_returns = returns_df.iloc[index + 1:index + 1 + days_to_analyze][col]
+        next_days_returns = returns_df.iloc[index + 1 : index + 1 + days_to_analyze][
+            col
+        ]
 
         # If the length of next_days_returns is less than days_to_analyze,
         # pad it with NaN values
         if len(next_days_returns) < days_to_analyze:
             next_days_returns = next_days_returns.tolist()
-            next_days_returns.extend([np.nan] * (days_to_analyze - len(next_days_returns)))
+            next_days_returns.extend(
+                [np.nan] * (days_to_analyze - len(next_days_returns))
+            )
 
         else:
             next_days_returns = next_days_returns.tolist()
@@ -562,6 +595,7 @@ def calculate_looped_returns_from_past_signals(returns_df, strike_dates, col):
     result_df.index = range(0, days_to_analyze)
 
     return result_df
+
 
 def group_flattened_returns_to_quantile(pnl_timeseries):
     cumulative_prod = (((1 + pnl_timeseries).cumprod()) - 1).iloc[-1].to_frame()
@@ -579,107 +613,147 @@ def group_flattened_returns_to_quantile(pnl_timeseries):
 
 
 def return_summary_chart(rating, signal_past_rolling_returns):
-    mapper = {4: 'buy',
-              3: 'buy',
-              2: 'neutral',
-              1: 'sell',
-              0: 'sell'}
+    mapper = {4: 'buy', 3: 'buy', 2: 'neutral', 1: 'sell', 0: 'sell'}
 
     rolling_len = len(signal_past_rolling_returns)
     rolling_avg_df = signal_past_rolling_returns.rolling(rolling_len).mean()
 
     if rating == 4 or rating == 3:
-        positive_percentage = (rolling_avg_df > 0).sum().sum() / signal_past_rolling_returns.shape[1] * 100
+        positive_percentage = (
+            (rolling_avg_df > 0).sum().sum()
+            / signal_past_rolling_returns.shape[1]
+            * 100
+        )
         hit_ratio = str(round(positive_percentage, 2)) + '%'
     elif rating == 1 or rating == 0:
-        negative_percentage = (rolling_avg_df < 0).sum().sum() / signal_past_rolling_returns.shape[1] * 100
+        negative_percentage = (
+            (rolling_avg_df < 0).sum().sum()
+            / signal_past_rolling_returns.shape[1]
+            * 100
+        )
         hit_ratio = str(round(negative_percentage, 2)) + '%'
     elif rating == 2:
         hit_ratio = 'X.XX%'
 
     if rating != 2:
         sentence = 'AssetX has detected a {} signal {} times in the past based on the current set of factors driving the asset\'s movement. Out of the distinct {} times this signal has been triggered, the hit ratio of how many times I\'ve been correct is {}'.format(
-            mapper[rating], len(signal_past_rolling_returns.columns), len(signal_past_rolling_returns.columns),
-            hit_ratio
+            mapper[rating],
+            len(signal_past_rolling_returns.columns),
+            len(signal_past_rolling_returns.columns),
+            hit_ratio,
         )
     else:
         sentence = 'AssetX has detected a {} signal {} times in the past based on the current set of factors driving the asset\'s movement. This ambivalent signal has been triggered {} times in the past,'.format(
-            mapper[rating], len(signal_past_rolling_returns.columns), len(signal_past_rolling_returns.columns),
-
+            mapper[rating],
+            len(signal_past_rolling_returns.columns),
+            len(signal_past_rolling_returns.columns),
         )
 
     return hit_ratio, sentence
 
+
 def signal_to_forecast(signal):
     signal_ticker = signal['ticker'][0]
-    ticker_name= get_ticker_from_security_id_mapper([signal['ticker'][0]])['ticker'].iloc[0]
+    ticker_name = get_ticker_from_security_id_mapper([signal['ticker'][0]])[
+        'ticker'
+    ].iloc[0]
     current_signal = signal.iloc[-1]['ensemble_qt']
-    historical_signal_dates = signal[(signal['ensemble_qt'] == current_signal)]['date'].to_list()
+    historical_signal_dates = signal[(signal['ensemble_qt'] == current_signal)][
+        'date'
+    ].to_list()
     historical_signal_dates = [i.strftime('%Y-%m-%d') for i in historical_signal_dates]
     single_name_returns = pull_single_name_returns(ticker_name)
-    #single_name_returns.set_index(['date'], inplace=True)
-    single_name_returns.index = [i.strftime('%Y-%m-%d') for i in single_name_returns.index]
-    if len(historical_signal_dates) <=5:
-        signal_past_rolling_returns = calculate_looped_returns_from_past_signals(single_name_returns,
-                                                                                 historical_signal_dates,
-                                                                                 col='ret_1B')
+    # single_name_returns.set_index(['date'], inplace=True)
+    single_name_returns.index = [
+        i.strftime('%Y-%m-%d') for i in single_name_returns.index
+    ]
+    if len(historical_signal_dates) <= 5:
+        signal_past_rolling_returns = calculate_looped_returns_from_past_signals(
+            single_name_returns, historical_signal_dates, col='ret_1B'
+        )
     else:
-        signal_past_rolling_returns = calculate_looped_returns_from_past_signals(single_name_returns,
-                                                                                 historical_signal_dates[0:-1],
-                                                                                 col='ret_1B')
-
+        signal_past_rolling_returns = calculate_looped_returns_from_past_signals(
+            single_name_returns, historical_signal_dates[0:-1], col='ret_1B'
+        )
 
     quantiles = group_flattened_returns_to_quantile(signal_past_rolling_returns)
-    signal_hit_ratio,signal_sentence = return_summary_chart(current_signal, signal_past_rolling_returns)
+    signal_hit_ratio, signal_sentence = return_summary_chart(
+        current_signal, signal_past_rolling_returns
+    )
     median_returns = round((((1 + quantiles).cumprod() - 1).iloc[-1].median()) * 100, 2)
     potential_paths = pd.DataFrame([])
     pnl = single_name_returns
-    six_month_lookback = (
-            pd.Timestamp(datetime.now()) - pd.DateOffset(282)
-    ).strftime("%Y-%m-%d")
+    six_month_lookback = (pd.Timestamp(datetime.now()) - pd.DateOffset(282)).strftime(
+        "%Y-%m-%d"
+    )
     pnl = pnl[(pnl.index > six_month_lookback)]
     ticker_pnl = pnl['ret_1B']
     ticker_pnl.index = [pd.Timestamp(i) for i in ticker_pnl.index]
     forecast_indexs = [
-        ticker_pnl.index[-1] + pd.DateOffset(i) for i in range(0, len(quantiles))]
+        ticker_pnl.index[-1] + pd.DateOffset(i) for i in range(0, len(quantiles))
+    ]
     quantiles.index = forecast_indexs
 
-
     ticker_pnl_with_forecast_mean = (
-                                            1 + pd.Series(ticker_pnl.values.tolist() + quantiles.iloc[1:].median(axis=1).values.tolist(),index=ticker_pnl.index.tolist() + quantiles.iloc[1:].median(axis=1).index.tolist())
-                                    ).cumprod() - 1
+        1
+        + pd.Series(
+            ticker_pnl.values.tolist()
+            + quantiles.iloc[1:].median(axis=1).values.tolist(),
+            index=ticker_pnl.index.tolist()
+            + quantiles.iloc[1:].median(axis=1).index.tolist(),
+        )
+    ).cumprod() - 1
     final_date = ticker_pnl.index[-1].strftime("%Y-%m-%d")
     for i in quantiles.columns:
-        potential_paths[i] = (1 + pd.Series(ticker_pnl.values.tolist() + quantiles[i].iloc[1:].values.tolist(),index=ticker_pnl.index.tolist() + quantiles[i].iloc[1:].index.tolist()) ).cumprod() - 1
+        potential_paths[i] = (
+            1
+            + pd.Series(
+                ticker_pnl.values.tolist() + quantiles[i].iloc[1:].values.tolist(),
+                index=ticker_pnl.index.tolist() + quantiles[i].iloc[1:].index.tolist(),
+            )
+        ).cumprod() - 1
 
     ticker_pnl_with_forecast_lower_range = potential_paths.loc[
-                                           forecast_indexs[1]:
-                                           ].min(axis=1)
+        forecast_indexs[1] :
+    ].min(axis=1)
     ticker_pnl_with_forecast_upper_range = potential_paths.loc[
-                                           forecast_indexs[1]:
-                                           ].max(axis=1)
-
-
+        forecast_indexs[1] :
+    ].max(axis=1)
 
     pnl_up_to_forecast = ticker_pnl_with_forecast_mean.iloc[
-    : -len(ticker_pnl_with_forecast_upper_range)
+        : -len(ticker_pnl_with_forecast_upper_range)
     ]
 
-    pd.Series(pnl_up_to_forecast.values.tolist() + ticker_pnl_with_forecast_upper_range.values.tolist(),
-              index=pnl_up_to_forecast.index.tolist() + ticker_pnl_with_forecast_upper_range.index.tolist())
+    pd.Series(
+        pnl_up_to_forecast.values.tolist()
+        + ticker_pnl_with_forecast_upper_range.values.tolist(),
+        index=pnl_up_to_forecast.index.tolist()
+        + ticker_pnl_with_forecast_upper_range.index.tolist(),
+    )
 
-    upper_range_forecast = pd.Series(pnl_up_to_forecast.values.tolist() + ticker_pnl_with_forecast_upper_range.values.tolist(),
-              index=pnl_up_to_forecast.index.tolist() + ticker_pnl_with_forecast_upper_range.index.tolist())
+    upper_range_forecast = pd.Series(
+        pnl_up_to_forecast.values.tolist()
+        + ticker_pnl_with_forecast_upper_range.values.tolist(),
+        index=pnl_up_to_forecast.index.tolist()
+        + ticker_pnl_with_forecast_upper_range.index.tolist(),
+    )
 
-    lower_range_forecast = pd.Series(pnl_up_to_forecast.values.tolist() + ticker_pnl_with_forecast_lower_range.values.tolist(),
-              index=pnl_up_to_forecast.index.tolist() + ticker_pnl_with_forecast_lower_range.index.tolist())
+    lower_range_forecast = pd.Series(
+        pnl_up_to_forecast.values.tolist()
+        + ticker_pnl_with_forecast_lower_range.values.tolist(),
+        index=pnl_up_to_forecast.index.tolist()
+        + ticker_pnl_with_forecast_lower_range.index.tolist(),
+    )
 
     ticker_pnl_with_forecast_mean.index = [
-        i.strftime("%Y-%m-%d") for i in ticker_pnl_with_forecast_mean.index]
+        i.strftime("%Y-%m-%d") for i in ticker_pnl_with_forecast_mean.index
+    ]
     lower_range_forecast.index = [
-        i.strftime("%Y-%m-%d") for i in lower_range_forecast.index]
+        i.strftime("%Y-%m-%d") for i in lower_range_forecast.index
+    ]
     upper_range_forecast.index = [
-        i.strftime("%Y-%m-%d") for i in upper_range_forecast.index]
+        i.strftime("%Y-%m-%d") for i in upper_range_forecast.index
+    ]
 
     final_tick_pnl = ticker_pnl_with_forecast_mean.loc[:final_date]
     forecast_pnl = ticker_pnl_with_forecast_mean.loc[final_date:]
@@ -687,16 +761,30 @@ def signal_to_forecast(signal):
     forecast_pnl_lower = ticker_pnl_with_forecast_lower_range.loc[final_date:]
     forecast_days = [i.strftime('%Y-%m-%d') for i in forecast_indexs[1:]]
 
-    LINESERIES = [{'time': k,'value':final_tick_pnl.loc[k]} for k in final_tick_pnl.index]
+    LINESERIES = [
+        {'time': k, 'value': final_tick_pnl.loc[k]} for k in final_tick_pnl.index
+    ]
     AVGSERIES = [{'time': k, 'value': forecast_pnl.loc[k]} for k in forecast_pnl.index]
-    BOTTOM_SERIES = [{'time': k.strftime('%Y-%m-%d'), 'value': forecast_pnl_lower.loc[k]} for k in forecast_pnl_lower.index]
-    TOP_SERIES = [{'time': k.strftime('%Y-%m-%d'), 'value': forecast_pnl_upper.loc[k]} for k in forecast_pnl_upper.index]
+    BOTTOM_SERIES = [
+        {'time': k.strftime('%Y-%m-%d'), 'value': forecast_pnl_lower.loc[k]}
+        for k in forecast_pnl_lower.index
+    ]
+    TOP_SERIES = [
+        {'time': k.strftime('%Y-%m-%d'), 'value': forecast_pnl_upper.loc[k]}
+        for k in forecast_pnl_upper.index
+    ]
 
-
-    return {'lineSeries':LINESERIES,
-            'average_series':AVGSERIES,
-            'bottom_forecast_series':BOTTOM_SERIES,
-            'top_forecast_series':TOP_SERIES},signal_hit_ratio,signal_sentence,median_returns
+    return (
+        {
+            'lineSeries': LINESERIES,
+            'average_series': AVGSERIES,
+            'bottom_forecast_series': BOTTOM_SERIES,
+            'top_forecast_series': TOP_SERIES,
+        },
+        signal_hit_ratio,
+        signal_sentence,
+        median_returns,
+    )
 
 
 """def grab_feature_importance_data(model_type, date, tickers):
@@ -718,31 +806,32 @@ def signal_to_forecast(signal):
 
 
 def grab_feature_importance_data(model_type, date, tickers):
-    if model_type=='value':
-        value_shap = pd.read_csv('gs://dcm-prod-ba2f-us-dcm-data-test/alex/value_shap (2).csv').set_index(
-            ['date', 'ticker'])
+    if model_type == 'value':
+        value_shap = pd.read_csv(
+            'gs://dcm-prod-ba2f-us-dcm-data-test/alex/value_shap (2).csv'
+        ).set_index(['date', 'ticker'])
         large_cap_value_shap = pd.read_csv(
-            'gs://dcm-prod-ba2f-us-dcm-data-test/alex/value_shap_largecap (1).csv').set_index(['date', 'ticker'])
+            'gs://dcm-prod-ba2f-us-dcm-data-test/alex/value_shap_largecap (1).csv'
+        ).set_index(['date', 'ticker'])
 
         ALL_SHAP = pd.concat([value_shap, large_cap_value_shap]).drop_duplicates()
     else:
-        growth_shap = pd.read_csv('gs://dcm-prod-ba2f-us-dcm-data-test/alex/growth_shap (2).csv').set_index(
-            ['date', 'ticker'])
+        growth_shap = pd.read_csv(
+            'gs://dcm-prod-ba2f-us-dcm-data-test/alex/growth_shap (2).csv'
+        ).set_index(['date', 'ticker'])
         large_cap_growth_shap = pd.read_csv(
-            'gs://dcm-prod-ba2f-us-dcm-data-test/alex/growth_shap_largecap (1).csv').set_index(
-            ['date', 'ticker'])
+            'gs://dcm-prod-ba2f-us-dcm-data-test/alex/growth_shap_largecap (1).csv'
+        ).set_index(['date', 'ticker'])
 
         ALL_SHAP = pd.concat([growth_shap, large_cap_growth_shap])
 
     return ALL_SHAP[(ALL_SHAP.index.get_level_values(1).isin(tickers))]
 
 
-
-
-
 def get_sector_ids_from_ticker(ticker):
     sm_query = 'select distinct dcm_security_id from `marketdata.security_master_20230603` where Sector = (select Sector from `marketdata.security_master_20230603` where dcm_security_id={})'.format(
-        ticker)
+        ticker
+    )
 
     client = bigquery.Client()
     security_master_tickers = client.query(sm_query).to_dataframe()
@@ -750,13 +839,18 @@ def get_sector_ids_from_ticker(ticker):
 
 
 def get_company_information_from_ticker(ticker):
-    sm_query = 'select distinct ticker, company_name,Sector,dcm_security_id from `marketdata.security_master_20230603` where Sector = (select Sector from `marketdata.security_master_20230603` where dcm_security_id={})'.format(ticker)
+    sm_query = 'select distinct ticker, company_name,Sector,dcm_security_id from `marketdata.security_master_20230603` where Sector = (select Sector from `marketdata.security_master_20230603` where dcm_security_id={})'.format(
+        ticker
+    )
     client = bigquery.Client()
     security_master_tickers = client.query(sm_query).to_dataframe()
     return security_master_tickers
 
+
 def get_selected_company_info(ticker):
-    sm_query = 'select distinct ticker, company_name,Sector,dcm_security_id from `marketdata.security_master_20230603` where dcm_security_id in {}'.format(tuple(ticker))
+    sm_query = 'select distinct ticker, company_name,Sector,dcm_security_id from `marketdata.security_master_20230603` where dcm_security_id in {}'.format(
+        tuple(ticker)
+    )
     client = bigquery.Client()
     security_master_tickers = client.query(sm_query).to_dataframe()
     return security_master_tickers
@@ -765,60 +859,88 @@ def get_selected_company_info(ticker):
 import yfinance as yf
 
 
-
-def signal_to_forecast2(signal_past_rolling_returns,current_signal,single_name_returns):
+def signal_to_forecast2(
+    signal_past_rolling_returns, current_signal, single_name_returns
+):
 
     quantiles = group_flattened_returns_to_quantile(signal_past_rolling_returns)
-    signal_hit_ratio,signal_sentence = return_summary_chart(current_signal, signal_past_rolling_returns)
+    signal_hit_ratio, signal_sentence = return_summary_chart(
+        current_signal, signal_past_rolling_returns
+    )
     median_returns = round((((1 + quantiles).cumprod() - 1).iloc[-1].median()) * 100, 2)
     potential_paths = pd.DataFrame([])
     pnl = single_name_returns
-    six_month_lookback = (
-            pd.Timestamp(datetime.now()) - pd.DateOffset(282)
-    ).strftime("%Y-%m-%d")
+    six_month_lookback = (pd.Timestamp(datetime.now()) - pd.DateOffset(282)).strftime(
+        "%Y-%m-%d"
+    )
     pnl = pnl[(pnl.index > six_month_lookback)]
     ticker_pnl = pnl['Adj Close']
     ticker_pnl.index = [pd.Timestamp(i) for i in ticker_pnl.index]
     forecast_indexs = [
-        ticker_pnl.index[-1] + pd.DateOffset(i) for i in range(0, len(quantiles))]
+        ticker_pnl.index[-1] + pd.DateOffset(i) for i in range(0, len(quantiles))
+    ]
     quantiles.index = forecast_indexs
 
-
     ticker_pnl_with_forecast_mean = (
-                                            1 + pd.Series(ticker_pnl.values.tolist() + quantiles.iloc[1:].median(axis=1).values.tolist(),index=ticker_pnl.index.tolist() + quantiles.iloc[1:].median(axis=1).index.tolist())
-                                    ).cumprod() - 1
+        1
+        + pd.Series(
+            ticker_pnl.values.tolist()
+            + quantiles.iloc[1:].median(axis=1).values.tolist(),
+            index=ticker_pnl.index.tolist()
+            + quantiles.iloc[1:].median(axis=1).index.tolist(),
+        )
+    ).cumprod() - 1
     final_date = ticker_pnl.index[-1].strftime("%Y-%m-%d")
     for i in quantiles.columns:
-        potential_paths[i] = (1 + pd.Series(ticker_pnl.values.tolist() + quantiles[i].iloc[1:].values.tolist(),index=ticker_pnl.index.tolist() + quantiles[i].iloc[1:].index.tolist()) ).cumprod() - 1
+        potential_paths[i] = (
+            1
+            + pd.Series(
+                ticker_pnl.values.tolist() + quantiles[i].iloc[1:].values.tolist(),
+                index=ticker_pnl.index.tolist() + quantiles[i].iloc[1:].index.tolist(),
+            )
+        ).cumprod() - 1
 
     ticker_pnl_with_forecast_lower_range = potential_paths.loc[
-                                           forecast_indexs[1]:
-                                           ].min(axis=1)
+        forecast_indexs[1] :
+    ].min(axis=1)
     ticker_pnl_with_forecast_upper_range = potential_paths.loc[
-                                           forecast_indexs[1]:
-                                           ].max(axis=1)
-
-
+        forecast_indexs[1] :
+    ].max(axis=1)
 
     pnl_up_to_forecast = ticker_pnl_with_forecast_mean.iloc[
-    : -len(ticker_pnl_with_forecast_upper_range)
+        : -len(ticker_pnl_with_forecast_upper_range)
     ]
 
-    pd.Series(pnl_up_to_forecast.values.tolist() + ticker_pnl_with_forecast_upper_range.values.tolist(),
-              index=pnl_up_to_forecast.index.tolist() + ticker_pnl_with_forecast_upper_range.index.tolist())
+    pd.Series(
+        pnl_up_to_forecast.values.tolist()
+        + ticker_pnl_with_forecast_upper_range.values.tolist(),
+        index=pnl_up_to_forecast.index.tolist()
+        + ticker_pnl_with_forecast_upper_range.index.tolist(),
+    )
 
-    upper_range_forecast = pd.Series(pnl_up_to_forecast.values.tolist() + ticker_pnl_with_forecast_upper_range.values.tolist(),
-              index=pnl_up_to_forecast.index.tolist() + ticker_pnl_with_forecast_upper_range.index.tolist())
+    upper_range_forecast = pd.Series(
+        pnl_up_to_forecast.values.tolist()
+        + ticker_pnl_with_forecast_upper_range.values.tolist(),
+        index=pnl_up_to_forecast.index.tolist()
+        + ticker_pnl_with_forecast_upper_range.index.tolist(),
+    )
 
-    lower_range_forecast = pd.Series(pnl_up_to_forecast.values.tolist() + ticker_pnl_with_forecast_lower_range.values.tolist(),
-              index=pnl_up_to_forecast.index.tolist() + ticker_pnl_with_forecast_lower_range.index.tolist())
+    lower_range_forecast = pd.Series(
+        pnl_up_to_forecast.values.tolist()
+        + ticker_pnl_with_forecast_lower_range.values.tolist(),
+        index=pnl_up_to_forecast.index.tolist()
+        + ticker_pnl_with_forecast_lower_range.index.tolist(),
+    )
 
     ticker_pnl_with_forecast_mean.index = [
-        i.strftime("%Y-%m-%d") for i in ticker_pnl_with_forecast_mean.index]
+        i.strftime("%Y-%m-%d") for i in ticker_pnl_with_forecast_mean.index
+    ]
     lower_range_forecast.index = [
-        i.strftime("%Y-%m-%d") for i in lower_range_forecast.index]
+        i.strftime("%Y-%m-%d") for i in lower_range_forecast.index
+    ]
     upper_range_forecast.index = [
-        i.strftime("%Y-%m-%d") for i in upper_range_forecast.index]
+        i.strftime("%Y-%m-%d") for i in upper_range_forecast.index
+    ]
 
     final_tick_pnl = ticker_pnl_with_forecast_mean.loc[:final_date]
     forecast_pnl = ticker_pnl_with_forecast_mean.loc[final_date:]
@@ -826,16 +948,30 @@ def signal_to_forecast2(signal_past_rolling_returns,current_signal,single_name_r
     forecast_pnl_lower = ticker_pnl_with_forecast_lower_range.loc[final_date:]
     forecast_days = [i.strftime('%Y-%m-%d') for i in forecast_indexs[1:]]
 
-    LINESERIES = [{'time': k,'value':final_tick_pnl.loc[k]} for k in final_tick_pnl.index]
+    LINESERIES = [
+        {'time': k, 'value': final_tick_pnl.loc[k]} for k in final_tick_pnl.index
+    ]
     AVGSERIES = [{'time': k, 'value': forecast_pnl.loc[k]} for k in forecast_pnl.index]
-    BOTTOM_SERIES = [{'time': k.strftime('%Y-%m-%d'), 'value': forecast_pnl_lower.loc[k]} for k in forecast_pnl_lower.index]
-    TOP_SERIES = [{'time': k.strftime('%Y-%m-%d'), 'value': forecast_pnl_upper.loc[k]} for k in forecast_pnl_upper.index]
+    BOTTOM_SERIES = [
+        {'time': k.strftime('%Y-%m-%d'), 'value': forecast_pnl_lower.loc[k]}
+        for k in forecast_pnl_lower.index
+    ]
+    TOP_SERIES = [
+        {'time': k.strftime('%Y-%m-%d'), 'value': forecast_pnl_upper.loc[k]}
+        for k in forecast_pnl_upper.index
+    ]
 
-
-    return {'lineSeries':LINESERIES,
-            'average_series':AVGSERIES,
-            'bottom_forecast_series':BOTTOM_SERIES,
-            'top_forecast_series':TOP_SERIES},signal_hit_ratio,signal_sentence,median_returns
+    return (
+        {
+            'lineSeries': LINESERIES,
+            'average_series': AVGSERIES,
+            'bottom_forecast_series': BOTTOM_SERIES,
+            'top_forecast_series': TOP_SERIES,
+        },
+        signal_hit_ratio,
+        signal_sentence,
+        median_returns,
+    )
 
 
 def query_function(query):
@@ -844,24 +980,27 @@ def query_function(query):
 
 
 def v3_feature_importance(ticker):
-    ticker= 24
-    query_len_dict = {'growth': 'select COUNT(*) from `marketdata.growth_shap2023` where ticker={}',
-                      'value': 'select COUNT(*) from `marketdata.value_shap_2023` where ticker={}',
-                      #'largecap_growth': 'select COUNT(*) from `marketdata.growth_shap_largecap2023` where ticker={}',
-                      #'largecap_value': 'select COUNT(*) from `marketdata.value_shap_largecap2023` where ticker={}'
-                      }
+    ticker = 24
+    query_len_dict = {
+        'growth': 'select COUNT(*) from `marketdata.growth_shap2023` where ticker={}',
+        'value': 'select COUNT(*) from `marketdata.value_shap_2023` where ticker={}',
+        #'largecap_growth': 'select COUNT(*) from `marketdata.growth_shap_largecap2023` where ticker={}',
+        #'largecap_value': 'select COUNT(*) from `marketdata.value_shap_largecap2023` where ticker={}'
+    }
 
-    query_dict = {'growth': 'select * from `marketdata.growth_shap2023` where ticker={}',
-                  'value': 'select * from `marketdata.value_shap_2023` where ticker={}',
-                  #'largecap_growth': 'select * from `marketdata.growth_shap_largecap2023` where ticker={}',
-                  #'largecap_value': 'select * from `marketdata.value_shap_largecap2023` where ticker={}'
-                  }
+    query_dict = {
+        'growth': 'select * from `marketdata.growth_shap2023` where ticker={}',
+        'value': 'select * from `marketdata.value_shap_2023` where ticker={}',
+        #'largecap_growth': 'select * from `marketdata.growth_shap_largecap2023` where ticker={}',
+        #'largecap_value': 'select * from `marketdata.value_shap_largecap2023` where ticker={}'
+    }
 
-    result_dict = {'growth': None,
-                   'value': None,
-                   #'largecap_growth':None,
-                   #'largecap_value':None
-                   }
+    result_dict = {
+        'growth': None,
+        'value': None,
+        #'largecap_growth':None,
+        #'largecap_value':None
+    }
 
     for k in result_dict.keys():
         result_dict[k] = query_function(query_len_dict[k].format(ticker))['f0_'][0]
@@ -869,36 +1008,37 @@ def v3_feature_importance(ticker):
     top_key = max(result_dict, key=result_dict.get)
     return query_function(query_dict[top_key].format(ticker))
 
+
 def v3_feature_importance_edit(ticker):
-    ticker= 24
-    query_len_dict = {'growth': 'select COUNT(*) from `marketdata.growth_shap2023` where ticker={}',
-                      'value': 'select COUNT(*) from `marketdata.value_shap_2023` where ticker={}',
-                      #'largecap_growth': 'select COUNT(*) from `marketdata.growth_shap_largecap2023` where ticker={}',
-                      #'largecap_value': 'select COUNT(*) from `marketdata.value_shap_largecap2023` where ticker={}'
-                      }
+    ticker = 24
+    query_len_dict = {
+        'growth': 'select COUNT(*) from `marketdata.growth_shap2023` where ticker={}',
+        'value': 'select COUNT(*) from `marketdata.value_shap_2023` where ticker={}',
+        #'largecap_growth': 'select COUNT(*) from `marketdata.growth_shap_largecap2023` where ticker={}',
+        #'largecap_value': 'select COUNT(*) from `marketdata.value_shap_largecap2023` where ticker={}'
+    }
 
-    query_dict = {'growth': 'select * from `marketdata.growth_shap2023` where ticker={}',
-                  'value': 'select * from `marketdata.value_shap_2023` where ticker={}',
-                  #'largecap_growth': 'select * from `marketdata.growth_shap_largecap2023` where ticker={}',
-                  #'largecap_value': 'select * from `marketdata.value_shap_largecap2023` where ticker={}'
-                  }
+    query_dict = {
+        'growth': 'select * from `marketdata.growth_shap2023` where ticker={}',
+        'value': 'select * from `marketdata.value_shap_2023` where ticker={}',
+        #'largecap_growth': 'select * from `marketdata.growth_shap_largecap2023` where ticker={}',
+        #'largecap_value': 'select * from `marketdata.value_shap_largecap2023` where ticker={}'
+    }
 
-    result_dict = {'growth': None,
-                   'value': None,
-                   #'largecap_growth':None,
-                   #'largecap_value':None
-                   }
+    result_dict = {
+        'growth': None,
+        'value': None,
+        #'largecap_growth':None,
+        #'largecap_value':None
+    }
 
     for k in result_dict.keys():
         result_dict[k] = query_function(query_len_dict[k].format(ticker))['f0_'][0]
 
     top_key = max(result_dict, key=result_dict.get)
-    return query_function(query_dict[top_key].format(ticker)),top_key
+    return query_function(query_dict[top_key].format(ticker)), top_key
 
 
 def fetch_raw_data(ticker):
     query = 'select * from `marketdata.merged_data_econ_industry` where ticker ={}'
     return query_function(query.format(ticker))
-
-
-

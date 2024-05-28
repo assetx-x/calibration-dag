@@ -474,7 +474,6 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #             op_kwargs=task_params_manager['CalculateRawPrices'],
     #         )
 
-
     # with TaskGroup("PopulationSplit", tooltip="PopulationSplit") as PopulationSplit:
     #         FilterRussell1000AugmentedWeekly = PythonOperator(
     #             task_id="FilterRussell1000AugmentedWeekly",
@@ -488,7 +487,6 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #             python_callable=airflow_wrapper,
     #             op_kwargs=task_params_manager['FactorNeutralizationForStackingWeekly'],
     #         )
-
 
     # with TaskGroup("ResidualizedStandardization", tooltip="ResidualizedStandardization") as ResidualizedStandardization:
     #         FactorStandardizationNeutralizedForStackingWeekly = PythonOperator(
@@ -504,17 +502,19 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #             op_kwargs=task_params_manager['AddFoldIdToNormalizedDataPortfolioWeekly'],
     #         )
 
-    with TaskGroup("FinalModelTraining", tooltip="FinalModelTraining") as FinalModelTraining:
-            RollingModelEstimationWeekly = PythonOperator(
-                task_id="RollingModelEstimationWeekly",
-                python_callable=airflow_wrapper,
-                op_kwargs=task_params_manager['RollingModelEstimationWeekly'],
-            )
+    with TaskGroup(
+        "FinalModelTraining", tooltip="FinalModelTraining"
+    ) as FinalModelTraining:
+        RollingModelEstimationWeekly = PythonOperator(
+            task_id="RollingModelEstimationWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['RollingModelEstimationWeekly'],
+        )
 
     (
         # DataPull
-        #EconData
-        #>> FundamentalCleanup
+        # EconData
+        # >> FundamentalCleanup
         # >> Targets
         # >> DerivedFundamentalDataProcessing
         # >> DerivedTechnicalDataProcessing
@@ -533,10 +533,10 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         # >> MergeSignal
         # >> GetAdjustmentFactors
         # >> GetRawPrices
-        #PopulationSplit
-        #Residualization
-        #ResidualizedStandardization
-        #AddFinalFoldId
+        # PopulationSplit
+        # Residualization
+        # ResidualizedStandardization
+        # AddFinalFoldId
         FinalModelTraining
     )
 

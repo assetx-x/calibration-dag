@@ -65,7 +65,9 @@ class ReturnSummary(BaseMetrics):
         drawdown = (cum_rets - peak) / peak
         max_drawdown = drawdown.min()
 
-        calmar_ratio = excess_return / abs(max_drawdown) if max_drawdown != 0 else np.nan
+        calmar_ratio = (
+            excess_return / abs(max_drawdown) if max_drawdown != 0 else np.nan
+        )
 
         return calmar_ratio
 
@@ -77,7 +79,9 @@ class ReturnSummary(BaseMetrics):
         if isinstance(end_date, pd.Timestamp):
             portfolio = portfolio[portfolio["date"] <= end_date]
 
-        rets = portfolio.groupby(['date', 'ensemble_qt'])['future_ret_5B'].mean().unstack()
+        rets = (
+            portfolio.groupby(['date', 'ensemble_qt'])['future_ret_5B'].mean().unstack()
+        )
 
         return rets
 
@@ -94,7 +98,9 @@ class ReturnSummary(BaseMetrics):
         long_short_dataframe = self._get_long_short_dataframe(quarter_data)
 
         hit_ratios = {}
-        for year_quarter, quarter in long_short_dataframe.groupby(long_short_dataframe.index.to_period('Q')):
+        for year_quarter, quarter in long_short_dataframe.groupby(
+            long_short_dataframe.index.to_period('Q')
+        ):
             hit_ratio = self._calculate_hit_ratio_for_quarter(quarter)
             hit_ratios[f"{year_quarter}"] = f"{hit_ratio:.1f}%"
 
@@ -114,9 +120,8 @@ class ReturnSummary(BaseMetrics):
 
     def _calculate_hit_ratio_for_quarter(self, quarter):
         hit_count = (
-                ((quarter['ensemble_qt'] == 4) & (quarter['future_ret_5D'] > 0)).sum() +
-                ((quarter['ensemble_qt'] == 0) & (quarter['future_ret_5D'] < 0)).sum()
-        )
+            (quarter['ensemble_qt'] == 4) & (quarter['future_ret_5D'] > 0)
+        ).sum() + ((quarter['ensemble_qt'] == 0) & (quarter['future_ret_5D'] < 0)).sum()
         total_entries = len(quarter)
 
         if total_entries > 0:
@@ -124,4 +129,3 @@ class ReturnSummary(BaseMetrics):
             return hit_ratio
         else:
             return 0
-

@@ -15,14 +15,16 @@ current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
 
 
-#@task.external_python(
+# @task.external_python(
 #    task_id="external_python",
 #    python='/home/dcmadmin/calibration_ml_training/bin/python',)
 
+
 class ExtractGANFactors:
 
-    def __init__(self, insample_cut_date, epochs, epochs_discriminator,gan_iterations,
-                 retrain):
+    def __init__(
+        self, insample_cut_date, epochs, epochs_discriminator, gan_iterations, retrain
+    ):
         self.insample_cut_date = insample_cut_date
         self.epochs = epochs
         self.epochs_discriminator = epochs_discriminator
@@ -61,7 +63,9 @@ ExtractGANFactors_params = {
     'class': ExtractGANFactors,
     'start_date': RUN_DATE,
     'provided_data': {
-        'gan_factors': "gs://{}/calibration_data/live" + "/{}/".format('generate_gan_result') + "{}.csv"
+        'gan_factors': "gs://{}/calibration_data/live"
+        + "/{}/".format('generate_gan_result')
+        + "{}.csv"
     },
     'required_data': {},
 }
@@ -80,15 +84,17 @@ if __name__ == "__main__":
 
     saved_weight_path = os.path.join(data_dir, "saved_weights.h5")
 
-    mode=1
+    mode = 1
     if mode == 0:
         print('Retrain Mode!!!!!!!!')
-        #train_gan_model(data_dir, insample_cut_date, epochs, epochs_discriminator, gan_iterations)
+        # train_gan_model(data_dir, insample_cut_date, epochs, epochs_discriminator, gan_iterations)
     elif mode == 1:
         print('Rolling Mode!!!!')
         extract_factors(data_dir, insample_cut_date)
     else:
         print("Only supported modes are 0 for training and 1 for factor extraction")
-        raise Exception("Only supported modes are 0 for training and 1 for factor extraction")
+        raise Exception(
+            "Only supported modes are 0 for training and 1 for factor extraction"
+        )
 
     print("Arguments loaded")

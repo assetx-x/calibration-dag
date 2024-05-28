@@ -47,16 +47,12 @@ class marketTimeline(object):
             byweekday=(rrule.SA, rrule.SU),
             cache=True,
             dtstart=start,
-            until=end
+            until=end,
         )
         non_trading_rules.append(weekends)
 
         new_years = rrule.rrule(
-            rrule.MONTHLY,
-            byyearday=1,
-            cache=True,
-            dtstart=start,
-            until=end
+            rrule.MONTHLY, byyearday=1, cache=True, dtstart=start, until=end
         )
         non_trading_rules.append(new_years)
 
@@ -66,7 +62,7 @@ class marketTimeline(object):
             byweekday=rrule.MO,
             cache=True,
             dtstart=start,
-            until=end
+            until=end,
         )
         non_trading_rules.append(new_years_sunday)
 
@@ -76,7 +72,7 @@ class marketTimeline(object):
             byweekday=(rrule.MO(+3)),
             cache=True,
             dtstart=datetime.datetime(1998, 1, 1, tzinfo=pytz.utc),
-            until=end
+            until=end,
         )
         non_trading_rules.append(mlk_day)
 
@@ -86,16 +82,12 @@ class marketTimeline(object):
             byweekday=(rrule.MO(3)),
             cache=True,
             dtstart=start,
-            until=end
+            until=end,
         )
         non_trading_rules.append(presidents_day)
 
         good_friday = rrule.rrule(
-            rrule.DAILY,
-            byeaster=-2,
-            cache=True,
-            dtstart=start,
-            until=end
+            rrule.DAILY, byeaster=-2, cache=True, dtstart=start, until=end
         )
         non_trading_rules.append(good_friday)
 
@@ -105,17 +97,12 @@ class marketTimeline(object):
             byweekday=(rrule.MO(-1)),
             cache=True,
             dtstart=start,
-            until=end
+            until=end,
         )
         non_trading_rules.append(memorial_day)
 
         july_4th = rrule.rrule(
-            rrule.MONTHLY,
-            bymonth=7,
-            bymonthday=4,
-            cache=True,
-            dtstart=start,
-            until=end
+            rrule.MONTHLY, bymonth=7, bymonthday=4, cache=True, dtstart=start, until=end
         )
         non_trading_rules.append(july_4th)
 
@@ -126,7 +113,7 @@ class marketTimeline(object):
             byweekday=rrule.MO,
             cache=True,
             dtstart=start,
-            until=end
+            until=end,
         )
         non_trading_rules.append(july_4th_sunday)
 
@@ -137,7 +124,7 @@ class marketTimeline(object):
             byweekday=rrule.FR,
             cache=True,
             dtstart=start,
-            until=end
+            until=end,
         )
         non_trading_rules.append(july_4th_saturday)
 
@@ -147,7 +134,7 @@ class marketTimeline(object):
             byweekday=(rrule.MO(1)),
             cache=True,
             dtstart=start,
-            until=end
+            until=end,
         )
         non_trading_rules.append(labor_day)
 
@@ -157,7 +144,7 @@ class marketTimeline(object):
             byweekday=(rrule.TH(4)),
             cache=True,
             dtstart=start,
-            until=end
+            until=end,
         )
         non_trading_rules.append(thanksgiving)
 
@@ -167,7 +154,7 @@ class marketTimeline(object):
             bymonthday=25,
             cache=True,
             dtstart=start,
-            until=end
+            until=end,
         )
         non_trading_rules.append(christmas)
 
@@ -178,7 +165,7 @@ class marketTimeline(object):
             byweekday=rrule.MO,
             cache=True,
             dtstart=start,
-            until=end
+            until=end,
         )
         non_trading_rules.append(christmas_sunday)
 
@@ -190,7 +177,7 @@ class marketTimeline(object):
             byweekday=rrule.FR,
             cache=True,
             dtstart=start,
-            until=end
+            until=end,
         )
         non_trading_rules.append(christmas_saturday)
 
@@ -217,7 +204,8 @@ class marketTimeline(object):
 
         for day_num in range(11, 17):
             non_trading_days.append(
-                datetime.datetime(2001, 9, day_num, tzinfo=pytz.utc))
+                datetime.datetime(2001, 9, day_num, tzinfo=pytz.utc)
+            )
 
         # Add closings due to Hurricane Sandy in 2012
         # http://en.wikipedia.org/wiki/Hurricane_sandy
@@ -235,7 +223,8 @@ class marketTimeline(object):
 
         for day_num in range(29, 31):
             non_trading_days.append(
-                datetime.datetime(2012, 10, day_num, tzinfo=pytz.utc))
+                datetime.datetime(2012, 10, day_num, tzinfo=pytz.utc)
+            )
 
         # Misc closings from NYSE listing.
         # http://www.nyse.com/pdfs/closings.pdf
@@ -275,21 +264,29 @@ class marketTimeline(object):
         end = end
         non_trading_days = marketTimeline.get_non_trading_days(start, end)
         trading_day = pd.tseries.offsets.CDay(holidays=non_trading_days)
-        dates = pd.date_range(start=start,
-                              end=end,
-                              freq=trading_day)
-        dates = dates if not as_long else dates.tz_localize("UTC").normalize().asi8.astype(int64)
+        dates = pd.date_range(start=start, end=end, freq=trading_day)
+        dates = (
+            dates
+            if not as_long
+            else dates.tz_localize("UTC").normalize().asi8.astype(int64)
+        )
         return dates
 
     @staticmethod
     @lrudecorator(100)
     def get_trading_day_using_offset(cob, offset_in_business_days):
-        trading_days = marketTimeline.get_trading_days(FIRST_POSSIBLE_TRADING_DATE, LAST_POSSIBLE_TRADING_DATE,
-                                                       as_long=True)
+        trading_days = marketTimeline.get_trading_days(
+            FIRST_POSSIBLE_TRADING_DATE, LAST_POSSIBLE_TRADING_DATE, as_long=True
+        )
         cob_long = cob.tz_localize(None).normalize().asm8.astype(int64)
         date_loc = trading_days.searchsorted(cob_long, "left")
-        return pd.Timestamp(trading_days[date_loc + offset_in_business_days - (trading_days[date_loc] != cob_long) * (
-                    offset_in_business_days > 0)].astype("M8[ns]"))
+        return pd.Timestamp(
+            trading_days[
+                date_loc
+                + offset_in_business_days
+                - (trading_days[date_loc] != cob_long) * (offset_in_business_days > 0)
+            ].astype("M8[ns]")
+        )
 
     @staticmethod
     @lrudecorator(100)
@@ -300,7 +297,9 @@ class marketTimeline(object):
     @lrudecorator(100)
     def isTradingDay(dt):
         date = marketTimeline.canonicalize_datetime(dt).date()
-        return date not in marketTimeline.get_non_trading_days(date, date + datetime.timedelta(days=1))
+        return date not in marketTimeline.get_non_trading_days(
+            date, date + datetime.timedelta(days=1)
+        )
 
     @staticmethod
     @lrudecorator(100)
@@ -319,18 +318,22 @@ class marketTimeline(object):
 
 def pick_trading_week_dates(start_date, end_date, mode='w-mon'):
     weekly_days = pd.date_range(start_date, end_date, freq=mode)
-    trading_dates = pd.Series(weekly_days).apply(marketTimeline.get_next_trading_day_if_holiday)
-    dates = trading_dates[(trading_dates>=start_date) & (trading_dates<=end_date)]
+    trading_dates = pd.Series(weekly_days).apply(
+        marketTimeline.get_next_trading_day_if_holiday
+    )
+    dates = trading_dates[(trading_dates >= start_date) & (trading_dates <= end_date)]
     return dates
 
 
 def pick_trading_month_dates(start_date, end_date, mode="bme"):
-    trading_days = marketTimeline.get_trading_days(start_date, end_date).tz_localize(None)
-    if mode=="bme":
+    trading_days = marketTimeline.get_trading_days(start_date, end_date).tz_localize(
+        None
+    )
+    if mode == "bme":
         dates = pd.Series(trading_days).groupby(trading_days.to_period('M')).last()
     else:
         dates = pd.Series(trading_days).groupby(trading_days.to_period('M')).first()
-    dates = dates[(dates>=start_date) & (dates<=end_date)]
+    dates = dates[(dates >= start_date) & (dates <= end_date)]
     return dates
 
 
@@ -338,7 +341,7 @@ def transform_wrapper(ts, transform_dict):
     try:
         transform_type = transform_dict[ts.name]
     except:
-        transform_type = 1 # Default is no transform
+        transform_type = 1  # Default is no transform
     return transform_data(ts, transform_type)
 
 

@@ -11,7 +11,7 @@ from pandas.tseries.offsets import BDay
 
 
 def format_influence_label_data(data):
-    new_label = str(round(data,3))
+    new_label = str(round(data, 3))
     if '-' in new_label:
         return new_label
     else:
@@ -28,6 +28,7 @@ def combine_values_titles(values, titles):
 
     return combined_list
 
+
 def df_to_dicts_plotly(df):
     # Initialize the list
     data_list = []
@@ -39,7 +40,7 @@ def df_to_dicts_plotly(df):
             'x': df.index.tolist(),
             'y': df[col].values.tolist(),
             'name': col,
-            'stackgroup': 'one'
+            'stackgroup': 'one',
         }
 
         # Add the 'groupnorm' key only for the first column
@@ -51,11 +52,12 @@ def df_to_dicts_plotly(df):
 
     return data_list
 
+
 def prediction_waterfall_ploty(data, feature_dictionary, formal_name_mapper):
     value_shap_example = data[feature_dictionary]
     value_shap_example_recent = value_shap_example.iloc[-1].reindex(
-        abs(value_shap_example.iloc[-1]).sort_values(ascending=False
-                                                     ).index)
+        abs(value_shap_example.iloc[-1]).sort_values(ascending=False).index
+    )
 
     if len(value_shap_example_recent) > 9:
         top9 = value_shap_example_recent[0:9] * 100
@@ -69,8 +71,6 @@ def prediction_waterfall_ploty(data, feature_dictionary, formal_name_mapper):
         axis_titles = combine_values_titles(values, labels)
         measure = ['relative'] * len(axis_titles)
 
-
-
     else:
 
         value_shap_example_recent.rename(index=formal_name_mapper, inplace=True)
@@ -80,13 +80,15 @@ def prediction_waterfall_ploty(data, feature_dictionary, formal_name_mapper):
         axis_titles = combine_values_titles(values, labels)
         measure = ['relative'] * len(axis_titles)
 
-    return {'measure':measure,
-            'x':axis_titles,
-            'y':values,
-            'text':labels_rounded_text}
+    return {
+        'measure': measure,
+        'x': axis_titles,
+        'y': values,
+        'text': labels_rounded_text,
+    }
 
 
-def plotly_area_graph_data(value_shap_example_abs,formal_name_mapper):
+def plotly_area_graph_data(value_shap_example_abs, formal_name_mapper):
     top_long_factors = value_shap_example_abs.sum().sort_values(ascending=False)
 
     factor_cutoff = 9
@@ -111,6 +113,7 @@ def plotly_area_graph_data(value_shap_example_abs,formal_name_mapper):
 
         return df_to_dicts_plotly(all_factors_df)
 
+
 def plotly_area_graph_data_overall(value_shap_example_abs):
 
     all_factors_df = value_shap_example_abs * 100
@@ -120,16 +123,21 @@ def plotly_area_graph_data_overall(value_shap_example_abs):
 
 def prediction_waterfall_plotly_full(data, expected_value):
     recent_exposures_raw = data.iloc[-1]
-    recent_exposures_raw = recent_exposures_raw.reindex(abs(recent_exposures_raw).sort_values().index)
+    recent_exposures_raw = recent_exposures_raw.reindex(
+        abs(recent_exposures_raw).sort_values().index
+    )
     feature_names = ['Market'] + recent_exposures_raw.index.tolist()
     values = [(expected_value * 100)] + list((recent_exposures_raw.values * 100))
     labels_rounded_text = [format_influence_label_data(i) for i in values]
     axis_labels = combine_values_titles(values, feature_names)
     measure = ['relative'] * len(axis_labels)
-    return {'measure':measure,
-            'x':axis_labels,
-            'y':values,
-            'text':labels_rounded_text}
+    return {
+        'measure': measure,
+        'x': axis_labels,
+        'y': values,
+        'text': labels_rounded_text,
+    }
+
 
 def convert_and_round(value):
     return round(value * 100, 2)
@@ -159,6 +167,7 @@ def find_tradingview_image(ticker):
 
     return image
 
+
 def image_override(ticker, image):
     override_dict = {
         "GOOG": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4cj2hofQiP3hTnXiHfft9QT_Xoie7BpHWTi-P-KKZGHDbMOBX&usqp=CAU",
@@ -175,6 +184,7 @@ def image_override(ticker, image):
         return override_dict[ticker]
     else:
         return image
+
 
 def image_fetch(ticker):
     try:

@@ -20,7 +20,8 @@ for f in glob.glob(files_path):
     print(f)
     with open(f, "rb") as source_file:
         job = client.load_table_from_file(
-            source_file, 'ax-prod-393101.marketdata.daily_equity_prices',
-            job_config=job_config
+            source_file,
+            'ax-prod-393101.marketdata.daily_equity_prices',
+            job_config=job_config,
         )
     job.result()

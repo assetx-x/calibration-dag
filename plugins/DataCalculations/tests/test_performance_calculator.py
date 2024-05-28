@@ -10,9 +10,18 @@ class TestPerformanceCalculator(unittest.TestCase):
         strategy_name = "Test Strategy"
         file_content = b"Test Content"
         Calculators = [
-            Mock(spec=PerformanceCalculator.calculators[0], **{"calculate.return_value": 1}),
-            Mock(spec=PerformanceCalculator.calculators[1], **{"calculate.return_value": 2}),
-            Mock(spec=PerformanceCalculator.calculators[2], **{"calculate.return_value": 3}),
+            Mock(
+                spec=PerformanceCalculator.calculators[0],
+                **{"calculate.return_value": 1}
+            ),
+            Mock(
+                spec=PerformanceCalculator.calculators[1],
+                **{"calculate.return_value": 2}
+            ),
+            Mock(
+                spec=PerformanceCalculator.calculators[2],
+                **{"calculate.return_value": 3}
+            ),
         ]
         self.performance_calculator = PerformanceCalculator(strategy_name, file_content)
         self.performance_calculator.calculators = Calculators
@@ -21,7 +30,9 @@ class TestPerformanceCalculator(unittest.TestCase):
         """
         Testing the 'get_name' function
         """
-        self.assertEqual(self.performance_calculator.get_name(), "PerformanceCalculator")
+        self.assertEqual(
+            self.performance_calculator.get_name(), "PerformanceCalculator"
+        )
 
     @patch("plugins.DataCalculations.strategies.main.pd.read_csv")
     def test_read_strategy_dataframe(self, mock_read_csv):
@@ -29,7 +40,9 @@ class TestPerformanceCalculator(unittest.TestCase):
         Testing the '_read_strategy_dataframe' function
         """
         file_content = b"Date,Value\n2022-01-01,100.0"
-        expected_df = pd.DataFrame({"Value": [100.0]}, index=pd.to_datetime(["2022-01-01"]))
+        expected_df = pd.DataFrame(
+            {"Value": [100.0]}, index=pd.to_datetime(["2022-01-01"])
+        )
 
         mock_read_csv.return_value = expected_df
         strategy_name = "Test Strategy"
@@ -38,7 +51,10 @@ class TestPerformanceCalculator(unittest.TestCase):
         result = performance_calculator._read_strategy_dataframe(file_content)
         pd.testing.assert_frame_equal(result, expected_df)
 
-    @patch("plugins.DataCalculations.strategies.main.pd.read_csv", side_effect=pd.errors.EmptyDataError("Empty data"))
+    @patch(
+        "plugins.DataCalculations.strategies.main.pd.read_csv",
+        side_effect=pd.errors.EmptyDataError("Empty data"),
+    )
     def test_read_strategy_dataframe_empty_error(self, mock_read_csv):
         """
         Testing the '_read_strategy_dataframe' function with an empty data error
@@ -65,7 +81,6 @@ class TestPerformanceCalculator(unittest.TestCase):
         self.assertEqual(result, expected_results)
 
         PerformanceCalculator.calculators = original_calculators
-
 
     def test_run_multiple_calculators(self):
         """

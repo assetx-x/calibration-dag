@@ -1,14 +1,15 @@
-from core_classes import GCPReader,download_yahoo_data,DataReaderClass
+from core_classes import GCPReader, download_yahoo_data, DataReaderClass
 import pandas as pd
 import numpy as np
 from datetime import datetime
 from core_classes import StatusType
-from market_timeline import pick_trading_week_dates,pick_trading_month_dates
+from market_timeline import pick_trading_week_dates, pick_trading_month_dates
 from commonlib import factor_standarization
 import talib
+
 current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
-from core_classes import construct_required_path,construct_destination_path
+from core_classes import construct_required_path, construct_destination_path
 
 
 class GenerateBMEReturns(DataReaderClass):
@@ -31,10 +32,17 @@ class GenerateBMEReturns(DataReaderClass):
         pass
 
     def _generate_raw_returns(self, daily_price_data, gan_universe, trading_freq):
-        pivot_data = pd.pivot_table(daily_price_data[["date", "ticker", "close"]], index="date", values="close", \
-                                    columns="ticker", dropna=False).sort_index()
+        pivot_data = pd.pivot_table(
+            daily_price_data[["date", "ticker", "close"]],
+            index="date",
+            values="close",
+            columns="ticker",
+            dropna=False,
+        ).sort_index()
         pivot_data = pivot_data.fillna(method="ffill")
-        pivot_data.index = pd.DatetimeIndex(list(map(pd.Timestamp, pivot_data.index))).normalize()
+        pivot_data.index = pd.DatetimeIndex(
+            list(map(pd.Timestamp, pivot_data.index))
+        ).normalize()
         start_date = pivot_data.index.min()
         end_date = pivot_data.index.max()
         if trading_freq == "monthly":
@@ -42,7 +50,9 @@ class GenerateBMEReturns(DataReaderClass):
         elif trading_freq == "weekly":
             trading_dates = pick_trading_week_dates(start_date, end_date, "w-mon")
         else:
-            raise ValueError(f"Unsupported trading frequency passed to generate raw returns data - {trading_freq}")
+            raise ValueError(
+                f"Unsupported trading frequency passed to generate raw returns data - {trading_freq}"
+            )
         trading_days = pd.DatetimeIndex(list(trading_dates))
         pivot_data = pivot_data.loc[trading_days]
 
@@ -54,7 +64,6 @@ class GenerateBMEReturns(DataReaderClass):
             ub = raw_returns.loc[dt, :].quantile(0.995)
             ub = ub if pd.notnull(ub) else 2.0
             raw_returns.loc[dt, :] = raw_returns.loc[dt, :].clip(lb, ub)
-
 
         raw_returns = raw_returns.fillna(0.0)
         residual_tickers = list(set(gan_universe) - set(raw_returns.columns))
@@ -68,7 +77,9 @@ class GenerateBMEReturns(DataReaderClass):
         daily_price_data = kwargs[self.REQUIRES_FIELDS[1]]
 
         gan_universe = list(active_matrix.columns)
-        raw_returns = self._generate_raw_returns(daily_price_data, gan_universe, "monthly")
+        raw_returns = self._generate_raw_returns(
+            daily_price_data, gan_universe, "monthly"
+        )
         future_returns = raw_returns.shift(-1)
         future_returns = future_returns.fillna(0.0)
 
@@ -77,12 +88,18 @@ class GenerateBMEReturns(DataReaderClass):
         return StatusType.Success
 
     def _get_additional_step_results(self):
-        return {self.__class__.PROVIDES_FIELDS[0]: self.data,
-                self.__class__.PROVIDES_FIELDS[1]: self.future_data}
+        return {
+            self.__class__.PROVIDES_FIELDS[0]: self.data,
+            self.__class__.PROVIDES_FIELDS[1]: self.future_data,
+        }
 
 
 class GenerateBMEReturnsWeekly(GenerateBMEReturns):
-    PROVIDES_FIELDS = ["past_returns_bme", "future_returns_bme", "future_returns_weekly"]
+    PROVIDES_FIELDS = [
+        "past_returns_bme",
+        "future_returns_bme",
+        "future_returns_weekly",
+    ]
     REQUIRES_FIELDS = ["active_matrix", "active_matrix_weekly", "daily_price_data"]
 
     def __init__(self):
@@ -97,29 +114,43 @@ class GenerateBMEReturnsWeekly(GenerateBMEReturns):
         daily_price_data = kwargs[self.REQUIRES_FIELDS[2]]
         gan_universe = list(active_matrix.columns)
 
-        raw_returns = self._generate_raw_returns(daily_price_data, gan_universe, "monthly")
+        raw_returns = self._generate_raw_returns(
+            daily_price_data, gan_universe, "monthly"
+        )
         future_returns = raw_returns.shift(-1).fillna(0.0)
         self.data = raw_returns.reindex(active_matrix.index).dropna()[gan_universe]
-        self.future_data = future_returns.reindex(active_matrix.index).dropna()[gan_universe]
+        self.future_data = future_returns.reindex(active_matrix.index).dropna()[
+            gan_universe
+        ]
 
-        raw_returns_weekly = self._generate_raw_returns(daily_price_data, gan_universe, "weekly")
+        raw_returns_weekly = self._generate_raw_returns(
+            daily_price_data, gan_universe, "weekly"
+        )
         future_returns_weekly = raw_returns_weekly.shift(-1).fillna(0.0)
-        self.future_data_weekly = future_returns_weekly.reindex(active_matrix_weekly.index).dropna()[gan_universe]
-        return {'past_returns_bme': self.data, 'future_returns_bme': self.future_data,
-                'future_returns_weekly': self.future_data_weekly}
+        self.future_data_weekly = future_returns_weekly.reindex(
+            active_matrix_weekly.index
+        ).dropna()[gan_universe]
+        return {
+            'past_returns_bme': self.data,
+            'future_returns_bme': self.future_data,
+            'future_returns_weekly': self.future_data_weekly,
+        }
 
 
-
-
-GenerateBMEReturnsWeekly_params = {'params':{},
-                                   'class':GenerateBMEReturnsWeekly,
-                                   'start_date':RUN_DATE,
-                                'provided_data': {'past_returns_bme': construct_destination_path('additional_gan_features'),
-                                                  'future_returns_bme': construct_destination_path('additional_gan_features'),
-                                                  'future_returns_weekly': construct_destination_path('additional_gan_features')
-                                                 },
-                                'required_data': {'active_matrix':construct_required_path('active_matrix','active_matrix'),
-                                                  'active_matrix_weekly': construct_required_path('active_matrix','active_matrix_weekly'),
-                                                 'daily_price_data': construct_required_path('data_pull','daily_price_data')}}
-
-
+GenerateBMEReturnsWeekly_params = {
+    'params': {},
+    'class': GenerateBMEReturnsWeekly,
+    'start_date': RUN_DATE,
+    'provided_data': {
+        'past_returns_bme': construct_destination_path('additional_gan_features'),
+        'future_returns_bme': construct_destination_path('additional_gan_features'),
+        'future_returns_weekly': construct_destination_path('additional_gan_features'),
+    },
+    'required_data': {
+        'active_matrix': construct_required_path('active_matrix', 'active_matrix'),
+        'active_matrix_weekly': construct_required_path(
+            'active_matrix', 'active_matrix_weekly'
+        ),
+        'daily_price_data': construct_required_path('data_pull', 'daily_price_data'),
+    },
+}

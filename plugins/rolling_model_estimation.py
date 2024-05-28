@@ -1,6 +1,6 @@
 import pandas as pd
 from enum import Enum
-from core_classes import GCPReader,download_yahoo_data,DataReaderClass
+from core_classes import GCPReader, download_yahoo_data, DataReaderClass
 from market_timeline import marketTimeline
 import pandas as pd
 import numpy as np
@@ -11,13 +11,18 @@ from google.cloud import storage
 import gcsfs
 import statsmodels.api as sm
 from collections import defaultdict
+
 current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
-from core_classes import construct_required_path,construct_destination_path
+from core_classes import construct_required_path, construct_destination_path
 from joblib import dump, load
 from sklearn.model_selection import GroupKFold, GridSearchCV, cross_val_score
 from sklearn.linear_model import LinearRegression, LassoCV, RidgeCV, ElasticNetCV
-from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
+from sklearn.ensemble import (
+    RandomForestRegressor,
+    ExtraTreesRegressor,
+    GradientBoostingRegressor,
+)
 from time import time
 from multiprocessing import Pool
 import errno
@@ -30,17 +35,79 @@ FILTER_MODES = ["growth", "value", "largecap_growth", "largecap_value"]
 
 seed = 20190213
 
-base_cols = ['PPO_12_26_indgrp', 'et', 'IPDCONGD', 'ebitda_to_ev_indgrp', 'revenue_yield', 'T5YFFM', 'rf', 'ret_1B',
-             'overnight_return', 'grossmargin', 'netmargin_indgrp', 'maxret', 'DCOILWTICO', 'currentratio',
-             'ensemble', 'EWG_close', 'STOCHRSI_FASTK_63_15_10', 'bm', 'PPO_21_126', 'current_to_total_assets',
-             'ret_63B', 'revenue_growth', 'PPO_21_126_Industrials', 'ret_2B', 'PPO_21_126_Energy', 'ebitdamargin',
-             'debt2equity_indgrp', 'CPFF', 'ret_126B', 'log_dollar_volume', 'debt2equity', 'investments_yield',
-             'fcf_yield', 'volatility_126_indgrp', 'macd_diff_indgrp', 'STOCHRSI_FASTD_14_5_3', 'PPO_21_126_indgrp',
-             'amihud', 'VIXCLS', 'ebitda_to_ev', 'pe1', 'macd_diff_ConsumerStaples', 'T1YFFM', 'volatility_21',
-             'gbm', 'netmargin', 'ret_10B', 'pe_indgrp', 'divyield', 'WILLR_14', 'HWI', 'CUSR0000SAC',
-             'divyield_indgrp', 'ret_63B_indgrp', 'payoutratio', 'EWJ_volume', 'PPO_12_26', 'PPO_3_14',
-             'retearn_to_total_assets', 'std_turn', 'log_avg_dollar_volume', 'ret_252B', 'DEXUSUK', 'rel_to_high',
-             'ADX_14_MA_3', 'macd_diff', 'capex_yield', 'bm_indgrp', 'PPO_21_126_InformationTechnology', 'gp2assets']
+base_cols = [
+    'PPO_12_26_indgrp',
+    'et',
+    'IPDCONGD',
+    'ebitda_to_ev_indgrp',
+    'revenue_yield',
+    'T5YFFM',
+    'rf',
+    'ret_1B',
+    'overnight_return',
+    'grossmargin',
+    'netmargin_indgrp',
+    'maxret',
+    'DCOILWTICO',
+    'currentratio',
+    'ensemble',
+    'EWG_close',
+    'STOCHRSI_FASTK_63_15_10',
+    'bm',
+    'PPO_21_126',
+    'current_to_total_assets',
+    'ret_63B',
+    'revenue_growth',
+    'PPO_21_126_Industrials',
+    'ret_2B',
+    'PPO_21_126_Energy',
+    'ebitdamargin',
+    'debt2equity_indgrp',
+    'CPFF',
+    'ret_126B',
+    'log_dollar_volume',
+    'debt2equity',
+    'investments_yield',
+    'fcf_yield',
+    'volatility_126_indgrp',
+    'macd_diff_indgrp',
+    'STOCHRSI_FASTD_14_5_3',
+    'PPO_21_126_indgrp',
+    'amihud',
+    'VIXCLS',
+    'ebitda_to_ev',
+    'pe1',
+    'macd_diff_ConsumerStaples',
+    'T1YFFM',
+    'volatility_21',
+    'gbm',
+    'netmargin',
+    'ret_10B',
+    'pe_indgrp',
+    'divyield',
+    'WILLR_14',
+    'HWI',
+    'CUSR0000SAC',
+    'divyield_indgrp',
+    'ret_63B_indgrp',
+    'payoutratio',
+    'EWJ_volume',
+    'PPO_12_26',
+    'PPO_3_14',
+    'retearn_to_total_assets',
+    'std_turn',
+    'log_avg_dollar_volume',
+    'ret_252B',
+    'DEXUSUK',
+    'rel_to_high',
+    'ADX_14_MA_3',
+    'macd_diff',
+    'capex_yield',
+    'bm_indgrp',
+    'PPO_21_126_InformationTechnology',
+    'gp2assets',
+]
+
 
 class ModelType(Enum):
     ensemble_value = 1
@@ -48,48 +115,64 @@ class ModelType(Enum):
     gan_value = 3
     gan_growth = 4
 
+
 # Logic is redundant because features and targets may evolve with time
 def get_X_cols(model=1):
-    if model==1:
+    if model == 1:
         return base_cols
-    elif model==2:
+    elif model == 2:
         return base_cols
-    elif model==3:
-        return base_cols + ['f_t', 'hidden_state_0', 'hidden_state_1', 'hidden_state_2', 'hidden_state_3']
-    elif model==4:
-        return base_cols + ['f_t', 'hidden_state_0', 'hidden_state_1', 'hidden_state_2', 'hidden_state_3']
+    elif model == 3:
+        return base_cols + [
+            'f_t',
+            'hidden_state_0',
+            'hidden_state_1',
+            'hidden_state_2',
+            'hidden_state_3',
+        ]
+    elif model == 4:
+        return base_cols + [
+            'f_t',
+            'hidden_state_0',
+            'hidden_state_1',
+            'hidden_state_2',
+            'hidden_state_3',
+        ]
     elif model in (6, 7):
         return base_cols
     else:
         return base_cols
+
 
 def get_y_col(model=1):
-    if model==1:
+    if model == 1:
         return "future_ret_21B_std"
-    elif model==2:
+    elif model == 2:
         return "future_ret_21B_std"
-    elif model==3:
-        return "future_ret_21B_std"   # "future_return_RF_100_std"
-    elif model==4:
-        return "future_ret_21B_std"   # "future_return_RF_100_std"
+    elif model == 3:
+        return "future_ret_21B_std"  # "future_return_RF_100_std"
+    elif model == 4:
+        return "future_ret_21B_std"  # "future_return_RF_100_std"
     elif model in (6, 7):
-        return "future_ret_21B_std"   # "future_return_RF_100_std"
+        return "future_ret_21B_std"  # "future_return_RF_100_std"
     else:
         return "future_ret_21B_std"
 
+
 def get_return_col(model=1):
-    if model==1:
+    if model == 1:
         return "future_ret_21B"
-    elif model==2:
+    elif model == 2:
         return "future_ret_21B"
-    elif model==3:
+    elif model == 3:
         return "future_return_bme"
-    elif model==4:
+    elif model == 4:
         return "future_return_bme"
     elif model in (6, 7):
         return "future_ret_21B"
     else:
         return "future_ret_21B"
+
 
 def create_directory_if_does_not_exists(dir_path):
     try:
@@ -99,23 +182,26 @@ def create_directory_if_does_not_exists(dir_path):
         if exception.errno != errno.EEXIST:
             raise
 
+
 def cut_insample_data(df, end_year, end_month, y_col, model=1):
 
     dates = pd.DatetimeIndex(df["date"].unique()).sort_values()
-    monthly_final_date = dates[(dates.year==end_year) & (dates.month==end_month)][0]
+    monthly_final_date = dates[(dates.year == end_year) & (dates.month == end_month)][0]
     monthly_final_date_loc = dates.get_loc(monthly_final_date) + 1
 
     monthly_initial_date_loc = monthly_final_date_loc - 106
     in_sample_dates = dates[monthly_initial_date_loc:monthly_final_date_loc]
 
-    fold_ids = pd.DataFrame({"date":in_sample_dates, "fold_id":pd.cut(in_sample_dates, 5).codes})
+    fold_ids = pd.DataFrame(
+        {"date": in_sample_dates, "fold_id": pd.cut(in_sample_dates, 5).codes}
+    )
 
     new_df = df[df["date"].isin(in_sample_dates)].reset_index(drop=True)
     new_df.drop("fold_id", axis=1, errors="ignore", inplace=True)
     new_df = pd.merge(new_df, fold_ids, how="left", on=["date"])
     new_df = new_df.set_index(["date", "ticker"]).sort_index()
 
-    #y_col = get_y_col(model)
+    # y_col = get_y_col(model)
     X_cols = get_X_cols(model)
 
     y = new_df[y_col].fillna(0)
@@ -124,27 +210,48 @@ def cut_insample_data(df, end_year, end_month, y_col, model=1):
 
     return new_df["fold_id"], X, y, n, p, monthly_final_date
 
+
 def get_local_dated_dir(base_path, end_dt, relative_path):
     hocon_str = """
         {{
           date = {0}
           dir = {1}/${{date}}/{2}
         }}
-        """.format(end_dt.strftime("%Y%m%d"), base_path, relative_path)
+        """.format(
+        end_dt.strftime("%Y%m%d"), base_path, relative_path
+    )
     directory = os.path.realpath(pyhocon.ConfigFactory.parse_string(hocon_str)["dir"])
     return directory
+
 
 def get_algos():
     algos = {
         'ols': LinearRegression(),
         'lasso': LassoCV(random_state=seed),
         'enet': ElasticNetCV(random_state=seed),
-        'rf': RandomForestRegressor(n_estimators=500, min_samples_leaf=0.001, random_state=seed, n_jobs=17,
-                                    max_features=17, max_depth=10),
-        'et': ExtraTreesRegressor(n_estimators=500, min_samples_leaf=0.001, random_state=seed, n_jobs=17,
-                                  max_features=17, max_depth=10),
-        'gbm': GradientBoostingRegressor(min_samples_leaf=0.001, random_state=seed, n_estimators=700,
-                                         learning_rate=0.005, max_depth=6)
+        'rf': RandomForestRegressor(
+            n_estimators=500,
+            min_samples_leaf=0.001,
+            random_state=seed,
+            n_jobs=17,
+            max_features=17,
+            max_depth=10,
+        ),
+        'et': ExtraTreesRegressor(
+            n_estimators=500,
+            min_samples_leaf=0.001,
+            random_state=seed,
+            n_jobs=17,
+            max_features=17,
+            max_depth=10,
+        ),
+        'gbm': GradientBoostingRegressor(
+            min_samples_leaf=0.001,
+            random_state=seed,
+            n_estimators=700,
+            learning_rate=0.005,
+            max_depth=6,
+        ),
     }
     return algos
 
@@ -164,7 +271,9 @@ def feature_importance(folds, X, y, algo, grid, output_dir, algo_name, dump_file
         algo = cv.best_estimator_
         print(cv.best_params_)
         score = pd.DataFrame(cv.cv_results_).loc[cv.best_index_]
-        score = score[score.index.str.startswith('split') & score.index.str.endswith('test_score')]
+        score = score[
+            score.index.str.startswith('split') & score.index.str.endswith('test_score')
+        ]
 
     else:
         if 'cv' in algo.get_params().keys():
@@ -185,14 +294,12 @@ def feature_importance(folds, X, y, algo, grid, output_dir, algo_name, dump_file
     else:
         estimator = algo
 
-    return {
-        'estimator': estimator,
-        'cv_score': score,
-        'lapsed': lapsed
-    }
+    return {'estimator': estimator, 'cv_score': score, 'lapsed': lapsed}
+
 
 def run_feature_importance_parallel(x):
     return feature_importance(*x)
+
 
 def run_models(folds, X, y, algos, grids, models, output_dir, parallel, dump_file):
     if parallel:
@@ -203,8 +310,14 @@ def run_models(folds, X, y, algos, grids, models, output_dir, parallel, dump_fil
         p.join()
         results = dict(zip(models, res))
     else:
-        results = {k: feature_importance(folds, X, y, algos[k], grids[k], output_dir, k, dump_file) for k in models}
+        results = {
+            k: feature_importance(
+                folds, X, y, algos[k], grids[k], output_dir, k, dump_file
+            )
+            for k in models
+        }
     return results
+
 
 def run_models_loky(folds, X, y, algos, grids, models, output_dir, parallel, dump_file):
     if parallel:
@@ -214,12 +327,30 @@ def run_models_loky(folds, X, y, algos, grids, models, output_dir, parallel, dum
         p.shutdown()
         results = dict(zip(models, res))
     else:
-        results = {k: feature_importance(folds, X, y, algos[k], grids[k], output_dir, k, dump_file) for k in models}
+        results = {
+            k: feature_importance(
+                folds, X, y, algos[k], grids[k], output_dir, k, dump_file
+            )
+            for k in models
+        }
     return results
 
-def run_for_date(df, output_dir, end_year, end_month, target_col, model=1, run_all=True, run_parallel=False, dump_file=False):
 
-    folds, X, y, n, p, monthly_final_date = cut_insample_data(df, end_year, end_month, target_col, model)
+def run_for_date(
+    df,
+    output_dir,
+    end_year,
+    end_month,
+    target_col,
+    model=1,
+    run_all=True,
+    run_parallel=False,
+    dump_file=False,
+):
+
+    folds, X, y, n, p, monthly_final_date = cut_insample_data(
+        df, end_year, end_month, target_col, model
+    )
     date_key = monthly_final_date.strftime("%Y%m%d")
     out_dir = os.path.join(output_dir, date_key)
     if dump_file:
@@ -231,22 +362,42 @@ def run_for_date(df, output_dir, end_year, end_month, target_col, model=1, run_a
         'enet': None,
         'rf': None,
         'et': None,
-        'gbm': None
+        'gbm': None,
     }
     algos = get_algos()
 
     models = ['ols', 'lasso', 'enet']
     if run_all:
         models = models + ['et', 'rf', 'gbm']
-    results = run_models_loky(folds, X, y, algos, grids, models, out_dir, run_parallel, dump_file)
+    results = run_models_loky(
+        folds, X, y, algos, grids, models, out_dir, run_parallel, dump_file
+    )
     if dump_file:
-        results = {k:{l:(results[k][l] if l!="estimator" else load(results[k][l])) for l in results[k]} for k in results}
+        results = {
+            k: {
+                l: (results[k][l] if l != "estimator" else load(results[k][l]))
+                for l in results[k]
+            }
+            for k in results
+        }
     return results, date_key
 
 
-def run_for_date(df, output_dir, end_year, end_month, target_col, model=1, run_all=True, run_parallel=False, dump_file=False):
+def run_for_date(
+    df,
+    output_dir,
+    end_year,
+    end_month,
+    target_col,
+    model=1,
+    run_all=True,
+    run_parallel=False,
+    dump_file=False,
+):
 
-    folds, X, y, n, p, monthly_final_date = cut_insample_data(df, end_year, end_month, target_col, model)
+    folds, X, y, n, p, monthly_final_date = cut_insample_data(
+        df, end_year, end_month, target_col, model
+    )
     date_key = monthly_final_date.strftime("%Y%m%d")
     out_dir = os.path.join(output_dir, date_key)
     if dump_file:
@@ -258,18 +409,25 @@ def run_for_date(df, output_dir, end_year, end_month, target_col, model=1, run_a
         'enet': None,
         'rf': None,
         'et': None,
-        'gbm': None
+        'gbm': None,
     }
     algos = get_algos()
 
     models = ['ols', 'lasso', 'enet']
     if run_all:
         models = models + ['et', 'rf', 'gbm']
-    results = run_models_loky(folds, X, y, algos, grids, models, out_dir, run_parallel, dump_file)
+    results = run_models_loky(
+        folds, X, y, algos, grids, models, out_dir, run_parallel, dump_file
+    )
     if dump_file:
-        results = {k:{l:(results[k][l] if l!="estimator" else load(results[k][l])) for l in results[k]} for k in results}
+        results = {
+            k: {
+                l: (results[k][l] if l != "estimator" else load(results[k][l]))
+                for l in results[k]
+            }
+            for k in results
+        }
     return results, date_key
-
 
 
 class RollingModelEstimation(DataReaderClass):
@@ -279,11 +437,21 @@ class RollingModelEstimation(DataReaderClass):
 
     '''
 
-    PROVIDES_FIELDS =  ["signals", "rolling_model_info"]
-    REQUIRES_FIELDS =  ["r1k_neutral_normal_models_with_foldId"]
+    PROVIDES_FIELDS = ["signals", "rolling_model_info"]
+    REQUIRES_FIELDS = ["r1k_neutral_normal_models_with_foldId"]
 
-    def __init__(self, date_combinations, ensemble_weights, bucket, key_base, local_save_dir,
-                 training_modes, model_codes, target_cols, return_cols):
+    def __init__(
+        self,
+        date_combinations,
+        ensemble_weights,
+        bucket,
+        key_base,
+        local_save_dir,
+        training_modes,
+        model_codes,
+        target_cols,
+        return_cols,
+    ):
         self.signals = None
         self.rolling_model_info = None
         self.signal_consolidated = None
@@ -308,14 +476,20 @@ class RollingModelEstimation(DataReaderClass):
         elif model == "largecap_growth":
             results_file = 'results_lg.joblib'
         else:
-            raise ValueError("Got unexpected type of model to fetch the results_*.joblib filename - {0}".format(model))
+            raise ValueError(
+                "Got unexpected type of model to fetch the results_*.joblib filename - {0}".format(
+                    model
+                )
+            )
         return results_file
 
     def rolling_estimation_common(self, df_v, df_g):
         model = self.value_model_code
         results_v = {}
-        for (year, month) in self.date_combinations:
-            current, key = run_for_date(df_v, out_dir, year, month, model, True, True, False)
+        for year, month in self.date_combinations:
+            current, key = run_for_date(
+                df_v, out_dir, year, month, model, True, True, False
+            )
             all_algos = {}
             for k in current.keys():
                 all_algos[k] = current[k]["estimator"]
@@ -323,8 +497,10 @@ class RollingModelEstimation(DataReaderClass):
 
         model = self.growth_model_code
         results_g = {}
-        for (year, month) in self.date_combinations:
-            current, key = run_for_date(df_g, out_dir, year, month, model, True, True, False)
+        for year, month in self.date_combinations:
+            current, key = run_for_date(
+                df_g, out_dir, year, month, model, True, True, False
+            )
             all_algos = {}
             for k in current.keys():
                 all_algos[k] = current[k]["estimator"]
@@ -336,9 +512,9 @@ class RollingModelEstimation(DataReaderClass):
 
     def train_rolling_models(self, model_name, model_df):
 
-
-
-        full_path = get_local_dated_dir(os.environ["MODEL_DIR"], self.task_params.end_dt, self.local_save_dir)
+        full_path = get_local_dated_dir(
+            os.environ["MODEL_DIR"], self.task_params.end_dt, self.local_save_dir
+        )
         print("***********************************************")
         print("***********************************************")
         print(full_path)
@@ -347,44 +523,82 @@ class RollingModelEstimation(DataReaderClass):
         model_code = self.model_codes[model_name]
         target_col = self.target_cols[str(model_code)]
 
-        for (year, month) in self.date_combinations:
-            print("Final model training for: ", model_name, ", for date_combination: ", (year, month))
+        for year, month in self.date_combinations:
+            print(
+                "Final model training for: ",
+                model_name,
+                ", for date_combination: ",
+                (year, month),
+            )
 
-            current, key = run_for_date(model_df, out_dir, year, month, target_col, model_code, True, True, False)
+            current, key = run_for_date(
+                model_df,
+                out_dir,
+                year,
+                month,
+                target_col,
+                model_code,
+                True,
+                True,
+                False,
+            )
             all_algos = {}
             for k in current.keys():
                 all_algos[k] = current[k]["estimator"]
             self.results[model_name][key] = all_algos
 
-
         create_directory_if_does_not_exists(full_path)
 
-
-        dump(self.results[model_name], os.path.join(full_path, self._get_results_filename(model_name)))
+        dump(
+            self.results[model_name],
+            os.path.join(full_path, self._get_results_filename(model_name)),
+        )
 
         # DISCUSS: This will be same for every model trained, and will be overwritten every time after the training.
-        self.rolling_model_info = pd.DataFrame([self.local_save_dir], columns=["relative_path"])
+        self.rolling_model_info = pd.DataFrame(
+            [self.local_save_dir], columns=["relative_path"]
+        )
 
     def train_rolling_models_append(self, model_name, model_df):
         self.load_model(model_name)
         self.train_rolling_models(model_name, model_df)
 
-    def temp_load_models(self): # For testing only
+    def temp_load_models(self):  # For testing only
         current_dir = r"C:\DCM\temp\pipeline_tests\snapshots_201910\models_v\20171229"
         models = ['enet', 'gbm', 'rf', 'ols', 'et', 'lasso']
         self.results_v = {}
         self.results_g = {}
 
-        for d in ["20171229", "20180329", "20180629", "20180928", "20181231", "20190329", "20190628"]:
+        for d in [
+            "20171229",
+            "20180329",
+            "20180629",
+            "20180928",
+            "20181231",
+            "20190329",
+            "20190628",
+        ]:
             self.results_v[d] = {}
             for k in models:
-                self.results_v[d][k] = load(os.path.join(current_dir, "{0}_neutral_r1_v_iso.joblib".format(k)))
+                self.results_v[d][k] = load(
+                    os.path.join(current_dir, "{0}_neutral_r1_v_iso.joblib".format(k))
+                )
 
         current_dir = r"C:\DCM\temp\pipeline_tests\snapshots_201910\models_g\20171229"
-        for d in ["20171229", "20180329", "20180629", "20180928", "20181231", "20190329", "20190628"]:
+        for d in [
+            "20171229",
+            "20180329",
+            "20180629",
+            "20180928",
+            "20181231",
+            "20190329",
+            "20190628",
+        ]:
             self.results_g[d] = {}
             for k in models:
-                self.results_g[d][k] = load(os.path.join(current_dir, "{0}_neutral_r1_v_iso.joblib".format(k)))
+                self.results_g[d][k] = load(
+                    os.path.join(current_dir, "{0}_neutral_r1_v_iso.joblib".format(k))
+                )
 
     def load_model(self, model_name):
         self.s3_client = storage.Client()
@@ -401,28 +615,49 @@ class RollingModelEstimation(DataReaderClass):
         pred = pd.Series(algo.predict(X), index=X.index)
         return pred
 
-    def generate_ensemble_prediction(self, df, algos, target_variable_name, return_column_name, feature_cols):
+    def generate_ensemble_prediction(
+        self, df, algos, target_variable_name, return_column_name, feature_cols
+    ):
         ensemble_weights = self.ensemble_weights
         df['date'] = df['date'].apply(pd.Timestamp)
         df = df.set_index(["date", "ticker"])
         X = df[feature_cols].fillna(0.0)
         ret = df[return_column_name].reset_index().fillna(0.0)
-        pred = pd.concat((self.prediction(algos[k], X) for k in algos.keys()), axis=1, keys=algos.keys())
-        ensemble_pred = (pred[list(algos.keys())[0]]*0.0)
+        pred = pd.concat(
+            (self.prediction(algos[k], X) for k in algos.keys()),
+            axis=1,
+            keys=algos.keys(),
+        )
+        ensemble_pred = pred[list(algos.keys())[0]] * 0.0
         for k in algos.keys():
-            ensemble_pred += ensemble_weights[k]*pred[k]
+            ensemble_pred += ensemble_weights[k] * pred[k]
         ensemble_pred = ensemble_pred.to_frame()
         ensemble_pred.columns = ["ensemble"]
         rank = pred.groupby("date").rank(pct=True)
         rank["ensemble"] = ensemble_pred.groupby("date").rank(pct=True)
-        signal_ranks = pd.merge(rank.reset_index(), ret[['date', 'ticker', return_column_name]], how='left', on=['date', 'ticker'])
+        signal_ranks = pd.merge(
+            rank.reset_index(),
+            ret[['date', 'ticker', return_column_name]],
+            how='left',
+            on=['date', 'ticker'],
+        )
         return signal_ranks
 
-    def generate_ensemble_prediction_rolling(self, df, algos, target_variable_name, return_column_name, feature_cols, ensemble_weights=None):
+    def generate_ensemble_prediction_rolling(
+        self,
+        df,
+        algos,
+        target_variable_name,
+        return_column_name,
+        feature_cols,
+        ensemble_weights=None,
+    ):
         all_signals = {}
         for dt in list(algos.keys()):
-            #print("Predictions for : \t {0}".format(dt))
-            signal_ranks = self.generate_ensemble_prediction(df, algos[dt], target_variable_name, return_column_name, feature_cols)
+            # print("Predictions for : \t {0}".format(dt))
+            signal_ranks = self.generate_ensemble_prediction(
+                df, algos[dt], target_variable_name, return_column_name, feature_cols
+            )
             all_signals[dt] = signal_ranks
         return all_signals
 
@@ -431,27 +666,35 @@ class RollingModelEstimation(DataReaderClass):
         dates.sort()
         real_dates = list(map(pd.Timestamp, dates))
         real_dates.append(pd.Timestamp("2040-12-31"))
-        #print(real_dates)
+        # print(real_dates)
         signal_ranks = []
         for ind in range(len(dates)):
             key = dates[ind]
-            #print(key)
+            # print(key)
             current_signal = all_signals[key]
-            cond = (current_signal["date"]<real_dates[ind+1])
-            if ind>0:
-                cond = cond & (current_signal["date"]>=real_dates[ind])
+            cond = current_signal["date"] < real_dates[ind + 1]
+            if ind > 0:
+                cond = cond & (current_signal["date"] >= real_dates[ind])
             current_signal = current_signal[cond]
-            #print(current_signal["date"].unique())
+            # print(current_signal["date"].unique())
             signal_ranks.append(current_signal)
 
         signal_ranks = pd.concat(signal_ranks, ignore_index=True)
         return signal_ranks
 
     def do_step_action(self, **kwargs):
-        r1k_dfs_dict = kwargs["r1k_neutral_normal_models_with_foldId"].copy(deep=True).to_dict(orient='dict')[0]
+        r1k_dfs_dict = (
+            kwargs["r1k_neutral_normal_models_with_foldId"]
+            .copy(deep=True)
+            .to_dict(orient='dict')[0]
+        )
 
-        assert set(r1k_dfs_dict)==set(FILTER_MODES), "RollingModelEstimation - r1k_neutral_normal_models_with_foldId dict\
-        doesn't seem to contain all expected modes. It contains- {0}".format(set(r1k_dfs_dict))
+        assert set(r1k_dfs_dict) == set(
+            FILTER_MODES
+        ), "RollingModelEstimation - r1k_neutral_normal_models_with_foldId dict\
+        doesn't seem to contain all expected modes. It contains- {0}".format(
+            set(r1k_dfs_dict)
+        )
 
         signals_dict = {}
         for model_name in r1k_dfs_dict:
@@ -462,80 +705,168 @@ class RollingModelEstimation(DataReaderClass):
             elif self.training_modes[model_name] == 'append':
                 self.train_rolling_models_append(model_name, r1k_dfs_dict[model_name])
             else:
-                raise ValueError("RollingModelEstimation - training_modes should be one of - 'load_from_s3', 'full_train', or 'append'")
+                raise ValueError(
+                    "RollingModelEstimation - training_modes should be one of - 'load_from_s3', 'full_train', or 'append'"
+                )
 
             model_code = self.model_codes[model_name]
-            target_variable_name = self.target_cols[str(model_code)] # get_y_col(model_code)
-            return_column_name = self.return_cols[str(model_code)] # get_return_col(model_code)
+            target_variable_name = self.target_cols[
+                str(model_code)
+            ]  # get_y_col(model_code)
+            return_column_name = self.return_cols[
+                str(model_code)
+            ]  # get_return_col(model_code)
             feature_cols = get_X_cols(model_code)
-            all_signals = self.generate_ensemble_prediction_rolling(r1k_dfs_dict[model_name], self.results[model_name], \
-                                                                    target_variable_name, return_column_name, feature_cols)
-            signals_dict[model_name] = self.concatenate_predictions(self.results[model_name], all_signals)
+            all_signals = self.generate_ensemble_prediction_rolling(
+                r1k_dfs_dict[model_name],
+                self.results[model_name],
+                target_variable_name,
+                return_column_name,
+                feature_cols,
+            )
+            signals_dict[model_name] = self.concatenate_predictions(
+                self.results[model_name], all_signals
+            )
 
-
-        self.signals = pd.DataFrame(list(signals_dict.items()),
-                     columns=['Key', 0]).set_index('Key')
-
+        self.signals = pd.DataFrame(
+            list(signals_dict.items()), columns=['Key', 0]
+        ).set_index('Key')
 
         return StatusType.Success
 
     def _get_additional_step_results(self):
-        return {"signals" : self.signals,
-                "rolling_model_info" : self.rolling_model_info}
+        return {"signals": self.signals, "rolling_model_info": self.rolling_model_info}
 
     @classmethod
     def get_default_config(cls):
-        return {"date_combinations": [[2017, 12], [2018, 3], [2018, 6], [2018, 9], [2018, 12], [2019, 3], [2019, 6]],
-                "ensemble_weights": {'enet': 0.03333333333333333, 'et': 0.3, 'gbm': 0.2,
-                                     'lasso': 0.03333333333333333, 'ols': 0.03333333333333333, 'rf': 0.4},
-                "local_save_dir": "rolling_models",
-                "bucket": "dcm-data-temp", "key_base": "saved_rolling_models",
-                "training_modes": {"value": "load_from_s3", "growth": "load_from_s3", "largecap": "load_from_s3"},
-                "model_codes": {"value": 1, "growth": 2, "largecap_value": 6, "largecap_growth": 7},
-                "target_cols": {"1": "future_ret_21B_std", "2": "future_ret_21B_std", "6": "future_ret_21B_std", "7": "future_ret_21B_std"},
-                "return_cols": {"1": "future_ret_21B", "2": "future_ret_21B", "6": "future_ret_21B", "7": "future_ret_21B"}
-                }
+        return {
+            "date_combinations": [
+                [2017, 12],
+                [2018, 3],
+                [2018, 6],
+                [2018, 9],
+                [2018, 12],
+                [2019, 3],
+                [2019, 6],
+            ],
+            "ensemble_weights": {
+                'enet': 0.03333333333333333,
+                'et': 0.3,
+                'gbm': 0.2,
+                'lasso': 0.03333333333333333,
+                'ols': 0.03333333333333333,
+                'rf': 0.4,
+            },
+            "local_save_dir": "rolling_models",
+            "bucket": "dcm-data-temp",
+            "key_base": "saved_rolling_models",
+            "training_modes": {
+                "value": "load_from_s3",
+                "growth": "load_from_s3",
+                "largecap": "load_from_s3",
+            },
+            "model_codes": {
+                "value": 1,
+                "growth": 2,
+                "largecap_value": 6,
+                "largecap_growth": 7,
+            },
+            "target_cols": {
+                "1": "future_ret_21B_std",
+                "2": "future_ret_21B_std",
+                "6": "future_ret_21B_std",
+                "7": "future_ret_21B_std",
+            },
+            "return_cols": {
+                "1": "future_ret_21B",
+                "2": "future_ret_21B",
+                "6": "future_ret_21B",
+                "7": "future_ret_21B",
+            },
+        }
+
 
 class RollingModelEstimationWeekly(RollingModelEstimation):
 
-    PROVIDES_FIELDS =  ["signals", "signals_weekly", "rolling_model_info"]
-    REQUIRES_FIELDS =  ["r1k_neutral_normal_models_with_foldId", "r1k_sc_with_foldId_weekly", "r1k_lc_with_foldId_weekly"]
+    PROVIDES_FIELDS = ["signals", "signals_weekly", "rolling_model_info"]
+    REQUIRES_FIELDS = [
+        "r1k_neutral_normal_models_with_foldId",
+        "r1k_sc_with_foldId_weekly",
+        "r1k_lc_with_foldId_weekly",
+    ]
 
-    def __init__(self, date_combinations, ensemble_weights, bucket, key_base, local_save_dir,
-                 training_modes, model_codes, target_cols, return_cols):
+    def __init__(
+        self,
+        date_combinations,
+        ensemble_weights,
+        bucket,
+        key_base,
+        local_save_dir,
+        training_modes,
+        model_codes,
+        target_cols,
+        return_cols,
+    ):
         self.signals_weekly = None
-        RollingModelEstimation.__init__(self, date_combinations, ensemble_weights, bucket, key_base, local_save_dir,
-                                        training_modes, model_codes, target_cols, return_cols)
+        RollingModelEstimation.__init__(
+            self,
+            date_combinations,
+            ensemble_weights,
+            bucket,
+            key_base,
+            local_save_dir,
+            training_modes,
+            model_codes,
+            target_cols,
+            return_cols,
+        )
 
     @staticmethod
     def _dictionary_format(**kwargs):
         population_splits = {k: v for k, v in kwargs.items()}
         for keys in population_splits.keys():
-            population_splits[keys]['date'] = population_splits[keys]['date'].apply(pd.Timestamp)
+            population_splits[keys]['date'] = population_splits[keys]['date'].apply(
+                pd.Timestamp
+            )
 
         return population_splits
 
     def do_step_action(self, **kwargs):
 
-        r1k_dfs_dict_monthly = self._dictionary_format(growth=kwargs["r1k_neutral_normal_models_with_foldId_growth"],
-                                value=kwargs["r1k_neutral_normal_models_with_foldId_value"],
-                                largecap_growth=kwargs["r1k_neutral_normal_models_with_foldId_largecap_growth"],
-                                largecap_value=kwargs["r1k_neutral_normal_models_with_foldId_largecap_value"]
-                                )
-        r1k_dfs_dict_weekly = self._dictionary_format(growth=kwargs["r1k_sc_with_foldId_weekly_growth"],
-                                value=kwargs["r1k_sc_with_foldId_weekly_value"],
-                                )
+        r1k_dfs_dict_monthly = self._dictionary_format(
+            growth=kwargs["r1k_neutral_normal_models_with_foldId_growth"],
+            value=kwargs["r1k_neutral_normal_models_with_foldId_value"],
+            largecap_growth=kwargs[
+                "r1k_neutral_normal_models_with_foldId_largecap_growth"
+            ],
+            largecap_value=kwargs[
+                "r1k_neutral_normal_models_with_foldId_largecap_value"
+            ],
+        )
+        r1k_dfs_dict_weekly = self._dictionary_format(
+            growth=kwargs["r1k_sc_with_foldId_weekly_growth"],
+            value=kwargs["r1k_sc_with_foldId_weekly_value"],
+        )
 
-        r1k_weekly_lc = self._dictionary_format(largecap_growth=kwargs["r1k_lc_with_foldId_weekly_largecap_growth"],
-                                                       largecap_value=kwargs["r1k_lc_with_foldId_weekly_largecap_value"],
-                                                       )
+        r1k_weekly_lc = self._dictionary_format(
+            largecap_growth=kwargs["r1k_lc_with_foldId_weekly_largecap_growth"],
+            largecap_value=kwargs["r1k_lc_with_foldId_weekly_largecap_value"],
+        )
 
         r1k_dfs_dict_weekly.update(r1k_weekly_lc)
 
-        assert set(r1k_dfs_dict_monthly)==set(FILTER_MODES), "RollingModelEstimation - r1k_dfs_dict_monthly dict\
-        doesn't seem to contain all expected modes. It contains- {0}".format(set(r1k_dfs_dict_monthly))
-        assert set(r1k_dfs_dict_weekly)==set(FILTER_MODES), "RollingModelEstimation - r1k_dfs_dict_weekly dict\
-        doesn't seem to contain all expected modes. It contains- {0}".format(set(r1k_dfs_dict_weekly))
+        assert set(r1k_dfs_dict_monthly) == set(
+            FILTER_MODES
+        ), "RollingModelEstimation - r1k_dfs_dict_monthly dict\
+        doesn't seem to contain all expected modes. It contains- {0}".format(
+            set(r1k_dfs_dict_monthly)
+        )
+        assert set(r1k_dfs_dict_weekly) == set(
+            FILTER_MODES
+        ), "RollingModelEstimation - r1k_dfs_dict_weekly dict\
+        doesn't seem to contain all expected modes. It contains- {0}".format(
+            set(r1k_dfs_dict_weekly)
+        )
 
         signals_dict_monthly = {}
         signals_dict_weekly = {}
@@ -545,43 +876,68 @@ class RollingModelEstimationWeekly(RollingModelEstimation):
             elif self.training_modes[model_name] == 'full_train':
                 self.train_rolling_models(model_name, r1k_dfs_dict_weekly[model_name])
             elif self.training_modes[model_name] == 'append':
-                self.train_rolling_models_append(model_name, r1k_dfs_dict_weekly[model_name])
+                self.train_rolling_models_append(
+                    model_name, r1k_dfs_dict_weekly[model_name]
+                )
             else:
-                raise ValueError("RollingModelEstimation - training_modes should be one of - 'load_from_s3', 'full_train', or 'append'")
+                raise ValueError(
+                    "RollingModelEstimation - training_modes should be one of - 'load_from_s3', 'full_train', or 'append'"
+                )
 
             model_code = self.model_codes[model_name]
-            target_variable_name = self.target_cols[str(model_code)] # get_y_col(model_code)
-            return_column_name = self.return_cols[str(model_code)] # get_return_col(model_code)
+            target_variable_name = self.target_cols[
+                str(model_code)
+            ]  # get_y_col(model_code)
+            return_column_name = self.return_cols[
+                str(model_code)
+            ]  # get_return_col(model_code)
             feature_cols = get_X_cols(model_code)
 
-            all_signals_monthly = self.generate_ensemble_prediction_rolling(r1k_dfs_dict_monthly[model_name], self.results[model_name], \
-                                                                            target_variable_name, return_column_name, feature_cols)
-            signals_dict_monthly[model_name] = self.concatenate_predictions(self.results[model_name], all_signals_monthly)
+            all_signals_monthly = self.generate_ensemble_prediction_rolling(
+                r1k_dfs_dict_monthly[model_name],
+                self.results[model_name],
+                target_variable_name,
+                return_column_name,
+                feature_cols,
+            )
+            signals_dict_monthly[model_name] = self.concatenate_predictions(
+                self.results[model_name], all_signals_monthly
+            )
 
-            all_signals_weekly = self.generate_ensemble_prediction_rolling(r1k_dfs_dict_weekly[model_name], self.results[model_name], \
-                                                                           target_variable_name, return_column_name, feature_cols)
-            signals_dict_weekly[model_name] = self.concatenate_predictions(self.results[model_name], all_signals_weekly)
+            all_signals_weekly = self.generate_ensemble_prediction_rolling(
+                r1k_dfs_dict_weekly[model_name],
+                self.results[model_name],
+                target_variable_name,
+                return_column_name,
+                feature_cols,
+            )
+            signals_dict_weekly[model_name] = self.concatenate_predictions(
+                self.results[model_name], all_signals_weekly
+            )
 
+        self.signals = self.signals = pd.DataFrame(
+            list(signals_dict_monthly.items()), columns=['Key', 0]
+        ).set_index('Key')
 
-        self.signals = self.signals = pd.DataFrame(list(signals_dict_monthly.items()),
-                                    columns=['Key', 0]).set_index('Key')
-
-
-        self.signals_weekly = pd.DataFrame(list(signals_dict_weekly.items()),
-                                    columns=['Key', 0]).set_index('Key')
+        self.signals_weekly = pd.DataFrame(
+            list(signals_dict_weekly.items()), columns=['Key', 0]
+        ).set_index('Key')
 
         return self._get_additional_step_results()
 
-
     def _get_additional_step_results(self):
 
-        return {"signals_growth" : self.signals.loc['growth'][0],
-                'signals_value': self.signals.loc['value'][0],
-                'signals_largecap_value':self.signals.loc['largecap_value'][0],
-                'signals_largecap_growth':self.signals.loc['largecap_growth'][0],
-                "signals_weekly_growth" : self.signals_weekly.loc['growth'][0],
-                "signals_weekly_value": self.signals_weekly.loc['value'][0],
-                "signals_weekly_largecap_growth" : self.signals_weekly.loc['largecap_growth'][0],
-                "signals_weekly_largecap_value":self.signals_weekly.loc['largecap_value'][0]}
-
-
+        return {
+            "signals_growth": self.signals.loc['growth'][0],
+            'signals_value': self.signals.loc['value'][0],
+            'signals_largecap_value': self.signals.loc['largecap_value'][0],
+            'signals_largecap_growth': self.signals.loc['largecap_growth'][0],
+            "signals_weekly_growth": self.signals_weekly.loc['growth'][0],
+            "signals_weekly_value": self.signals_weekly.loc['value'][0],
+            "signals_weekly_largecap_growth": self.signals_weekly.loc[
+                'largecap_growth'
+            ][0],
+            "signals_weekly_largecap_value": self.signals_weekly.loc['largecap_value'][
+                0
+            ],
+        }

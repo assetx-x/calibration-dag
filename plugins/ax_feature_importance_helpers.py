@@ -123,8 +123,6 @@ MAPPING_DICTIONARY = {
 }
 
 
-
-
 def factor_grouping(feature_importance, sub_factor_map):
     shap_df_21D_full = feature_importance
     shap_df_21D = feature_importance.iloc[-1]
@@ -166,4 +164,3 @@ def factor_grouping(feature_importance, sub_factor_map):
         longitudinal_subfactor_exposure.index = feature_importance.index
 
     return longitudinal_subfactor_exposure, longitudinal_subfactor_exposure_raw
-

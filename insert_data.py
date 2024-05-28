@@ -24,7 +24,9 @@ if sys.platform in ['darwin', 'linux']:
     and follow the instructions, then the json will be created automatically
     """
     home_path = os.getenv('HOME')
-    credentials_path = os.path.join(home_path, '.config/gcloud/application_default_credentials.json')
+    credentials_path = os.path.join(
+        home_path, '.config/gcloud/application_default_credentials.json'
+    )
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
     print(f'Credentials set to {os.environ["GOOGLE_APPLICATION_CREDENTIALS"]}')
 else:
@@ -44,7 +46,7 @@ weekday_dict = {
     3: 'Thursday',
     4: 'Friday',
     5: 'Saturday',
-    6: 'Sunday'
+    6: 'Sunday',
 }
 
 
@@ -78,17 +80,17 @@ def get_tickers_to_carry_forward(d):
 
 
 def get_tickers_and_security_ids(d):
-    sm_query = f"select distinct ticker from marketdata.daily_equity_prices where date='{d}'"
-    security_master_tickers = (
-        client.query(sm_query).to_dataframe()
+    sm_query = (
+        f"select distinct ticker from marketdata.daily_equity_prices where date='{d}'"
     )
+    security_master_tickers = client.query(sm_query).to_dataframe()
     return security_master_tickers
 
 
 def get_last_date_in_table():
-    return (
-        client.query(f"select max(date) as max_date from marketdata.daily_equity_prices").to_dataframe()
-    )
+    return client.query(
+        f"select max(date) as max_date from marketdata.daily_equity_prices"
+    ).to_dataframe()
 
 
 def download_tickers_list_by_date(start: str, end: str = None):
@@ -109,15 +111,23 @@ def download_tickers_list_by_date(start: str, end: str = None):
             return None
         file_status = r.json().get('datatable_bulk_download').get('file').get('status')
         while file_status.lower() == 'creating':
-            print(f'[*] Waiting for file to be created for {start}. Status: "{file_status}"')
+            print(
+                f'[*] Waiting for file to be created for {start}. Status: "{file_status}"'
+            )
             r = requests.get(api_url, params=args)
-            file_status = r.json().get('datatable_bulk_download').get('file').get('status')
+            file_status = (
+                r.json().get('datatable_bulk_download').get('file').get('status')
+            )
             time.sleep(45)
-        file_to_download_link = r.json().get('datatable_bulk_download').get('file').get('link')
+        file_to_download_link = (
+            r.json().get('datatable_bulk_download').get('file').get('link')
+        )
         if file_to_download_link is None:
             print(f'[!] No download link for {start}: \n{r.json()}')
             return None
-        file_content = requests.get(file_to_download_link, allow_redirects=True, timeout=10).content
+        file_content = requests.get(
+            file_to_download_link, allow_redirects=True, timeout=10
+        ).content
         if file_content == b'':
             print(f'[!] No bin content for {start}')
             return None
@@ -148,7 +158,7 @@ def execute_query(head: str, queries: list, batch_size=1_000):
     try:
         print(f'[*] Total rows to execute: {len(queries)}')
         for i in tqdm(range(0, len(queries), batch_size)):
-            batch = queries[i:i + batch_size]
+            batch = queries[i : i + batch_size]
             q = head + ', '.join(batch)
             query_job = client.query(q)
             result = query_job.result()
@@ -192,7 +202,9 @@ def main():
         tickers_list = ticker_df['ticker'].unique().tolist()
         sec_id_df = get_security_id_from_ticker_mapper(tickers_list)
         ticker_df = ticker_df.merge(sec_id_df, left_on='ticker', right_index=True)
-        ticker_df['date'] = ticker_df['date'].map(lambda x: datetime.strptime(x, '%Y-%m-%d').isoformat())
+        ticker_df['date'] = ticker_df['date'].map(
+            lambda x: datetime.strptime(x, '%Y-%m-%d').isoformat()
+        )
 
         for _, row in ticker_df.iterrows():
             insert_query = create_insert_query(row)
@@ -200,8 +212,10 @@ def main():
 
         if queries:
             print(f'[*] Executing {len(queries)} rows into: {table_name}')
-            q_head = (f"INSERT INTO {table_name} (ticker, date, open, close, high, low, volume, as_of_start, "
-                      f"as_of_end, symbol_asof, dcm_security_id) VALUES")
+            q_head = (
+                f"INSERT INTO {table_name} (ticker, date, open, close, high, low, volume, as_of_start, "
+                f"as_of_end, symbol_asof, dcm_security_id) VALUES"
+            )
             execute_query(q_head, queries)  # , batch_size=500)
             queries = []
             print(f'[*] Queries len now {len(queries)}')

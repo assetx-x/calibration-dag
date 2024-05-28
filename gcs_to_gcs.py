@@ -16,29 +16,39 @@ def process(source_bucket, source_file, destination_bucket):
         source_blob = source_bucket.blob(source_file.name)
         destination_blob = destination_bucket.blob(source_file.name)
         destination_blob.content_type = source_blob.content_type
-        destination_blob.upload_from_string(source_blob.download_as_text(), num_retries=10, timeout=120)
+        destination_blob.upload_from_string(
+            source_blob.download_as_text(), num_retries=10, timeout=120
+        )
 
-        print({
-            'source': source_blob.name,
-            'destination': destination_blob.name,
-            'time': time.time() - start_time,
-        })
+        print(
+            {
+                'source': source_blob.name,
+                'destination': destination_blob.name,
+                'time': time.time() - start_time,
+            }
+        )
     except Exception as e:
-        print({
-            'error': f"{e}",
-            'source': source_file.name,
-            'time': time.time() - start_time,
-        })
+        print(
+            {
+                'error': f"{e}",
+                'source': source_file.name,
+                'time': time.time() - start_time,
+            }
+        )
 
 
 def from_gcs_to_gcs():
 
     source_credentials = Credentials.from_service_account_file('./dcm_config.json')
-    source_storage_client = storage.Client(credentials=source_credentials, project='dcm-prod-ba2f')
+    source_storage_client = storage.Client(
+        credentials=source_credentials, project='dcm-prod-ba2f'
+    )
     source_bucket = source_storage_client.bucket('table-transfer-eaf')
 
     destination_credentials = Credentials.from_service_account_file('./ax_config.json')
-    destination_storage_client = storage.Client(credentials=destination_credentials, project='ax-prod-393101')
+    destination_storage_client = storage.Client(
+        credentials=destination_credentials, project='ax-prod-393101'
+    )
     destination_bucket = destination_storage_client.bucket('table-eaf')
 
     with ThreadPoolExecutor(max_workers=1) as executor:
@@ -49,8 +59,12 @@ def from_gcs_to_gcs():
 def export_bigquery_table_to_gcs():
 
     source_credentials = Credentials.from_service_account_file('./dcm_config.json')
-    source_client = bigquery.Client(project='dcm-prod-ba2f', credentials=source_credentials)
-    source_table_ref = DatasetReference('dcm-prod-ba2f', 'marketdata').table('equity_adjustment_factors')
+    source_client = bigquery.Client(
+        project='dcm-prod-ba2f', credentials=source_credentials
+    )
+    source_table_ref = DatasetReference('dcm-prod-ba2f', 'marketdata').table(
+        'equity_adjustment_factors'
+    )
 
     destination_credentials = Credentials.from_service_account_file('./ax_config.json')
     destination_storage_client = storage.Client(credentials=destination_credentials)

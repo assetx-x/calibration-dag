@@ -81,7 +81,8 @@ def download_yahoo_data(ticker_list, start_dt, end_dt):
         try:
             df = yf.download(ticker, start_dt, end_dt, progress=False)
             df = df.fillna(method="ffill")[["Adj Close", "Volume"]].rename(
-                columns={"Adj Close": close_col, "Volume": vol_col})
+                columns={"Adj Close": close_col, "Volume": vol_col}
+            )
             df = df[~df.index.duplicated(keep='last')]
             df_1.append(df)
         except:
@@ -112,9 +113,13 @@ class GCPReader(DataReaderClass):
         super().__init__(bucket, key)
         self.data = None
         if isinstance(key, str):
-            self.files_to_read = list(map(lambda x: "gs://{0}/{1}".format(bucket, x), [key]))
+            self.files_to_read = list(
+                map(lambda x: "gs://{0}/{1}".format(bucket, x), [key])
+            )
         else:
-            self.files_to_read = list(map(lambda x: "gs://{0}/{1}".format(bucket, x), key))
+            self.files_to_read = list(
+                map(lambda x: "gs://{0}/{1}".format(bucket, x), key)
+            )
         self.s3_client = None
         self.index_col = 0
 
@@ -144,7 +149,11 @@ class GCPReader(DataReaderClass):
 
 
 def construct_required_path(step, file_name):
-    return "gs://{}/calibration_data/live" + "/{}/".format(step) + "{}.csv".format(file_name)
+    return (
+        "gs://{}/calibration_data/live"
+        + "/{}/".format(step)
+        + "{}.csv".format(file_name)
+    )
 
 
 def construct_destination_path(step):
@@ -153,13 +162,17 @@ def construct_destination_path(step):
 
 def pick_trading_quarterly_dates(start_date, end_date, mode='BQ'):
     weekly_days = pd.date_range(start_date, end_date, freq=mode)
-    trading_dates = pd.Series(weekly_days).apply(marketTimeline.get_next_trading_day_if_holiday)
+    trading_dates = pd.Series(weekly_days).apply(
+        marketTimeline.get_next_trading_day_if_holiday
+    )
     dates = trading_dates[(trading_dates >= start_date) & (trading_dates <= end_date)]
     return dates
 
 
 def pick_trading_month_dates(start_date, end_date, mode="bme"):
-    trading_days = marketTimeline.get_trading_days(start_date, end_date).tz_localize(None)
+    trading_days = marketTimeline.get_trading_days(start_date, end_date).tz_localize(
+        None
+    )
     if mode == "bme":
         dates = pd.Series(trading_days).groupby(trading_days.to_period('M')).last()
     else:
@@ -183,8 +196,7 @@ def create_directory_if_does_not_exists(dir_path):
 
 class DataFormatter(object):
 
-    def __init__(self, class_, class_parameters,
-                 provided_data, required_data):
+    def __init__(self, class_, class_parameters, provided_data, required_data):
 
         self.class_ = class_
         self.class_parameters = class_parameters
@@ -192,11 +204,13 @@ class DataFormatter(object):
         self.required_data = required_data
 
     def construct_data(self):
-        return {'class': self.class_,
-                'params': self.class_parameters,
-                # 'start_date':self.start_date,
-                'provided_data': self._provided_data_construction(),
-                'required_data': self._required_data_construction()}
+        return {
+            'class': self.class_,
+            'params': self.class_parameters,
+            # 'start_date':self.start_date,
+            'provided_data': self._provided_data_construction(),
+            'required_data': self._required_data_construction(),
+        }
 
     def __call__(self):
         # When an instance is called, return the result of construct_data
@@ -208,16 +222,26 @@ class DataFormatter(object):
             return {}
         elif len(self.required_data) == 1:
             directory = list(self.required_data.keys())[0]
-            return {k: construct_required_path(directory, k) for k in self.required_data[directory]}
+            return {
+                k: construct_required_path(directory, k)
+                for k in self.required_data[directory]
+            }
 
         else:
             path_dictionary = {}
             directories = list(self.required_data.keys())
             for directory in directories:
-                path_dictionary.update({k: construct_required_path(directory, k)
-                                        for k in self.required_data[directory]})
+                path_dictionary.update(
+                    {
+                        k: construct_required_path(directory, k)
+                        for k in self.required_data[directory]
+                    }
+                )
             return path_dictionary
 
     def _provided_data_construction(self):
         directory = list(self.provided_data.keys())[0]
-        return {k: construct_destination_path(directory) for k in self.provided_data[directory]}
+        return {
+            k: construct_destination_path(directory)
+            for k in self.provided_data[directory]
+        }

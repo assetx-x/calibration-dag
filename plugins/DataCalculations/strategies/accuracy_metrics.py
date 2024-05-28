@@ -62,7 +62,9 @@ class AccuracyMetrics(BaseMetrics):
         for _, row in df.iterrows():
             if row[self.columns[0]] == sign:
                 consecutive_periods += 1
-                max_consecutive_periods = max(max_consecutive_periods, consecutive_periods)
+                max_consecutive_periods = max(
+                    max_consecutive_periods, consecutive_periods
+                )
             else:
                 consecutive_periods = 0
 
@@ -77,5 +79,8 @@ class AccuracyMetrics(BaseMetrics):
     def calculate_up_down_ratio(self):
         up_periods = self.calculate_up_periods()
         down_periods = self.calculate_down_periods()
-        return up_periods / down_periods if down_periods != 0 else up_periods if up_periods != 0 else 0
-
+        return (
+            up_periods / down_periods
+            if down_periods != 0
+            else up_periods if up_periods != 0 else 0
+        )
