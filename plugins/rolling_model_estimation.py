@@ -28,7 +28,6 @@ seed = 20190213
 FILTER_MODES = ["growth", "value", "largecap_growth", "largecap_value"]
 
 
-from sklearn.externals.joblib import dump, load
 seed = 20190213
 
 base_cols = ['PPO_12_26_indgrp', 'et', 'IPDCONGD', 'ebitda_to_ev_indgrp', 'revenue_yield', 'T5YFFM', 'rf', 'ret_1B',
