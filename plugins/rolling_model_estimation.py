@@ -28,6 +28,7 @@ from multiprocessing import Pool
 import errno
 import pyhocon
 import tempfile
+from core_classes import DataFormatter
 
 seed = 20190213
 FILTER_MODES = ["growth", "value", "largecap_growth", "largecap_value"]
@@ -114,6 +115,55 @@ class ModelType(Enum):
     ensemble_growth = 2
     gan_value = 3
     gan_growth = 4
+
+
+
+def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='dcm-prod-ba2f'):
+    """
+    Reads a CSV file from Google Cloud Storage in chunks.
+    Parameters:
+    - gcs_path (str): The path to the CSV file on GCS.
+    - batch_size (int, optional): The number of rows per chunk. Default is 10,000.
+    - project_id (str, optional): The GCP project id. Default is 'dcm-prod-ba2f'.
+    Yields:
+    - pd.DataFrame: The data chunk as a DataFrame.
+    """
+    # Create GCS file system object
+    fs = gcsfs.GCSFileSystem(project=project_id)
+
+    # Open the GCS file for reading
+    with fs.open(gcs_path, 'r') as f:
+        # Yield chunks from the CSV
+        for chunk in pd.read_csv(f, chunksize=batch_size, index_col=0):
+            yield chunk
+
+
+def airflow_wrapper(**kwargs):
+    params = kwargs['params']
+
+    # Read all required data into step_action_args dictionary
+    step_action_args = {
+        k: pd.read_csv(v.format(os.environ['GCS_BUCKET']), index_col=0)
+        for k, v in kwargs['required_data'].items()
+    }
+    print(f'Executing step action with args {step_action_args}')
+
+    # Execute do_step_action method
+    data_outputs = kwargs['class'](**params).do_step_action(**step_action_args)
+
+    # If the method doesn't return a dictionary (for classes returning just a single DataFrame)
+    # convert it into a dictionary for consistency
+    if not isinstance(data_outputs, dict):
+        data_outputs = {list(kwargs['provided_data'].keys())[0]: data_outputs}
+
+    # Save each output data to its respective path on GCS
+    for data_key, data_value in data_outputs.items():
+        if data_key in kwargs['provided_data']:
+            gcs_path = kwargs['provided_data'][data_key].format(
+                os.environ['GCS_BUCKET'], data_key
+            )
+            print(gcs_path)
+            data_value.to_csv(gcs_path)
 
 
 # Logic is redundant because features and targets may evolve with time
@@ -383,51 +433,6 @@ def run_for_date(
     return results, date_key
 
 
-def run_for_date(
-    df,
-    output_dir,
-    end_year,
-    end_month,
-    target_col,
-    model=1,
-    run_all=True,
-    run_parallel=False,
-    dump_file=False,
-):
-
-    folds, X, y, n, p, monthly_final_date = cut_insample_data(
-        df, end_year, end_month, target_col, model
-    )
-    date_key = monthly_final_date.strftime("%Y%m%d")
-    out_dir = os.path.join(output_dir, date_key)
-    if dump_file:
-        create_directory_if_does_not_exists(out_dir)
-
-    grids = {
-        'ols': None,
-        'lasso': None,
-        'enet': None,
-        'rf': None,
-        'et': None,
-        'gbm': None,
-    }
-    algos = get_algos()
-
-    models = ['ols', 'lasso', 'enet']
-    if run_all:
-        models = models + ['et', 'rf', 'gbm']
-    results = run_models_loky(
-        folds, X, y, algos, grids, models, out_dir, run_parallel, dump_file
-    )
-    if dump_file:
-        results = {
-            k: {
-                l: (results[k][l] if l != "estimator" else load(results[k][l]))
-                for l in results[k]
-            }
-            for k in results
-        }
-    return results, date_key
 
 
 class RollingModelEstimation(DataReaderClass):
@@ -948,3 +953,75 @@ class RollingModelEstimationWeekly(RollingModelEstimation):
                 0
             ],
         }
+
+
+rolling_model_estimator_params = {
+    'date_combinations': [[2023, 9]],
+    'ensemble_weights': {
+        "enet": 0.03333333333333333,
+        "et": 0.3,
+        "gbm": 0.2,
+        "lasso": 0.03333333333333333,
+        "ols": 0.03333333333333333,
+        "rf": 0.4,
+    },
+    'training_modes': {
+        "value": "load_from_s3",
+        "growth": "load_from_s3",
+        "largecap_value": "load_from_s3",
+        "largecap_growth": "load_from_s3",
+    },  # load_from_s3, append, full_train
+    'bucket': "dcm-prod-ba2f-us-dcm-data-test",
+    'key_base': "calibration_data/live/saved_rolling_models_gan",
+    'local_save_dir': "rolling_models_gan",
+    'model_codes': {"value": 1, "growth": 2, "largecap_value": 6, "largecap_growth": 7},
+    'target_cols': {
+        "1": "future_ret_5B_std",
+        "2": "future_ret_5B_std",
+        "6": "future_ret_5B_std",
+        "7": "future_ret_5B_std",
+    },
+    'return_cols': {
+        "1": "future_ret_5B",
+        "2": "future_ret_5B",
+        "6": "future_ret_5B",
+        "7": "future_ret_5B",
+    },
+}
+
+# PROVIDES_FIELDS =  ["signals", "signals_weekly", "rolling_model_info"]
+# REQUIRES_FIELDS =  ["r1k_neutral_normal_models_with_foldId", "r1k_sc_with_foldId_weekly", "r1k_lc_with_foldId_weekly"]
+
+rolling_model_est = DataFormatter(
+    class_=RollingModelEstimationWeekly,
+    class_parameters=rolling_model_estimator_params,
+    provided_data={
+        'FinalModelTraining': [
+            'r1k_neutral_normal_models_with_foldId_growth',
+            'r1k_neutral_normal_models_with_foldId_value',
+            'r1k_neutral_normal_models_with_foldId_largecap_value',
+            'r1k_neutral_normal_models_with_foldId_largecap_growth',
+            'r1k_sc_with_foldId_weekly_growth',
+            'r1k_sc_with_foldId_weekly_value',
+            'r1k_lc_with_foldId_weekly_largecap_growth',
+            'r1k_lc_with_foldId_weekly_largecap_value',
+        ]
+    },
+    required_data={
+        'AddFinalFoldId': [
+            'r1k_neutral_normal_models_with_foldId_growth',
+            'r1k_neutral_normal_models_with_foldId_value',
+            'r1k_neutral_normal_models_with_foldId_largecap_value',
+            'r1k_neutral_normal_models_with_foldId_largecap_growth',
+            'r1k_sc_with_foldId_weekly_growth',
+            'r1k_sc_with_foldId_weekly_value',
+            'r1k_lc_with_foldId_weekly_largecap_growth',
+            'r1k_lc_with_foldId_weekly_largecap_value',
+        ]
+    },
+)
+
+if __name__ == "__main__":
+    airflow_wrapper(**rolling_model_est)
+
+

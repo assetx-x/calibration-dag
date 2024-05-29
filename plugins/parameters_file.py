@@ -1362,8 +1362,8 @@ rolling_model_estimator_params = {
         "largecap_value": "load_from_s3",
         "largecap_growth": "load_from_s3",
     },  # load_from_s3, append, full_train
-    'bucket': "dcm-dev-9fe8-us-dcm-data-temp",
-    'key_base': "saved_rolling_models_gan",
+    'bucket': "dcm-prod-ba2f-us-dcm-data-test",
+    'key_base': "gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/live/saved_rolling_models_gan",
     'local_save_dir': "rolling_models_gan",
     'model_codes': {"value": 1, "growth": 2, "largecap_value": 6, "largecap_growth": 7},
     'target_cols': {
