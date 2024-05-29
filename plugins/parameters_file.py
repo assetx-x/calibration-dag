@@ -31,7 +31,7 @@ from derived_technical_data_processing_step import (
     CalculateTaLibPPOMultiParam,
     CalculateTaLibADXMultiParam,
 )
-from rolling_model_estimation import RollingModelEstimationWeekly
+#from rolling_model_estimation import RollingModelEstimationWeekly
 from targets_step import CalculateTargetReturns
 from derived_simple_price_step import (
     ComputeBetaQuantamental,
@@ -1346,7 +1346,7 @@ afi_step_weekly = DataFormatter(
 
 
 ########## RollingModelEstimator
-
+"""
 rolling_model_estimator_params = {
     'date_combinations': [[2023, 9]],
     'ensemble_weights': {
@@ -1381,8 +1381,6 @@ rolling_model_estimator_params = {
     },
 }
 
-# PROVIDES_FIELDS =  ["signals", "signals_weekly", "rolling_model_info"]
-# REQUIRES_FIELDS =  ["r1k_neutral_normal_models_with_foldId", "r1k_sc_with_foldId_weekly", "r1k_lc_with_foldId_weekly"]
 
 rolling_model_est = DataFormatter(
     class_=RollingModelEstimationWeekly,
@@ -1411,7 +1409,7 @@ rolling_model_est = DataFormatter(
             'r1k_lc_with_foldId_weekly_largecap_value',
         ]
     },
-)
+)"""
 
 
 PARAMS_DICTIONARY = {
@@ -1464,5 +1462,5 @@ PARAMS_DICTIONARY = {
     'FactorNeutralizationForStackingWeekly': fnstacking_weekly,
     'FactorStandardizationNeutralizedForStackingWeekly': fnstackingneutral_weekly,
     'AddFoldIdToNormalizedDataPortfolioWeekly': afi_step_weekly,
-    'RollingModelEstimationWeekly': rolling_model_est,
+    #'RollingModelEstimationWeekly': rolling_model_est,
 }
