@@ -1,7 +1,5 @@
 from enum import Enum
 
-from dotenv import load_dotenv
-
 from core_classes import DataReaderClass
 import pandas as pd
 from datetime import datetime
