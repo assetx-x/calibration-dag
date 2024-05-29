@@ -25,6 +25,14 @@ import pyhocon
 import tempfile
 from core_classes import DataFormatter
 
+parent_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+plugins_folder = os.path.join(parent_directory, "plugins")
+data_processing_folder = os.path.join(plugins_folder, "data_processing")
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
+    data_processing_folder, 'dcm-prod.json'
+)
+os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
+
 seed = 20190213
 FILTER_MODES = ["growth", "value", "largecap_growth", "largecap_value"]
 
