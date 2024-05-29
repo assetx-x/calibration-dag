@@ -28,7 +28,7 @@ from core_classes import DataFormatter
 
 
 os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
-os.environ['MODEL_DIR'] = ''
+os.environ['MODEL_DIR'] = '/models'
 
 seed = 20190213
 FILTER_MODES = ["growth", "value", "largecap_growth", "largecap_value"]
