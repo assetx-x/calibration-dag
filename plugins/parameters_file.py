@@ -9,7 +9,7 @@ from core_classes import (
     construct_destination_path,
     DataFormatter,
 )
-from rolling_model_estimation import RollingModelEstimationWeekly
+# from rolling_model_estimation import RollingModelEstimationWeekly
 from data_pull_step import (
     CalibrationDatesJump,
     S3SecurityMasterReader,
@@ -31,6 +31,7 @@ from derived_technical_data_processing_step import (
     CalculateTaLibPPOMultiParam,
     CalculateTaLibADXMultiParam,
 )
+from rolling_model_estimation import RollingModelEstimationWeekly
 from targets_step import CalculateTargetReturns
 from derived_simple_price_step import (
     ComputeBetaQuantamental,
