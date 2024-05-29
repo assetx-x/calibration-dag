@@ -28,7 +28,9 @@ import pyhocon
 import tempfile
 from core_classes import DataFormatter
 
-load_dotenv()
+
+os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
+os.environ['MODEL_DIR'] = None
 
 seed = 20190213
 FILTER_MODES = ["growth", "value", "largecap_growth", "largecap_value"]
@@ -115,7 +117,6 @@ class ModelType(Enum):
     ensemble_growth = 2
     gan_value = 3
     gan_growth = 4
-
 
 
 def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='dcm-prod-ba2f'):
@@ -433,8 +434,6 @@ def run_for_date(
     return results, date_key
 
 
-
-
 class RollingModelEstimation(DataReaderClass):
     '''
 
@@ -470,7 +469,6 @@ class RollingModelEstimation(DataReaderClass):
         self.model_codes = model_codes
         self.target_cols = target_cols
         self.return_cols = return_cols
-
 
     def _get_data_lineage(self):
         pass
@@ -1024,5 +1022,3 @@ rolling_model_est = DataFormatter(
 if __name__ == "__main__":
     rolling_model_data = rolling_model_est()
     airflow_wrapper(**rolling_model_data)
-
-
