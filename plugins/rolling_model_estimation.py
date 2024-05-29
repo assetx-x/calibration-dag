@@ -1,20 +1,15 @@
-import pandas as pd
 from enum import Enum
-from core_classes import GCPReader, download_yahoo_data, DataReaderClass
-from market_timeline import marketTimeline
+from core_classes import DataReaderClass
 import pandas as pd
-import numpy as np
 from datetime import datetime
 import os
 from core_classes import StatusType
 from google.cloud import storage
 import gcsfs
-import statsmodels.api as sm
 from collections import defaultdict
 
 current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
-from core_classes import construct_required_path, construct_destination_path
 from joblib import dump, load
 from sklearn.model_selection import GroupKFold, GridSearchCV, cross_val_score
 from sklearn.linear_model import LinearRegression, LassoCV, RidgeCV, ElasticNetCV
