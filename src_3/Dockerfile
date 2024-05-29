@@ -3,7 +3,7 @@ FROM base_docker:latest
 WORKDIR /app
 
 COPY src_2/ .
-COPY env .
+COPY . .
 
 RUN apt-get update && apt-get install -y \
     gcc \
