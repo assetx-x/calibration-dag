@@ -1017,6 +1017,7 @@ rolling_model_est = DataFormatter(
 )
 
 if __name__ == "__main__":
-    airflow_wrapper(**rolling_model_est)
+    rolling_model_data = rolling_model_est()
+    airflow_wrapper(**rolling_model_data)
 
 
