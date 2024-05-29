@@ -1,4 +1,5 @@
 from enum import Enum
+from pprint import pprint
 
 from core_classes import DataReaderClass
 import pandas as pd
@@ -25,10 +26,6 @@ import errno
 import pyhocon
 import tempfile
 from core_classes import DataFormatter
-
-
-os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
-os.environ['MODEL_DIR'] = '/models'
 
 seed = 20190213
 FILTER_MODES = ["growth", "value", "largecap_growth", "largecap_value"]
@@ -1018,5 +1015,10 @@ rolling_model_est = DataFormatter(
 )
 
 if __name__ == "__main__":
+    os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
+    os.environ['MODEL_DIR'] = '/models'
+
+    (pprint
+     (os.environ))
     rolling_model_data = rolling_model_est()
     airflow_wrapper(**rolling_model_data)
