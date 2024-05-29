@@ -516,7 +516,7 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     ) as FinalModelTraining:
         RollingModelEstimationWeekly = DockerOperator(
             task_id="RollingModelEstimationWeekly",
-            container_name='task__generate_gan',
+            container_name='task__rolling_model_estimation',
             command=f"python rolling_model_estimation.py",
             api_version='auto',
             auto_remove='success',
