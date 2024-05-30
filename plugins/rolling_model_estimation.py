@@ -1037,7 +1037,8 @@ if __name__ == "__main__":
     print('>>> Your Params are')
     print('xxxxxx')
     print(params)
-
+    print('DATA OUTPUT IS ',data_outputs)
+    print('DATA OUTPUT TYPE ', type(data_outputs))
     # If the method doesn't return a dictionary (for classes returning just a single DataFrame)
     # convert it into a dictionary for consistency
     if not isinstance(data_outputs, dict):
