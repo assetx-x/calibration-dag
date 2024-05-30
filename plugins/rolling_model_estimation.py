@@ -994,14 +994,14 @@ rolling_model_est = DataFormatter(
     class_parameters=rolling_model_estimator_params,
     provided_data={
         'FinalModelTraining': [
-            'r1k_neutral_normal_models_with_foldId_growth',
-            'r1k_neutral_normal_models_with_foldId_value',
-            'r1k_neutral_normal_models_with_foldId_largecap_value',
-            'r1k_neutral_normal_models_with_foldId_largecap_growth',
-            'r1k_sc_with_foldId_weekly_growth',
-            'r1k_sc_with_foldId_weekly_value',
-            'r1k_lc_with_foldId_weekly_largecap_growth',
-            'r1k_lc_with_foldId_weekly_largecap_value',
+            'signals_growth',
+            'signals_value',
+            'signals_largecap_value',
+            'signals_largecap_growth',
+            'signals_weekly_growth',
+            'signals_weekly_value',
+            'signals_weekly_largecap_growth',
+            'signals_weekly_largecap_value',
         ]
     },
     required_data={
@@ -1025,34 +1025,4 @@ if __name__ == "__main__":
     os.environ['MODEL_DIR'] = '/models'
 
     rolling_model_data = rolling_model_est()
-    params = rolling_model_estimator_params
-
-    step_action_args = {
-        k: pd.read_csv(v.format(os.environ['GCS_BUCKET']), index_col=0)
-        for k, v in rolling_model_data['required_data'].items()
-    }
-
-    data_outputs = rolling_model_data['class'](**params).do_step_action(**step_action_args)
-
-    print('>>> Your Params are')
-    print('xxxxxx')
-    print(params)
-    print('DATA OUTPUT IS ',data_outputs)
-    print('DATA OUTPUT TYPE ', type(data_outputs))
-    # If the method doesn't return a dictionary (for classes returning just a single DataFrame)
-    # convert it into a dictionary for consistency
-    if not isinstance(data_outputs, dict):
-        data_outputs = {list(rolling_model_data['provided_data'].keys())[0]: data_outputs}
-
-    # Save each output data to its respective path on GCS
-    for data_key, data_value in data_outputs.items():
-        if data_key in rolling_model_data['provided_data']:
-            gcs_path = rolling_model_data['provided_data'][data_key].format(
-                os.environ['GCS_BUCKET'], data_key
-            )
-            print('Here is the path')
-            print(gcs_path)
-            data_value.to_csv(gcs_path)
-
-
-    #airflow_wrapper(**rolling_model_data)
+    airflow_wrapper(**rolling_model_data)
