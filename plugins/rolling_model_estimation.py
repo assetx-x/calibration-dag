@@ -142,10 +142,13 @@ def airflow_wrapper(**kwargs):
         k: pd.read_csv(v.format(os.environ['GCS_BUCKET']), index_col=0)
         for k, v in kwargs['required_data'].items()
     }
-    print(f'Executing step action with args {step_action_args}')
+    #print(f'Executing step action with args {step_action_args}')
 
     # Execute do_step_action method
     data_outputs = kwargs['class'](**params).do_step_action(**step_action_args)
+
+    print('Your Params are')
+    print(params)
 
     # If the method doesn't return a dictionary (for classes returning just a single DataFrame)
     # convert it into a dictionary for consistency
@@ -158,6 +161,7 @@ def airflow_wrapper(**kwargs):
             gcs_path = kwargs['provided_data'][data_key].format(
                 os.environ['GCS_BUCKET'], data_key
             )
+            print('Here is the path')
             print(gcs_path)
             data_value.to_csv(gcs_path)
 
