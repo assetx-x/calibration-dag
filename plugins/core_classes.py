@@ -1,3 +1,4 @@
+import tempfile
 from abc import ABC, abstractmethod
 from google.cloud import storage
 from enum import Enum
