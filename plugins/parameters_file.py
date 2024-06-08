@@ -1345,71 +1345,51 @@ afi_step_weekly = DataFormatter(
 )
 
 
-########## RollingModelEstimator
-"""
-rolling_model_estimator_params = {
-    'date_combinations': [[2023, 9]],
-    'ensemble_weights': {
-        "enet": 0.03333333333333333,
-        "et": 0.3,
-        "gbm": 0.2,
-        "lasso": 0.03333333333333333,
-        "ols": 0.03333333333333333,
-        "rf": 0.4,
-    },
-    'training_modes': {
-        "value": "load_from_s3",
-        "growth": "load_from_s3",
-        "largecap_value": "load_from_s3",
-        "largecap_growth": "load_from_s3",
-    },  # load_from_s3, append, full_train
-    'bucket': "dcm-prod-ba2f-us-dcm-data-test",
-    'key_base': "gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/live/saved_rolling_models_gan",
-    'local_save_dir': "rolling_models_gan",
-    'model_codes': {"value": 1, "growth": 2, "largecap_value": 6, "largecap_growth": 7},
-    'target_cols': {
-        "1": "future_ret_5B_std",
-        "2": "future_ret_5B_std",
-        "6": "future_ret_5B_std",
-        "7": "future_ret_5B_std",
-    },
-    'return_cols': {
-        "1": "future_ret_5B",
-        "2": "future_ret_5B",
-        "6": "future_ret_5B",
-        "7": "future_ret_5B",
-    },
+########## EconModelInterpreter
+
+from econ_model_interpreter import EconFactorInterpretation
+econ_model_interpreter_params = {
+    'BASE_DIR': 'calibration_data/live/saved_econ_models_gan',
+    'bucket': 'dcm-prod-ba2f-us-dcm-data-test',
+    'leaf_path': '{}_econ_no_gan.joblib',
+    'x_cols':['date', 'ticker',"EWG_close", "HWI", "IPDCONGD", "DEXUSUK",
+         "CPFF", "GS5", "CUSR0000SAC", "T5YFFM", "PPO_21_126_InformationTechnology",
+         "macd_diff_ConsumerStaples", "PPO_21_126_Industrials", "VIXCLS", "PPO_21_126_Energy",
+         "T1YFFM", "WPSID62", "CUSR0000SA0L2", "EWJ_volume", "PPO_21_126_ConsumerDiscretionary",
+         "DCOILWTICO", "GS10", "RPI", "CPITRNSL", "divyield_ConsumerStaples", "bm_Financials",
+         "USTRADE", "T10YFFM", "divyield_Industrials", "AAAFFM", "RETAILx", "bm_Utilities",
+         "SPY_close", "log_mktcap", "volatility_126", "momentum", "bm", "PPO_12_26", "SPY_beta",
+         "log_dollar_volume", "fcf_yield"],
+    'y_cols':["future_return_RF_100_std"],
+    'cut_off_date': '2023-10-01'
 }
 
 
-rolling_model_est = DataFormatter(
-    class_=RollingModelEstimationWeekly,
-    class_parameters=rolling_model_estimator_params,
+
+
+econ_model_interpreter = DataFormatter(
+    class_=EconFactorInterpretation,
+    class_parameters=econ_model_interpreter_params,
     provided_data={
-        'FinalModelTraining': [
-            'r1k_neutral_normal_models_with_foldId_growth',
-            'r1k_neutral_normal_models_with_foldId_value',
-            'r1k_neutral_normal_models_with_foldId_largecap_value',
-            'r1k_neutral_normal_models_with_foldId_largecap_growth',
-            'r1k_sc_with_foldId_weekly_growth',
-            'r1k_sc_with_foldId_weekly_value',
-            'r1k_lc_with_foldId_weekly_largecap_growth',
-            'r1k_lc_with_foldId_weekly_largecap_value',
+        'EconInterpretation': [
+            'econ_rf',
+            'econ_lasso',
+            'econ_enet',
+            'econ_ols',
+            'econ_et',
+            'econ_gbm',
+            'x_econ'
+
         ]
     },
     required_data={
-        'AddFinalFoldId': [
-            'r1k_neutral_normal_models_with_foldId_growth',
-            'r1k_neutral_normal_models_with_foldId_value',
-            'r1k_neutral_normal_models_with_foldId_largecap_value',
-            'r1k_neutral_normal_models_with_foldId_largecap_growth',
-            'r1k_sc_with_foldId_weekly_growth',
-            'r1k_sc_with_foldId_weekly_value',
-            'r1k_lc_with_foldId_weekly_largecap_growth',
-            'r1k_lc_with_foldId_weekly_largecap_value',
+        'MergeGANResults': [
+            'normalized_data_full_population_with_foldId',
+
         ]
     },
-)"""
+)
+
 
 
 PARAMS_DICTIONARY = {
@@ -1462,5 +1442,6 @@ PARAMS_DICTIONARY = {
     'FactorNeutralizationForStackingWeekly': fnstacking_weekly,
     'FactorStandardizationNeutralizedForStackingWeekly': fnstackingneutral_weekly,
     'AddFoldIdToNormalizedDataPortfolioWeekly': afi_step_weekly,
+    'EconInterpretation':econ_model_interpreter
     #'RollingModelEstimationWeekly': rolling_model_est,
 }
