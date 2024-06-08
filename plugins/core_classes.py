@@ -1,5 +1,7 @@
 import tempfile
 from abc import ABC, abstractmethod
+
+import shap
 from google.cloud import storage
 from enum import Enum
 import pandas as pd
