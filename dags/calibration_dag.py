@@ -112,63 +112,63 @@ task_params_manager = transform_params(PARAMS_DICTIONARY)
 
 """ Calibration Process"""
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
-    with TaskGroup("DataPull", tooltip="DataPull") as DataPull:
-        CalibrationDatesJump = PythonOperator(
-            task_id="CalibrationDatesJump",
-            python_callable=airflow_wrapper,
-            provide_context=True,
-            op_kwargs=task_params_manager['CalibrationDatesJump'],
-            execution_timeout=timedelta(minutes=25),
-        )
-
-        S3SecurityMasterReader = PythonOperator(
-            task_id="S3SecurityMasterReader",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['S3SecurityMasterReader'],
-            execution_timeout=timedelta(minutes=25),
-        )
-
-        S3GANUniverseReader = PythonOperator(
-            task_id="S3GANUniverseReader",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['S3GANUniverseReader'],
-            execution_timeout=timedelta(minutes=25),
-        )
-
-        S3IndustryMappingReader = PythonOperator(
-            task_id="S3IndustryMappingReader",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['S3IndustryMappingReader'],
-            execution_timeout=timedelta(minutes=25),
-        )
-
-        S3EconTransformationReader = PythonOperator(
-            task_id="S3EconTransformationReader",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['S3EconTransformationReader'],
-            execution_timeout=timedelta(minutes=25),
-        )
-
-        YahooDailyPriceReader = PythonOperator(
-            task_id="YahooDailyPriceReader",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['YahooDailyPriceReader'],
-            execution_timeout=timedelta(minutes=25),
-        )
-
-        S3RussellComponentReader = PythonOperator(
-            task_id="S3RussellComponentReader",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['S3RussellComponentReader'],
-            execution_timeout=timedelta(minutes=25),
-        )
-
-        S3RawQuandlDataReader = PythonOperator(
-            task_id="S3RawQuandlDataReader",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['S3RawQuandlDataReader'],
-            execution_timeout=timedelta(minutes=25),
-        )
+    # with TaskGroup("DataPull", tooltip="DataPull") as DataPull:
+    #     CalibrationDatesJump = PythonOperator(
+    #         task_id="CalibrationDatesJump",
+    #         python_callable=airflow_wrapper,
+    #         provide_context=True,
+    #         op_kwargs=task_params_manager['CalibrationDatesJump'],
+    #         execution_timeout=timedelta(minutes=25),
+    #     )
+    #
+    #     S3SecurityMasterReader = PythonOperator(
+    #         task_id="S3SecurityMasterReader",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['S3SecurityMasterReader'],
+    #         execution_timeout=timedelta(minutes=25),
+    #     )
+    #
+    #     S3GANUniverseReader = PythonOperator(
+    #         task_id="S3GANUniverseReader",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['S3GANUniverseReader'],
+    #         execution_timeout=timedelta(minutes=25),
+    #     )
+    #
+    #     S3IndustryMappingReader = PythonOperator(
+    #         task_id="S3IndustryMappingReader",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['S3IndustryMappingReader'],
+    #         execution_timeout=timedelta(minutes=25),
+    #     )
+    #
+    #     S3EconTransformationReader = PythonOperator(
+    #         task_id="S3EconTransformationReader",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['S3EconTransformationReader'],
+    #         execution_timeout=timedelta(minutes=25),
+    #     )
+    #
+    #     YahooDailyPriceReader = PythonOperator(
+    #         task_id="YahooDailyPriceReader",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['YahooDailyPriceReader'],
+    #         execution_timeout=timedelta(minutes=25),
+    #     )
+    #
+    #     S3RussellComponentReader = PythonOperator(
+    #         task_id="S3RussellComponentReader",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['S3RussellComponentReader'],
+    #         execution_timeout=timedelta(minutes=25),
+    #     )
+    #
+    #     S3RawQuandlDataReader = PythonOperator(
+    #         task_id="S3RawQuandlDataReader",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['S3RawQuandlDataReader'],
+    #         execution_timeout=timedelta(minutes=25),
+    #     )
 
         SQLMinuteToDailyEquityPrices = PythonOperator(
             task_id="SQLMinuteToDailyEquityPrices",
@@ -178,15 +178,15 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         )
 
         (
-            CalibrationDatesJump
-            >> S3SecurityMasterReader
-            >> S3GANUniverseReader
-            >> S3IndustryMappingReader
-            >> S3EconTransformationReader
-            >> YahooDailyPriceReader
-            >> S3RussellComponentReader
-            >> S3RawQuandlDataReader
-            >> SQLMinuteToDailyEquityPrices
+            # CalibrationDatesJump
+            # >> S3SecurityMasterReader
+            # >> S3GANUniverseReader
+            # >> S3IndustryMappingReader
+            # >> S3EconTransformationReader
+            # >> YahooDailyPriceReader
+            # >> S3RussellComponentReader
+            # >> S3RawQuandlDataReader
+             SQLMinuteToDailyEquityPrices
         )
 
     with TaskGroup("EconData", tooltip="EconData") as EconData:
