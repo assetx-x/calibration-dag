@@ -112,7 +112,7 @@ task_params_manager = transform_params(PARAMS_DICTIONARY)
 
 """ Calibration Process"""
 with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
-    with TaskGroup("DataPull", tooltip="DataPull") as DataPull:
+    #with TaskGroup("DataPull", tooltip="DataPull") as DataPull:
     #     CalibrationDatesJump = PythonOperator(
     #         task_id="CalibrationDatesJump",
     #         python_callable=airflow_wrapper,
@@ -170,47 +170,47 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #         execution_timeout=timedelta(minutes=25),
     #     )
 
-        SQLMinuteToDailyEquityPrices = PythonOperator(
-            task_id="SQLMinuteToDailyEquityPrices",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['SQLMinuteToDailyEquityPrices'],
-            execution_timeout=timedelta(minutes=150),
-        )
-
-        (
-            # CalibrationDatesJump
-            # >> S3SecurityMasterReader
-            # >> S3GANUniverseReader
-            # >> S3IndustryMappingReader
-            # >> S3EconTransformationReader
-            # >> YahooDailyPriceReader
-            # >> S3RussellComponentReader
-            # >> S3RawQuandlDataReader
-             SQLMinuteToDailyEquityPrices
-        )
-
-    with TaskGroup("EconData", tooltip="EconData") as EconData:
-        DownloadEconomicData = PythonOperator(
-            task_id="DownloadEconomicData",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['DownloadEconomicData'],
-        )
-
-    with TaskGroup(
-        "FundamentalCleanup", tooltip="FundamentalCleanup"
-    ) as FundamentalCleanup:
-        QuandlDataCleanup = PythonOperator(
-            task_id="QuandlDataCleanup",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['QuandlDataCleanup'],
-        )
-
-    with TaskGroup("Targets", tooltip="Targets") as Targets:
-        CalculateTargetReturns = PythonOperator(
-            task_id="CalculateTargetReturns",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['CalculateTargetReturns'],
-        )
+    #     SQLMinuteToDailyEquityPrices = PythonOperator(
+    #         task_id="SQLMinuteToDailyEquityPrices",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['SQLMinuteToDailyEquityPrices'],
+    #         execution_timeout=timedelta(minutes=150),
+    #     )
+    #
+    #     (
+    #         # CalibrationDatesJump
+    #         # >> S3SecurityMasterReader
+    #         # >> S3GANUniverseReader
+    #         # >> S3IndustryMappingReader
+    #         # >> S3EconTransformationReader
+    #         # >> YahooDailyPriceReader
+    #         # >> S3RussellComponentReader
+    #         # >> S3RawQuandlDataReader
+    #          SQLMinuteToDailyEquityPrices
+    #     )
+    #
+    # with TaskGroup("EconData", tooltip="EconData") as EconData:
+    #     DownloadEconomicData = PythonOperator(
+    #         task_id="DownloadEconomicData",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['DownloadEconomicData'],
+    #     )
+    #
+    # with TaskGroup(
+    #     "FundamentalCleanup", tooltip="FundamentalCleanup"
+    # ) as FundamentalCleanup:
+    #     QuandlDataCleanup = PythonOperator(
+    #         task_id="QuandlDataCleanup",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['QuandlDataCleanup'],
+    #     )
+    #
+    # with TaskGroup("Targets", tooltip="Targets") as Targets:
+    #     CalculateTargetReturns = PythonOperator(
+    #         task_id="CalculateTargetReturns",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['CalculateTargetReturns'],
+    #     )
 
     with TaskGroup(
         "DerivedFundamentalDataProcessing", tooltip="DerivedFundamentalDataProcessing"
@@ -527,11 +527,11 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
 
 
     (
-        DataPull
-        >> EconData
-        >> FundamentalCleanup
-        >> Targets
-        >> DerivedFundamentalDataProcessing
+        #DataPull
+        #>> EconData
+        #>> FundamentalCleanup
+        #>> Targets
+        DerivedFundamentalDataProcessing
         >> DerivedTechnicalDataProcessing
         >> DerivedSimplePriceFeatureProcessing
         >> MergeStep
