@@ -1,7 +1,7 @@
-#import tempfile
+import tempfile
 from abc import ABC, abstractmethod
 
-#import shap
+import shap
 from google.cloud import storage
 from enum import Enum
 import pandas as pd
@@ -251,81 +251,81 @@ class DataFormatter(object):
         }
 
 
-# class ShapProcessor:
-#     @staticmethod
-#     def get_shap_values(shap_dictionary, X_cols):
-#         shap_values_df_dict = {}
-#         for explainers in shap_dictionary.keys():
-#             try:
-#                 shap_values = shap_dictionary[explainers].shap_values(X_cols, check_additivity=False)
-#             except Exception:
-#                 shap_values = shap_dictionary[explainers].shap_values(X_cols)
-#             shap_values_df = pd.DataFrame(shap_values, columns=X_cols.columns, index=X_cols.index)
-#             shap_values_df_dict[explainers] = shap_values_df
-#         return shap_values_df_dict
-#
-#     @staticmethod
-#     def create_explainers(models, x_econ):
-#         explainers = {
-#             'gbm': shap.TreeExplainer(model=models['gbm']),
-#             'rf': shap.TreeExplainer(model=models['rf']),
-#             'lasso': shap.LinearExplainer(models['lasso'], x_econ),
-#             'ols': shap.LinearExplainer(models['ols'], x_econ),
-#             'enet': shap.LinearExplainer(models['enet'], x_econ),
-#             'et': shap.TreeExplainer(model=models['et'], data=x_econ)
-#         }
-#         return explainers
-#
-#
-# class ModelLoader:
-#     def __init__(self, base_dir, leaf_path, bucket):
-#         self.base_dir = base_dir
-#         self.leaf_path = leaf_path
-#         self.bucket = bucket
-#         self.s3_client = storage.Client()
-#
-#     def load_models(self, model_list):
-#         models = {}
-#         key = '{0}/{1}'.format(self.base_dir, self.leaf_path)
-#         print(key)
-#         for model in model_list:
-#             print(model)
-#             print(model_list)
-#             model_location = key.format(model)
-#             with tempfile.TemporaryFile() as fp:
-#                 bucket = self.s3_client.bucket(self.bucket)
-#                 print(model_location)
-#                 blob = bucket.blob(model_location)
-#                 self.s3_client.download_blob_to_file(blob, fp)
-#                 fp.seek(0)
-#                 models[model] = load(fp)
-#         return models
-#
-#     def load_single_model(self, model):
-#         key = '{0}/{1}'.format(self.base_dir, self.leaf_path)
-#         model_location = key.format(model)
-#         with tempfile.TemporaryFile() as fp:
-#             bucket = self.s3_client.bucket(self.bucket)
-#             blob = bucket.blob(model_location)
-#             self.s3_client.download_blob_to_file(blob, fp)
-#             fp.seek(0)
-#         return load(fp)
-#
-#
-# class EconDataCreator:
-#     def __init__(self, base_dir, model_loader):
-#         self.base_dir = base_dir
-#         self.model_loader = model_loader
-#
-#     def create_econ_data(self, df, X_cols, y_col, quarter_cut):
-#         model_list = ['rf', 'enet', 'ols', 'lasso', 'et', 'gbm']
-#         models = self.model_loader.load_models(model_list)
-#
-#         df = df[df['date'] >= quarter_cut]
-#         y_econ, x_econ = df[y_col], df[X_cols]
-#         x_econ.set_index(['date', 'ticker'], inplace=True)
-#
-#         explainers = ShapProcessor.create_explainers(models, x_econ)
-#         complete_econ_shap_dictionary = ShapProcessor.get_shap_values(explainers, x_econ)
-#
-#         return complete_econ_shap_dictionary, x_econ
+class ShapProcessor:
+    @staticmethod
+    def get_shap_values(shap_dictionary, X_cols):
+        shap_values_df_dict = {}
+        for explainers in shap_dictionary.keys():
+            try:
+                shap_values = shap_dictionary[explainers].shap_values(X_cols, check_additivity=False)
+            except Exception:
+                shap_values = shap_dictionary[explainers].shap_values(X_cols)
+            shap_values_df = pd.DataFrame(shap_values, columns=X_cols.columns, index=X_cols.index)
+            shap_values_df_dict[explainers] = shap_values_df
+        return shap_values_df_dict
+
+    @staticmethod
+    def create_explainers(models, x_econ):
+        explainers = {
+            'gbm': shap.TreeExplainer(model=models['gbm']),
+            'rf': shap.TreeExplainer(model=models['rf']),
+            'lasso': shap.LinearExplainer(models['lasso'], x_econ),
+            'ols': shap.LinearExplainer(models['ols'], x_econ),
+            'enet': shap.LinearExplainer(models['enet'], x_econ),
+            'et': shap.TreeExplainer(model=models['et'], data=x_econ)
+        }
+        return explainers
+
+
+class ModelLoader:
+    def __init__(self, base_dir, leaf_path, bucket):
+        self.base_dir = base_dir
+        self.leaf_path = leaf_path
+        self.bucket = bucket
+        self.s3_client = storage.Client()
+
+    def load_models(self, model_list):
+        models = {}
+        key = '{0}/{1}'.format(self.base_dir, self.leaf_path)
+        print(key)
+        for model in model_list:
+            print(model)
+            print(model_list)
+            model_location = key.format(model)
+            with tempfile.TemporaryFile() as fp:
+                bucket = self.s3_client.bucket(self.bucket)
+                print(model_location)
+                blob = bucket.blob(model_location)
+                self.s3_client.download_blob_to_file(blob, fp)
+                fp.seek(0)
+                models[model] = load(fp)
+        return models
+
+    def load_single_model(self, model):
+        key = '{0}/{1}'.format(self.base_dir, self.leaf_path)
+        model_location = key.format(model)
+        with tempfile.TemporaryFile() as fp:
+            bucket = self.s3_client.bucket(self.bucket)
+            blob = bucket.blob(model_location)
+            self.s3_client.download_blob_to_file(blob, fp)
+            fp.seek(0)
+        return load(fp)
+
+
+class EconDataCreator:
+    def __init__(self, base_dir, model_loader):
+        self.base_dir = base_dir
+        self.model_loader = model_loader
+
+    def create_econ_data(self, df, X_cols, y_col, quarter_cut):
+        model_list = ['rf', 'enet', 'ols', 'lasso', 'et', 'gbm']
+        models = self.model_loader.load_models(model_list)
+
+        df = df[df['date'] >= quarter_cut]
+        y_econ, x_econ = df[y_col], df[X_cols]
+        x_econ.set_index(['date', 'ticker'], inplace=True)
+
+        explainers = ShapProcessor.create_explainers(models, x_econ)
+        complete_econ_shap_dictionary = ShapProcessor.get_shap_values(explainers, x_econ)
+
+        return complete_econ_shap_dictionary, x_econ
