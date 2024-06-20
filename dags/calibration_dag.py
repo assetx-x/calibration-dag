@@ -335,6 +335,7 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             >> CalculatePastReturnEquity
             >> CalculateTaLibSTOCH
             >> CalculateTaLibSTOCHF
+            >> CalculateTaLibTRIX
             >> CalculateTaLibULTOSC
         )
 
