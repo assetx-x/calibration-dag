@@ -19,4 +19,4 @@ python-dateutil~=2.8.2
 requests~=2.31.0
 scikit-learn==1.0
 twilio==9.0.4
-shap
+#shap
