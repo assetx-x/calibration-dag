@@ -141,7 +141,7 @@ class DownloadEconomicData(DataReaderClass):
                 )
 
         if 'WPSID62' not in [d.columns[0] for d in all_data]:
-            # Try to download 'WPSFD49502' one more time
+            # Try to download 'WPSID62' one more time
             try:
                 data = (
                     self.fred_connection.get_series('WPSID62')
