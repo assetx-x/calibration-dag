@@ -86,7 +86,12 @@ class DownloadEconomicData(DataReaderClass):
     def _pull_data(self, **kwargs):
         econ_trans = kwargs["econ_transformation"]
         data_names = self._create_data_names(econ_trans)
-        required_cols = ['WPSFD49502', 'WPSID62']
+        required_cols = ["RETAILx","USTRADE","T10YFFM","T5YFFM",
+                         "CPITRNSL","DCOILWTICO",'HWI',"CUSR0000SA0L2",
+                         "CUSR0000SA0L5","T1YFFM","DNDGRG3M086SBEA",
+                         "AAAFFM","RPI","DEXUSUK","CPFF","CP3Mx",
+                         "VIXCLS","GS10","CUSR0000SAC","GS5",
+                         "WPSID62","IPDCONGD","WPSFD49502"]
 
 
         for etf_name in self.sector_etfs:
