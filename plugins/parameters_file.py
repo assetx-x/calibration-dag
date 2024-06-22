@@ -630,8 +630,8 @@ transform_economic_data_weekly = DataFormatter(
     class_parameters={
         "monthly_mode": "bme",
         "weekly_mode": "w-mon",
-        "start_date": "1997-01-01",
-        "end_date": "2023-06-28",
+        "start_date": "1997-06-30",
+        "end_date": RUN_DATE,
         "shift_increment": "month",
     },
     provided_data={
