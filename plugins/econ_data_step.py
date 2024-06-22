@@ -86,7 +86,22 @@ class DownloadEconomicData(DataReaderClass):
     def _pull_data(self, **kwargs):
         econ_trans = kwargs["econ_transformation"]
         data_names = self._create_data_names(econ_trans)
-        required_cols = ['WPSFD49502', 'WPSID62', 'EXCAUSx', 'M2REAL', 'M2SL']
+        required_cols = ['RPI', 'W875RX1', 'DPCERA3M086SBEA', 'CMRMTSPLx', 'RETAILx', 'INDPRO', 'IPFPNSS', 'IPFINAL',
+                         'IPCONGD', 'IPDCONGD', 'IPNCONGD', 'IPBUSEQ', 'IPMAT', 'IPDMAT', 'IPNMAT', 'IPMANSICS',
+                         'IPB51222S', 'IPFUELS', 'CUMFNS', 'HWI', 'CLF16OV', 'CE16OV', 'UNRATE', 'UEMPMEAN',
+                         'UEMPLT5', 'UEMP5TO14', 'UEMP15OV', 'UEMP15T26', 'UEMP27OV', 'CLAIMSx', 'PAYEMS',
+                         'USGOOD', 'CES1021000001', 'USCONS', 'MANEMP', 'DMANEMP', 'NDMANEMP', 'SRVPRD', 'USTPU',
+                         'USWTRADE', 'USTRADE', 'USFIRE', 'USGOVT', 'CES0600000007', 'AWOTMAN', 'AWHMAN', 'HOUST',
+                         'HOUSTNE', 'HOUSTMW', 'HOUSTS', 'HOUSTW', 'PERMIT', 'PERMITNE', 'PERMITMW', 'PERMITS',
+                         'PERMITW', 'ACOGNO', 'AMDMNOx', 'ANDENOx', 'AMDMUOx', 'BUSINVx', 'ISRATIOx', 'M1SL', 'M2SL',
+                         'M2REAL', 'AMBSL', 'TOTRESNS', 'NONBORRES', 'BUSLOANS', 'REALLN', 'CONSPI', 'S&P 500',
+                         'FEDFUNDS', 'CP3Mx', 'TB3MS', 'TB6MS', 'GS1', 'GS5', 'GS10', 'AAA', 'BAA', 'CPFF', 'TB3SMFFM',
+                         'TB6SMFFM', 'T1YFFM', 'T5YFFM', 'T10YFFM', 'AAAFFM', 'BAAFFM', 'TWEXMMTH', 'EXSZUSx',
+                         'EXJPUSx', 'DEXUSUK', 'EXCAUSx', 'WPSFD49207', 'WPSFD49502', 'WPSID61', 'WPSID62',
+                         'DCOILWTICO', 'PPICMM', 'CPIAUCSL', 'CPIAPPSL', 'CPITRNSL', 'CPIMEDSL', 'CUSR0000SAC',
+                         'CUSR0000SAD', 'CUSR0000SAS', 'CPIULFSL', 'CUSR0000SA0L2', 'CUSR0000SA0L5', 'PCEPI',
+                         'DDURRG3M086SBEA', 'DNDGRG3M086SBEA', 'DSERRG3M086SBEA', 'CES0600000008', 'CES2000000008',
+                         'CES3000000008', 'UMCSENTx', 'MZMSL', 'DTCOLNVHFNM', 'DTCTHFNM', 'INVEST', 'VIXCLS']
 
         for etf_name in self.sector_etfs:
             data_names.pop(
