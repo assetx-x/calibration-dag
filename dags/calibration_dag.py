@@ -189,12 +189,12 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #          SQLMinuteToDailyEquityPrices
     #     )
     #
-    with TaskGroup("EconData", tooltip="EconData") as EconData:
-        DownloadEconomicData = PythonOperator(
-            task_id="DownloadEconomicData",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['DownloadEconomicData'],
-        )
+    # with TaskGroup("EconData", tooltip="EconData") as EconData:
+    #     DownloadEconomicData = PythonOperator(
+    #         task_id="DownloadEconomicData",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['DownloadEconomicData'],
+    #     )
     #
     # with TaskGroup(
     #     "FundamentalCleanup", tooltip="FundamentalCleanup"
@@ -362,40 +362,40 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #
     #     FilterMonthlyDatesFullPopulationWeekly >> CreateMonthlyDataSingleNamesWeekly
     #
-    # with TaskGroup("Transformation", tooltip="Transformation") as Transformation:
-    #     CreateYahooDailyPriceRolling = PythonOperator(
-    #         task_id="CreateYahooDailyPriceRolling",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['CreateYahooDailyPriceRolling']
-    #     )
-    #
-    #     TransformEconomicDataWeekly = PythonOperator(
-    #         task_id="TransformEconomicDataWeekly",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['TransformEconomicDataWeekly']
-    #     )
-    #
-    #     CreateIndustryAverageWeekly = PythonOperator(
-    #         task_id="CreateIndustryAverageWeekly",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['CreateIndustryAverageWeekly']
-    #     )
-    #
-    #     CreateYahooDailyPriceRolling >> TransformEconomicDataWeekly >> CreateIndustryAverageWeekly
-    #
-    # with TaskGroup("MergeEcon", tooltip="MergeEcon") as MergeEcon:
-    #     QuantamentalMergeEconIndustryWeekly = PythonOperator(
-    #         task_id="QuantamentalMergeEconIndustryWeekly",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['QuantamentalMergeEconIndustryWeekly']
-    #     )
-    #
-    # with TaskGroup("Standarization", tooltip="Standarization") as Standarization:
-    #     FactorStandardizationFullPopulationWeekly = PythonOperator(
-    #         task_id="FactorStandardizationFullPopulationWeekly",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['FactorStandardizationFullPopulationWeekly']
-    #     )
+    with TaskGroup("Transformation", tooltip="Transformation") as Transformation:
+        CreateYahooDailyPriceRolling = PythonOperator(
+            task_id="CreateYahooDailyPriceRolling",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CreateYahooDailyPriceRolling']
+        )
+
+        TransformEconomicDataWeekly = PythonOperator(
+            task_id="TransformEconomicDataWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['TransformEconomicDataWeekly']
+        )
+
+        CreateIndustryAverageWeekly = PythonOperator(
+            task_id="CreateIndustryAverageWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CreateIndustryAverageWeekly']
+        )
+
+        CreateYahooDailyPriceRolling >> TransformEconomicDataWeekly >> CreateIndustryAverageWeekly
+
+    with TaskGroup("MergeEcon", tooltip="MergeEcon") as MergeEcon:
+        QuantamentalMergeEconIndustryWeekly = PythonOperator(
+            task_id="QuantamentalMergeEconIndustryWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['QuantamentalMergeEconIndustryWeekly']
+        )
+
+    with TaskGroup("Standarization", tooltip="Standarization") as Standarization:
+        FactorStandardizationFullPopulationWeekly = PythonOperator(
+            task_id="FactorStandardizationFullPopulationWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['FactorStandardizationFullPopulationWeekly']
+        )
     #
     # with TaskGroup("ActiveMatrix", tooltip="ActiveMatrix") as ActiveMatrix:
     #     GenerateActiveMatrixWeekly = PythonOperator(
@@ -528,7 +528,7 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
 
     (
         #DataPull
-        EconData
+        #EconData
         #>> FundamentalCleanup
         #>> Targets
         #DerivedFundamentalDataProcessing
@@ -536,9 +536,9 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         #>> DerivedSimplePriceFeatureProcessing
         #>> MergeStep
         #>> FilterDatesSingleNames
-        # Transformation
-        # >> MergeEcon
-        # >> Standarization
+        Transformation
+        >> MergeEcon
+        >> Standarization
         # >> ActiveMatrix
         # >> AdditionalGanFeatures
         # >> SaveGANInputs
