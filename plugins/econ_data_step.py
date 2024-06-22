@@ -86,6 +86,8 @@ class DownloadEconomicData(DataReaderClass):
     def _pull_data(self, **kwargs):
         econ_trans = kwargs["econ_transformation"]
         data_names = self._create_data_names(econ_trans)
+        required_cols = ['WPSFD49502', 'WPSID62', 'EXCAUSx', 'M2REAL', 'M2SL']
+
         for etf_name in self.sector_etfs:
             data_names.pop(
                 etf_name + "_close", None
@@ -119,47 +121,27 @@ class DownloadEconomicData(DataReaderClass):
                 print("****** PROBLEM WITH : {0}".format(concept))
         # TODO get rid of the below logic and consolidate to look for lists of missing tickers instead
 
-        # Check if 'WPSFD49502' data is missing after the initial download attempts
-        if 'WPSFD49502' not in [d.columns[0] for d in all_data]:
-            # Try to download 'WPSFD49502' one more time
-            try:
-                data = (
-                    self.fred_connection.get_series('WPSFD49502')
-                    if self.use_latest
-                    else self.fred_connection.get_series_first_release('WPSFD49502')
-                )
-                data = data.loc[self.start_date : self.end_date]
-                data.name = 'WPSFD49502'
-                data.index = data.index.normalize()
-                data = data.to_frame()
-                data = data.groupby(data.index).last()
-                all_data.append(data)
-            except Exception as e:
-                # If there's an error in the second attempt, raise an exception
-                raise Exception(
-                    "Failed to download 'WPSFD49502' on the second attempt."
-                )
-
-        if 'WPSID62' not in [d.columns[0] for d in all_data]:
-            # Try to download 'WPSID62' one more time
-            try:
-                data = (
-                    self.fred_connection.get_series('WPSID62')
-                    if self.use_latest
-                    else self.fred_connection.get_series_first_release('WPSID62')
-                )
-                data = data.loc[self.start_date : self.end_date]
-                data.name = 'WPSID62'
-                data.index = data.index.normalize()
-                data = data.to_frame()
-                data = data.groupby(data.index).last()
-                all_data.append(data)
-            except Exception as e:
-                # If there's an error in the second attempt, raise an exception
-                raise Exception(
-                    "Failed to download 'WPSID62' on the second attempt."
-                )
-
+        for series in required_cols:
+            # Check if 'WPSFD49502' data is missing after the initial download attempts
+            if series not in [d.columns[0] for d in all_data]:
+                # Try to download 'WPSFD49502' one more time
+                try:
+                    data = (
+                        self.fred_connection.get_series(series)
+                        if self.use_latest
+                        else self.fred_connection.get_series_first_release(series)
+                    )
+                    data = data.loc[self.start_date : self.end_date]
+                    data.name = series
+                    data.index = data.index.normalize()
+                    data = data.to_frame()
+                    data = data.groupby(data.index).last()
+                    all_data.append(data)
+                except Exception as e:
+                    # If there's an error in the second attempt, raise an exception
+                    raise Exception(
+                        "Failed to download {} on the second attempt.".format(series)
+                    )
 
 
         result = pd.concat(all_data, axis=1)
