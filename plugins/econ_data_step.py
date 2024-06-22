@@ -135,7 +135,8 @@ class DownloadEconomicData(DataReaderClass):
             except Exception as e:
                 print("****** PROBLEM WITH : {0}".format(concept))
         # TODO get rid of the below logic and consolidate to look for lists of missing tickers instead
-
+        print('first pass data shape : {}'.format(all_data.shape))
+        print('missing data columns : {}'.format(set(required_cols) - set(all_data.columns)))
         for series in required_cols:
             # Check if 'WPSFD49502' data is missing after the initial download attempts
             if series not in [d.columns[0] for d in all_data]:
