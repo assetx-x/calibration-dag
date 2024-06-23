@@ -243,8 +243,8 @@ targets = DataFormatter(
     class_=CalculateTargetReturns,
     class_parameters={
         'return_column': 'close',
-        'periods': [1, 5, 10, 21],
-        'winsorize_alpha': 0.01,
+        'periods': [1, 5, 10, 21,42],
+        'winsorize_alpha': 0.005,
     },
     provided_data={'Targets': ['target_returns']},
     required_data={'DataPull': ['daily_price_data']},
