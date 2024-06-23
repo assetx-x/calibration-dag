@@ -205,12 +205,12 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #         op_kwargs=task_params_manager['QuandlDataCleanup'],
     #     )
     #
-    # with TaskGroup("Targets", tooltip="Targets") as Targets:
-    #     CalculateTargetReturns = PythonOperator(
-    #         task_id="CalculateTargetReturns",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['CalculateTargetReturns'],
-    #     )
+    with TaskGroup("Targets", tooltip="Targets") as Targets:
+        CalculateTargetReturns = PythonOperator(
+            task_id="CalculateTargetReturns",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CalculateTargetReturns'],
+        )
 
     # with TaskGroup(
     #     "DerivedFundamentalDataProcessing", tooltip="DerivedFundamentalDataProcessing"
@@ -339,56 +339,56 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #         >> CalculateTaLibULTOSC
     #     )
     #
-    # with TaskGroup("MergeStep", tooltip="MergeStep") as MergeStep:
-    #     QuantamentalMerge = PythonOperator(
-    #         task_id="QuantamentalMerge",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['QuantamentalMerge'],
-    #         execution_timeout=timedelta(minutes=150),
-    #     )
-    #
-    # with TaskGroup("FilterDatesSingleNames", tooltip="FilterDatesSingleNames") as FilterDatesSingleNames:
-    #     FilterMonthlyDatesFullPopulationWeekly = PythonOperator(
-    #         task_id="FilterMonthlyDatesFullPopulationWeekly",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['FilterMonthlyDatesFullPopulationWeekly']
-    #     )
-    #
-    #     CreateMonthlyDataSingleNamesWeekly = PythonOperator(
-    #         task_id="CreateMonthlyDataSingleNamesWeekly",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['CreateMonthlyDataSingleNamesWeekly']
-    #     )
-    #
-    #     FilterMonthlyDatesFullPopulationWeekly >> CreateMonthlyDataSingleNamesWeekly
-    #
-    # with TaskGroup("Transformation", tooltip="Transformation") as Transformation:
-    #     CreateYahooDailyPriceRolling = PythonOperator(
-    #         task_id="CreateYahooDailyPriceRolling",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['CreateYahooDailyPriceRolling']
-    #     )
-    #
-    #     TransformEconomicDataWeekly = PythonOperator(
-    #         task_id="TransformEconomicDataWeekly",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['TransformEconomicDataWeekly']
-    #     )
-    #
-    #     CreateIndustryAverageWeekly = PythonOperator(
-    #         task_id="CreateIndustryAverageWeekly",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['CreateIndustryAverageWeekly']
-    #     )
-    #
-    #     CreateYahooDailyPriceRolling >> TransformEconomicDataWeekly >> CreateIndustryAverageWeekly
-    #
-    # with TaskGroup("MergeEcon", tooltip="MergeEcon") as MergeEcon:
-    #     QuantamentalMergeEconIndustryWeekly = PythonOperator(
-    #         task_id="QuantamentalMergeEconIndustryWeekly",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['QuantamentalMergeEconIndustryWeekly']
-    #     )
+    with TaskGroup("MergeStep", tooltip="MergeStep") as MergeStep:
+        QuantamentalMerge = PythonOperator(
+            task_id="QuantamentalMerge",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['QuantamentalMerge'],
+            execution_timeout=timedelta(minutes=150),
+        )
+
+    with TaskGroup("FilterDatesSingleNames", tooltip="FilterDatesSingleNames") as FilterDatesSingleNames:
+        FilterMonthlyDatesFullPopulationWeekly = PythonOperator(
+            task_id="FilterMonthlyDatesFullPopulationWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['FilterMonthlyDatesFullPopulationWeekly']
+        )
+
+        CreateMonthlyDataSingleNamesWeekly = PythonOperator(
+            task_id="CreateMonthlyDataSingleNamesWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CreateMonthlyDataSingleNamesWeekly']
+        )
+
+        FilterMonthlyDatesFullPopulationWeekly >> CreateMonthlyDataSingleNamesWeekly
+
+    with TaskGroup("Transformation", tooltip="Transformation") as Transformation:
+        CreateYahooDailyPriceRolling = PythonOperator(
+            task_id="CreateYahooDailyPriceRolling",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CreateYahooDailyPriceRolling']
+        )
+
+        TransformEconomicDataWeekly = PythonOperator(
+            task_id="TransformEconomicDataWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['TransformEconomicDataWeekly']
+        )
+
+        CreateIndustryAverageWeekly = PythonOperator(
+            task_id="CreateIndustryAverageWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['CreateIndustryAverageWeekly']
+        )
+
+        CreateYahooDailyPriceRolling >> TransformEconomicDataWeekly >> CreateIndustryAverageWeekly
+
+    with TaskGroup("MergeEcon", tooltip="MergeEcon") as MergeEcon:
+        QuantamentalMergeEconIndustryWeekly = PythonOperator(
+            task_id="QuantamentalMergeEconIndustryWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['QuantamentalMergeEconIndustryWeekly']
+        )
 
     with TaskGroup("Standarization", tooltip="Standarization") as Standarization:
         FactorStandardizationFullPopulationWeekly = PythonOperator(
@@ -530,15 +530,15 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         #DataPull
         #EconData
         #>> FundamentalCleanup
-        #>> Targets
+        Targets
         #DerivedFundamentalDataProcessing
         #>> DerivedTechnicalDataProcessing
         #>> DerivedSimplePriceFeatureProcessing
-        #>> MergeStep
-        #>> FilterDatesSingleNames
-        #Transformation
-        #>> MergeEcon
-        Standarization
+        >> MergeStep
+        >> FilterDatesSingleNames
+        >> Transformation
+        >> MergeEcon
+        >> Standarization
         >> ActiveMatrix
         >> AdditionalGanFeatures
         >> SaveGANInputs
