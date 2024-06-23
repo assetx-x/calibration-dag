@@ -192,6 +192,9 @@ class FactorStandardizationFullPopulationWeekly(FactorStandardization):
             self.target_columns,
             self.exclude_from_standardization,
         )
+
+        self.data.drop_duplicates(subset=['date', 'ticker'], inplace=True)
+        self.weekly_data.drop_duplicates(subset=['date', 'ticker'], inplace=True)
         return {
             'normalized_data_full_population': self.data,
             'normalized_data_full_population_weekly': self.weekly_data,
