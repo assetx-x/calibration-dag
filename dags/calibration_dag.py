@@ -545,7 +545,7 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         #AdditionalGanFeatures
         #>> SaveGANInputs
         #GenerateGANResults
-        >> MergeGANResults
+        MergeGANResults
         # >> IntermediateModelTraining
         # >> MergeSignal
         # >> GetAdjustmentFactors
