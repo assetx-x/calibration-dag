@@ -404,19 +404,19 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #         op_kwargs=task_params_manager['GenerateActiveMatrixWeekly']
     #     )
     #
-    with TaskGroup("AdditionalGanFeatures", tooltip="AdditionalGanFeatures") as AdditionalGanFeatures:
-        GenerateBMEReturnsWeekly = PythonOperator(
-            task_id="GenerateBMEReturnsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['GenerateBMEReturnsWeekly']
-        )
-
-    with TaskGroup("SaveGANInputs", tooltip="SaveGANInputs") as SaveGANInputs:
-        GenerateDataGANWeekly = PythonOperator(
-            task_id="GenerateDataGANWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['GenerateDataGANWeekly']
-        )
+    # with TaskGroup("AdditionalGanFeatures", tooltip="AdditionalGanFeatures") as AdditionalGanFeatures:
+    #     GenerateBMEReturnsWeekly = PythonOperator(
+    #         task_id="GenerateBMEReturnsWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['GenerateBMEReturnsWeekly']
+    #     )
+    #
+    # with TaskGroup("SaveGANInputs", tooltip="SaveGANInputs") as SaveGANInputs:
+    #     GenerateDataGANWeekly = PythonOperator(
+    #         task_id="GenerateDataGANWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['GenerateDataGANWeekly']
+    #     )
 
     with TaskGroup(
             "GenerateGANResults", tooltip="GenerateGANResults"
@@ -540,9 +540,9 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         #>> MergeEcon
         #>> Standarization
         #>> ActiveMatrix
-        AdditionalGanFeatures
-        >> SaveGANInputs
-        >> GenerateGANResults
+        #AdditionalGanFeatures
+        #>> SaveGANInputs
+        GenerateGANResults
         >> MergeGANResults
         # >> IntermediateModelTraining
         # >> MergeSignal
