@@ -404,48 +404,48 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #         op_kwargs=task_params_manager['GenerateActiveMatrixWeekly']
     #     )
     #
-    with TaskGroup("AdditionalGanFeatures", tooltip="AdditionalGanFeatures") as AdditionalGanFeatures:
-        GenerateBMEReturnsWeekly = PythonOperator(
-            task_id="GenerateBMEReturnsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['GenerateBMEReturnsWeekly']
+    # with TaskGroup("AdditionalGanFeatures", tooltip="AdditionalGanFeatures") as AdditionalGanFeatures:
+    #     GenerateBMEReturnsWeekly = PythonOperator(
+    #         task_id="GenerateBMEReturnsWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['GenerateBMEReturnsWeekly']
+    #     )
+    #
+    # with TaskGroup("SaveGANInputs", tooltip="SaveGANInputs") as SaveGANInputs:
+    #     GenerateDataGANWeekly = PythonOperator(
+    #         task_id="GenerateDataGANWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['GenerateDataGANWeekly']
+    #     )
+
+    with TaskGroup(
+            "GenerateGANResults", tooltip="GenerateGANResults"
+    ) as GenerateGANResults:
+        ExtractGANFactors = DockerOperator(
+            task_id="ExtractGANFactors",
+            container_name='task__generate_gan',
+            command="echo 'RUNNING GAN STEP'",
+            # command=f"python generate_gan_results.py",
+            api_version='auto',
+            auto_remove='success',
+            image='gan_image',
+            network_mode='host',
         )
 
-    with TaskGroup("SaveGANInputs", tooltip="SaveGANInputs") as SaveGANInputs:
-        GenerateDataGANWeekly = PythonOperator(
-            task_id="GenerateDataGANWeekly",
+    with TaskGroup("MergeGANResults", tooltip="MergeGANResults") as MergeGANResults:
+        ConsolidateGANResultsWeekly = PythonOperator(
+            task_id="ConsolidateGANResultsWeekly",
             python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['GenerateDataGANWeekly']
+            op_kwargs=task_params_manager['ConsolidateGANResultsWeekly'],
         )
 
-    # with TaskGroup(
-    #         "GenerateGANResults", tooltip="GenerateGANResults"
-    # ) as GenerateGANResults:
-    #     ExtractGANFactors = DockerOperator(
-    #         task_id="ExtractGANFactors",
-    #         container_name='task__generate_gan',
-    #         command="echo 'RUNNING GAN STEP'",
-    #         # command=f"python generate_gan_results.py",
-    #         api_version='auto',
-    #         auto_remove='success',
-    #         image='gan_image',
-    #         network_mode='host',
-    #     )
-    #
-    # with TaskGroup("MergeGANResults", tooltip="MergeGANResults") as MergeGANResults:
-    #     ConsolidateGANResultsWeekly = PythonOperator(
-    #         task_id="ConsolidateGANResultsWeekly",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['ConsolidateGANResultsWeekly'],
-    #     )
-    #
-    #     AddFoldIdToGANResultDataWeekly = PythonOperator(
-    #         task_id="AddFoldIdToGANResultDataWeekly",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['AddFoldIdToGANResultDataWeekly'],
-    #     )
-    #
-    #     ConsolidateGANResultsWeekly >> AddFoldIdToGANResultDataWeekly
+        AddFoldIdToGANResultDataWeekly = PythonOperator(
+            task_id="AddFoldIdToGANResultDataWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['AddFoldIdToGANResultDataWeekly'],
+        )
+
+        ConsolidateGANResultsWeekly >> AddFoldIdToGANResultDataWeekly
     #
     # with TaskGroup("IntermediateModelTraining", tooltip="IntermediateModelTraining") as IntermediateModelTraining:
     #     TrainIntermediateModelsWeekly = PythonOperator(
@@ -542,11 +542,11 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         #>> MergeEcon
         #>> Standarization
         #>> ActiveMatrix
-        AdditionalGanFeatures
-        >> SaveGANInputs
-        #GenerateGANResults
-        #MergeGANResults
-        # >> IntermediateModelTraining
+        #AdditionalGanFeatures
+        #>> SaveGANInputs
+        GenerateGANResults
+        >>MergeGANResults
+        #>> IntermediateModelTraining
         # >> MergeSignal
         # >> GetAdjustmentFactors
         # >> GetRawPrices
