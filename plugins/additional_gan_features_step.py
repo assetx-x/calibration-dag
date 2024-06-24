@@ -119,7 +119,7 @@ class GenerateBMEReturnsWeekly(GenerateBMEReturns):
         )
         future_returns = raw_returns.shift(-1).fillna(0.0)
         self.data = raw_returns.reindex(active_matrix.index)[gan_universe]
-        self.future_data = future_returns.reindex(active_matrix.index).dropna()[
+        self.future_data = future_returns.reindex(active_matrix.index)[
             gan_universe
         ]
 
