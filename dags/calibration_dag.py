@@ -445,6 +445,8 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             op_kwargs=task_params_manager['AddFoldIdToGANResultDataWeekly'],
         )
 
+        ConsolidateGANResultsWeekly >> AddFoldIdToGANResultDataWeekly
+
     # with TaskGroup("IntermediateModelTraining", tooltip="IntermediateModelTraining") as IntermediateModelTraining:
     #     TrainIntermediateModelsWeekly = PythonOperator(
     #         task_id="TrainIntermediateModelsWeekly",
