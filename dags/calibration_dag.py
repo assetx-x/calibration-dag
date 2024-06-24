@@ -418,33 +418,33 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             op_kwargs=task_params_manager['GenerateDataGANWeekly']
         )
 
-    # with TaskGroup(
-    #         "GenerateGANResults", tooltip="GenerateGANResults"
-    # ) as GenerateGANResults:
-    #     ExtractGANFactors = DockerOperator(
-    #         task_id="ExtractGANFactors",
-    #         container_name='task__generate_gan',
-    #         command="echo 'RUNNING GAN STEP'",
-    #         # command=f"python generate_gan_results.py",
-    #         api_version='auto',
-    #         auto_remove='success',
-    #         image='gan_image',
-    #         network_mode='host',
-    #     )
-    #
-    # with TaskGroup("MergeGANResults", tooltip="MergeGANResults") as MergeGANResults:
-    #     ConsolidateGANResultsWeekly = PythonOperator(
-    #         task_id="ConsolidateGANResultsWeekly",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['ConsolidateGANResultsWeekly'],
-    #     )
-    #
-    #     AddFoldIdToGANResultDataWeekly = PythonOperator(
-    #         task_id="AddFoldIdToGANResultDataWeekly",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['AddFoldIdToGANResultDataWeekly'],
-    #     )
-    #
+    with TaskGroup(
+            "GenerateGANResults", tooltip="GenerateGANResults"
+    ) as GenerateGANResults:
+        ExtractGANFactors = DockerOperator(
+            task_id="ExtractGANFactors",
+            container_name='task__generate_gan',
+            command="echo 'RUNNING GAN STEP'",
+            # command=f"python generate_gan_results.py",
+            api_version='auto',
+            auto_remove='success',
+            image='gan_image',
+            network_mode='host',
+        )
+
+    with TaskGroup("MergeGANResults", tooltip="MergeGANResults") as MergeGANResults:
+        ConsolidateGANResultsWeekly = PythonOperator(
+            task_id="ConsolidateGANResultsWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['ConsolidateGANResultsWeekly'],
+        )
+
+        AddFoldIdToGANResultDataWeekly = PythonOperator(
+            task_id="AddFoldIdToGANResultDataWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['AddFoldIdToGANResultDataWeekly'],
+        )
+
     # with TaskGroup("IntermediateModelTraining", tooltip="IntermediateModelTraining") as IntermediateModelTraining:
     #     TrainIntermediateModelsWeekly = PythonOperator(
     #         task_id="TrainIntermediateModelsWeekly",
@@ -542,8 +542,8 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         #>> ActiveMatrix
         AdditionalGanFeatures
         >> SaveGANInputs
-        # >> GenerateGANResults
-        # >> MergeGANResults
+        >> GenerateGANResults
+        >> MergeGANResults
         # >> IntermediateModelTraining
         # >> MergeSignal
         # >> GetAdjustmentFactors
