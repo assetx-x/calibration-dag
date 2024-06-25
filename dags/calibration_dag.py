@@ -447,20 +447,20 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #
     #     ConsolidateGANResultsWeekly >> AddFoldIdToGANResultDataWeekly
     #
-    with TaskGroup("IntermediateModelTraining", tooltip="IntermediateModelTraining") as IntermediateModelTraining:
-        TrainIntermediateModelsWeekly = PythonOperator(
-            task_id="TrainIntermediateModelsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['TrainIntermediateModelsWeekly'],
-        )
-
-
-    with TaskGroup("MergeSignal", tooltip="MergeSignal") as MergeSignal:
-        QuantamentalMergeSignalsWeekly = PythonOperator(
-            task_id="QuantamentalMergeSignalsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['QuantamentalMergeSignalsWeekly'],
-        )
+    # with TaskGroup("IntermediateModelTraining", tooltip="IntermediateModelTraining") as IntermediateModelTraining:
+    #     TrainIntermediateModelsWeekly = PythonOperator(
+    #         task_id="TrainIntermediateModelsWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['TrainIntermediateModelsWeekly'],
+    #     )
+    #
+    #
+    # with TaskGroup("MergeSignal", tooltip="MergeSignal") as MergeSignal:
+    #     QuantamentalMergeSignalsWeekly = PythonOperator(
+    #         task_id="QuantamentalMergeSignalsWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['QuantamentalMergeSignalsWeekly'],
+    #     )
 
     with TaskGroup("GetAdjustmentFactors", tooltip="GetAdjustmentFactors") as GetAdjustmentFactors:
             SQLReaderAdjustmentFactors = PythonOperator(
@@ -484,48 +484,48 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
                 op_kwargs=task_params_manager['FilterRussell1000AugmentedWeekly'],
             )
 
-    with TaskGroup("Residualization", tooltip="Residualization") as Residualization:
-            FactorNeutralizationForStackingWeekly = PythonOperator(
-                task_id="FactorNeutralizationForStackingWeekly",
-                python_callable=airflow_wrapper,
-                op_kwargs=task_params_manager['FactorNeutralizationForStackingWeekly'],
-            )
-
-    with TaskGroup("ResidualizedStandardization", tooltip="ResidualizedStandardization") as ResidualizedStandardization:
-            FactorStandardizationNeutralizedForStackingWeekly = PythonOperator(
-                task_id="FactorStandardizationNeutralizedForStackingWeekly",
-                python_callable=airflow_wrapper,
-                op_kwargs=task_params_manager['FactorStandardizationNeutralizedForStackingWeekly'],
-            )
-
-    with TaskGroup("AddFinalFoldId", tooltip="AddFinalFoldId") as AddFinalFoldId:
-            AddFoldIdToNormalizedDataPortfolioWeekly = PythonOperator(
-                task_id="AddFoldIdToNormalizedDataPortfolioWeekly",
-                python_callable=airflow_wrapper,
-                op_kwargs=task_params_manager['AddFoldIdToNormalizedDataPortfolioWeekly'],
-            )
-
-
-
-    with TaskGroup(
-            "FinalModelTraining", tooltip="FinalModelTraining"
-    ) as FinalModelTraining:
-        RollingModelEstimationWeekly = DockerOperator(
-            task_id="RollingModelEstimationWeekly",
-            container_name='task__rolling_model_estimation',
-            # command=f"python rolling_model_estimation.py",
-            api_version='auto',
-            auto_remove='success',
-            image='rolling_image',
-            network_mode='host',
-        )
-
-    with TaskGroup("EconFactorShap", tooltip="EconFactorShap") as EconFactorShap:
-        EconInterpretation = PythonOperator(
-            task_id="EconInterpretation",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['EconInterpretation'],
-        )
+    # with TaskGroup("Residualization", tooltip="Residualization") as Residualization:
+    #         FactorNeutralizationForStackingWeekly = PythonOperator(
+    #             task_id="FactorNeutralizationForStackingWeekly",
+    #             python_callable=airflow_wrapper,
+    #             op_kwargs=task_params_manager['FactorNeutralizationForStackingWeekly'],
+    #         )
+    #
+    # with TaskGroup("ResidualizedStandardization", tooltip="ResidualizedStandardization") as ResidualizedStandardization:
+    #         FactorStandardizationNeutralizedForStackingWeekly = PythonOperator(
+    #             task_id="FactorStandardizationNeutralizedForStackingWeekly",
+    #             python_callable=airflow_wrapper,
+    #             op_kwargs=task_params_manager['FactorStandardizationNeutralizedForStackingWeekly'],
+    #         )
+    #
+    # with TaskGroup("AddFinalFoldId", tooltip="AddFinalFoldId") as AddFinalFoldId:
+    #         AddFoldIdToNormalizedDataPortfolioWeekly = PythonOperator(
+    #             task_id="AddFoldIdToNormalizedDataPortfolioWeekly",
+    #             python_callable=airflow_wrapper,
+    #             op_kwargs=task_params_manager['AddFoldIdToNormalizedDataPortfolioWeekly'],
+    #         )
+    #
+    #
+    #
+    # with TaskGroup(
+    #         "FinalModelTraining", tooltip="FinalModelTraining"
+    # ) as FinalModelTraining:
+    #     RollingModelEstimationWeekly = DockerOperator(
+    #         task_id="RollingModelEstimationWeekly",
+    #         container_name='task__rolling_model_estimation',
+    #         # command=f"python rolling_model_estimation.py",
+    #         api_version='auto',
+    #         auto_remove='success',
+    #         image='rolling_image',
+    #         network_mode='host',
+    #     )
+    #
+    # with TaskGroup("EconFactorShap", tooltip="EconFactorShap") as EconFactorShap:
+    #     EconInterpretation = PythonOperator(
+    #         task_id="EconInterpretation",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['EconInterpretation'],
+    #     )
 
 
     (
@@ -546,16 +546,16 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         #>> SaveGANInputs
         #GenerateGANResults
         #>>MergeGANResults
-        IntermediateModelTraining
-        >> MergeSignal
-        >> GetAdjustmentFactors
+        # IntermediateModelTraining
+        # >> MergeSignal
+        GetAdjustmentFactors
         >> GetRawPrices
         >> PopulationSplit
-        >> Residualization
-        >> ResidualizedStandardization
-        >> AddFinalFoldId
-        >> FinalModelTraining
-        >> EconFactorShap
+        # >> Residualization
+        # >> ResidualizedStandardization
+        # >> AddFinalFoldId
+        # >> FinalModelTraining
+        # >> EconFactorShap
     )
 
 
