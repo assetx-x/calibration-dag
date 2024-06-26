@@ -91,7 +91,7 @@ class DownloadEconomicData(DataReaderClass):
                          "CUSR0000SA0L5","T1YFFM","DNDGRG3M086SBEA",
                          "AAAFFM","RPI","DEXUSUK","CPFF","CP3Mx",
                          "VIXCLS","GS10","CUSR0000SAC","GS5",
-                         "WPSID62","IPDCONGD","WPSFD49502"]
+                         "WPSID62","IPDCONGD","WPSFD49502",'WPSFD49207']
 
 
         for etf_name in self.sector_etfs:
