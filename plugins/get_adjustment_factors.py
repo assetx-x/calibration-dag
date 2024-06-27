@@ -25,11 +25,11 @@ class SQLReaderAdjustmentFactors(GCPReader):
     def __init__(self, start_date, end_date):
         base_query = """
         select ticker, dcm_security_id, cob as date, split_factor, split_div_factor
-        from marketdata.equity_adjustment_factors_copy_from_dev
+        from marketdata.equity_adjustment_factors
         where (cob >= date('{}') and cob < date('{}'))
         and as_of_end is NULL
         """
-        table_name = "equity_adjustment_factors_copy_from_dev"
+        table_name = "equity_adjustment_factors"
         self.base_query = base_query
         self.table_name = table_name
         self.start_date = start_date
@@ -56,7 +56,7 @@ class SQLReaderAdjustmentFactors(GCPReader):
 
     @classmethod
     def get_default_config(cls):
-        return {"table_name": "equity_adjustment_factors_copy_from_dev"}
+        return {"table_name": "equity_adjustment_factors"}
 
 
 SQLReaderAdjustmentFactors_params = {

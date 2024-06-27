@@ -447,20 +447,20 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #
     #     ConsolidateGANResultsWeekly >> AddFoldIdToGANResultDataWeekly
 
-    with TaskGroup("IntermediateModelTraining", tooltip="IntermediateModelTraining") as IntermediateModelTraining:
-        TrainIntermediateModelsWeekly = PythonOperator(
-            task_id="TrainIntermediateModelsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['TrainIntermediateModelsWeekly'],
-        )
-
-
-    with TaskGroup("MergeSignal", tooltip="MergeSignal") as MergeSignal:
-        QuantamentalMergeSignalsWeekly = PythonOperator(
-            task_id="QuantamentalMergeSignalsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['QuantamentalMergeSignalsWeekly'],
-        )
+    # with TaskGroup("IntermediateModelTraining", tooltip="IntermediateModelTraining") as IntermediateModelTraining:
+    #     TrainIntermediateModelsWeekly = PythonOperator(
+    #         task_id="TrainIntermediateModelsWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['TrainIntermediateModelsWeekly'],
+    #     )
+    #
+    #
+    # with TaskGroup("MergeSignal", tooltip="MergeSignal") as MergeSignal:
+    #     QuantamentalMergeSignalsWeekly = PythonOperator(
+    #         task_id="QuantamentalMergeSignalsWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['QuantamentalMergeSignalsWeekly'],
+    #     )
 
     with TaskGroup("GetAdjustmentFactors", tooltip="GetAdjustmentFactors") as GetAdjustmentFactors:
             SQLReaderAdjustmentFactors = PythonOperator(
@@ -470,12 +470,12 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             )
 
 
-    with TaskGroup("GetRawPrices", tooltip="GetRawPrices") as GetRawPrices:
-            CalculateRawPrices = PythonOperator(
-                task_id="CalculateRawPrices",
-                python_callable=airflow_wrapper,
-                op_kwargs=task_params_manager['CalculateRawPrices'],
-            )
+    # with TaskGroup("GetRawPrices", tooltip="GetRawPrices") as GetRawPrices:
+    #         CalculateRawPrices = PythonOperator(
+    #             task_id="CalculateRawPrices",
+    #             python_callable=airflow_wrapper,
+    #             op_kwargs=task_params_manager['CalculateRawPrices'],
+    #         )
 
     # with TaskGroup("PopulationSplit", tooltip="PopulationSplit") as PopulationSplit:
     #         FilterRussell1000AugmentedWeekly = PythonOperator(
@@ -546,10 +546,10 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         # >> SaveGANInputs
         # >> GenerateGANResults
         # >>MergeGANResults
-        IntermediateModelTraining
-        >> MergeSignal
-        >> GetAdjustmentFactors
-        >> GetRawPrices
+        #IntermediateModelTraining
+        #>> MergeSignal
+        GetAdjustmentFactors
+        #>> GetRawPrices
         #>> PopulationSplit
         # >> Residualization
         # >> ResidualizedStandardization
