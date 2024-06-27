@@ -469,31 +469,25 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #             op_kwargs=task_params_manager['SQLReaderAdjustmentFactors'],
     #         )
 
-    with TaskGroup("GetRawPrices", tooltip="GetRawPrices") as GetRawPrices:
-        CalculateRawPrices = DockerOperator(
-            task_id="CalculateRawPrices",
-            container_name='task__prices',
-            command="echo 'RUNNING GET RAW PRICES STEP'",
-            # command=f"python generate_gan_results.py",
-            api_version='auto',
-            auto_remove='success',
-            image='get_raw_prices_image',
-            network_mode='host',
-        )
-
     # with TaskGroup("GetRawPrices", tooltip="GetRawPrices") as GetRawPrices:
-    #         CalculateRawPrices = PythonOperator(
-    #             task_id="CalculateRawPrices",
-    #             python_callable=airflow_wrapper,
-    #             op_kwargs=task_params_manager['CalculateRawPrices'],
-    #         )
+    #     CalculateRawPrices = DockerOperator(
+    #         task_id="CalculateRawPrices",
+    #         container_name='task__prices',
+    #         command="echo 'RUNNING GET RAW PRICES STEP'",
+    #         # command=f"python generate_gan_results.py",
+    #         api_version='auto',
+    #         auto_remove='success',
+    #         image='get_raw_prices_image',
+    #         network_mode='host',
+    #     )
 
-    # with TaskGroup("PopulationSplit", tooltip="PopulationSplit") as PopulationSplit:
-    #         FilterRussell1000AugmentedWeekly = PythonOperator(
-    #             task_id="FilterRussell1000AugmentedWeekly",
-    #             python_callable=airflow_wrapper,
-    #             op_kwargs=task_params_manager['FilterRussell1000AugmentedWeekly'],
-    #         )
+
+    with TaskGroup("PopulationSplit", tooltip="PopulationSplit") as PopulationSplit:
+            FilterRussell1000AugmentedWeekly = PythonOperator(
+                task_id="FilterRussell1000AugmentedWeekly",
+                python_callable=airflow_wrapper,
+                op_kwargs=task_params_manager['FilterRussell1000AugmentedWeekly'],
+            )
 
     # with TaskGroup("Residualization", tooltip="Residualization") as Residualization:
     #         FactorNeutralizationForStackingWeekly = PythonOperator(
@@ -559,8 +553,8 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         # IntermediateModelTraining
         # >> MergeSignal
         # GetAdjustmentFactors
-        GetRawPrices
-        # >> PopulationSplit
+        # >> GetRawPrices
+        PopulationSplit
         # >> Residualization
         # >> ResidualizedStandardization
         # >> AddFinalFoldId
