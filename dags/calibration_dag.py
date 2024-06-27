@@ -462,12 +462,24 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #         op_kwargs=task_params_manager['QuantamentalMergeSignalsWeekly'],
     #     )
 
-    with TaskGroup("GetAdjustmentFactors", tooltip="GetAdjustmentFactors") as GetAdjustmentFactors:
-            SQLReaderAdjustmentFactors = PythonOperator(
-                task_id="SQLReaderAdjustmentFactors",
-                python_callable=airflow_wrapper,
-                op_kwargs=task_params_manager['SQLReaderAdjustmentFactors'],
-            )
+    # with TaskGroup("GetAdjustmentFactors", tooltip="GetAdjustmentFactors") as GetAdjustmentFactors:
+    #         SQLReaderAdjustmentFactors = PythonOperator(
+    #             task_id="SQLReaderAdjustmentFactors",
+    #             python_callable=airflow_wrapper,
+    #             op_kwargs=task_params_manager['SQLReaderAdjustmentFactors'],
+    #         )
+
+    with TaskGroup( "GetRawPrices", tooltip="GetRawPrices") as GetRawPrices:
+                CalculateRawPrices = DockerOperator(
+                    task_id="CalculateRawPrices",
+                    container_name='task__get_raw_prices',
+                    command="echo 'RUNNING GET RAW PRICES STEP'",
+                    # command=f"python generate_gan_results.py",
+                    api_version='auto',
+                    auto_remove='success',
+                    image='get_raw_prices_image',
+                    network_mode='host',
+                )
 
 
     # with TaskGroup("GetRawPrices", tooltip="GetRawPrices") as GetRawPrices:
@@ -548,8 +560,8 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         # >>MergeGANResults
         #IntermediateModelTraining
         #>> MergeSignal
-        GetAdjustmentFactors
-        #>> GetRawPrices
+        #GetAdjustmentFactors
+        GetRawPrices
         #>> PopulationSplit
         # >> Residualization
         # >> ResidualizedStandardization

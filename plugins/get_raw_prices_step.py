@@ -6,10 +6,68 @@ from datetime import datetime
 import os
 from core_classes import StatusType
 from google.cloud import storage
+from core_classes import DataFormatter
 
-current_date = datetime.now().date()
-RUN_DATE = current_date.strftime('%Y-%m-%d')
+
+from datetime import datetime
+import os
+from core_classes import StatusType
+from google.cloud import storage
+import gcsfs
+from collections import defaultdict
+
 from core_classes import construct_required_path, construct_destination_path
+
+def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='dcm-prod-ba2f'):
+    """
+    Reads a CSV file from Google Cloud Storage in chunks.
+    Parameters:
+    - gcs_path (str): The path to the CSV file on GCS.
+    - batch_size (int, optional): The number of rows per chunk. Default is 10,000.
+    - project_id (str, optional): The GCP project id. Default is 'dcm-prod-ba2f'.
+    Yields:
+    - pd.DataFrame: The data chunk as a DataFrame.
+    """
+    # Create GCS file system object
+    fs = gcsfs.GCSFileSystem(project=project_id)
+
+    # Open the GCS file for reading
+    with fs.open(gcs_path, 'r') as f:
+        # Yield chunks from the CSV
+        for chunk in pd.read_csv(f, chunksize=batch_size, index_col=0):
+            yield chunk
+
+
+def airflow_wrapper(**kwargs):
+    params = kwargs['params']
+
+    # Read all required data into step_action_args dictionary
+    step_action_args = {
+        k: pd.read_csv(v.format(os.environ['GCS_BUCKET']), index_col=0)
+        for k, v in kwargs['required_data'].items()
+    }
+    #print(f'Executing step action with args {step_action_args}')
+
+    # Execute do_step_action method
+    data_outputs = kwargs['class'](**params).do_step_action(**step_action_args)
+
+    print('Your Params are')
+    print(params)
+
+    # If the method doesn't return a dictionary (for classes returning just a single DataFrame)
+    # convert it into a dictionary for consistency
+    if not isinstance(data_outputs, dict):
+        data_outputs = {list(kwargs['provided_data'].keys())[0]: data_outputs}
+
+    # Save each output data to its respective path on GCS
+    for data_key, data_value in data_outputs.items():
+        if data_key in kwargs['provided_data']:
+            gcs_path = kwargs['provided_data'][data_key].format(
+                os.environ['GCS_BUCKET'], data_key
+            )
+            print('Here is the path')
+            print(gcs_path)
+            data_value.to_csv(gcs_path)
 
 
 class CalculateRawPrices(DataReaderClass):
@@ -56,11 +114,9 @@ class CalculateRawPrices(DataReaderClass):
             merged_data["close"] * merged_data["split_div_factor"]
         )
         merged_data = merged_data[["ticker", "date", "raw_close_price"]]
-        merged_data_sorted = merged_data.sort_values(["ticker", "date"])
-        merged_shifted_data = merged_data_sorted.groupby("ticker").apply(
-            lambda x: x.shift(1)
-        )
-        merged_shifted_data = merged_shifted_data.reset_index(drop=True)
+
+        merged_shifted_data = merged_data.sort_values(["ticker", "date"]).set_index("date").groupby("ticker") \
+            .apply(lambda x: x.shift(1)).reset_index()
         merged_shifted_data = merged_shifted_data.dropna(subset=["ticker"])
         merged_shifted_data["ticker"] = merged_shifted_data["ticker"].astype(int)
         self.data = merged_shifted_data
@@ -74,15 +130,20 @@ class CalculateRawPrices(DataReaderClass):
         return {}
 
 
-CalculateRawPrices_params = {
-    'params': {},
-    'class': CalculateRawPrices,
-    'start_date': RUN_DATE,
-    'provided_data': {'raw_price_data': construct_destination_path('get_raw_prices')},
-    'required_data': {
-        'adjustment_factor_data': construct_required_path(
-            'get_adjustment_factors', 'adjustment_factor_data'
-        ),
-        'daily_price_data': construct_required_path('data_pull', 'daily_price_data'),
+calculate_raw_prices = DataFormatter(
+    class_=CalculateRawPrices,
+    class_parameters={},
+    provided_data={'GetRawPrices': ['raw_price_data']},
+    required_data={
+        'GetAdjustmentFactors': ['adjustment_factor_data'],
+        'DataPull': ['daily_price_data'],
     },
-}
+)
+
+
+
+if __name__ == "__main__":
+    os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
+
+    raw_price_data = calculate_raw_prices()
+    airflow_wrapper(**raw_price_data)

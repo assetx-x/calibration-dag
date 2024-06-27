@@ -1078,15 +1078,7 @@ sql_reader_adjustment_factors = DataFormatter(
 
 ####### GetRawPrices
 
-calculate_raw_prices = DataFormatter(
-    class_=CalculateRawPrices,
-    class_parameters={},
-    provided_data={'GetRawPrices': ['raw_price_data']},
-    required_data={
-        'GetAdjustmentFactors': ['adjustment_factor_data'],
-        'DataPull': ['daily_price_data'],
-    },
-)
+
 
 
 ######### PopulationSplit
@@ -1438,7 +1430,6 @@ PARAMS_DICTIONARY = {
     'TrainIntermediateModelsWeekly': train_intermediate_model,
     'QuantamentalMergeSignalsWeekly': quantamental_merge_signal_weekly_step,
     'SQLReaderAdjustmentFactors': sql_reader_adjustment_factors,
-    'CalculateRawPrices': calculate_raw_prices,
     'FilterRussell1000AugmentedWeekly': filter_r1k_weekly,
     'FactorNeutralizationForStackingWeekly': fnstacking_weekly,
     'FactorStandardizationNeutralizedForStackingWeekly': fnstackingneutral_weekly,

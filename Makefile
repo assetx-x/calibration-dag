@@ -18,6 +18,7 @@ build:
 	docker build -t intermediate_training_image:latest -f src_2/Dockerfile .
 	docker build -t gan_image:latest -f src/Dockerfile .
 	docker build -t rolling_image:latest -f src_3/Dockerfile .
+	docker build -t get_raw_prices_image:latest -f src_4/Dockerfile .
 
 deploy:
 	$(get_credentials)

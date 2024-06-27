@@ -1,0 +1,15 @@
+pylru==1.0.9
+pyhocon==0.3.37
+pandas-datareader==0.10.0
+google-cloud-bigquery==2.13.1
+google-cloud-storage==1.37.1
+pandas==0.24.2
+pyarrow
+tables
+gcsfs
+numpy==1.16.2
+h5py==2.7.0
+tqdm
+lightgbm==4.3.0
+shap
+sklearn==0.21.3
