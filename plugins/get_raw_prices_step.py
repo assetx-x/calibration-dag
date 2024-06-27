@@ -1,5 +1,5 @@
 import pandas as pd
-from core_classes import GCPReader, download_yahoo_data, DataReaderClass
+from abc import ABC, abstractmethod
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -17,6 +17,20 @@ import gcsfs
 from collections import defaultdict
 
 from core_classes import construct_required_path, construct_destination_path
+
+class DataReaderClass(ABC):
+
+    def __init__(self, bucket, key):
+        self.bucket = bucket
+        self.key = key
+
+    @abstractmethod
+    def _prepare_to_pull_data(self, **kwargs):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def _get_data_lineage(self):
+        raise NotImplementedError()
 
 def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='dcm-prod-ba2f'):
     """
