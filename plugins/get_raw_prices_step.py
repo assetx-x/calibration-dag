@@ -177,6 +177,8 @@ class CalculateRawPrices(DataReaderClass):
         adjustment_factor_data["date"] = pd.DatetimeIndex(
             adjustment_factor_data["date"]
         ).normalize()
+        # TODO: Cutting this off here so that it is equal to dev
+        adjustment_factor_data = adjustment_factor_data[(adjustment_factor_data['date'] < '2023-07-15')]
         daily_price_data['date'] = daily_price_data['date'].apply(pd.Timestamp)
         data_to_use = daily_price_data[["close", "ticker", "date"]]
         merged_data = pd.merge(
