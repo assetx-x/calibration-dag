@@ -1,7 +1,6 @@
 import tempfile
 from abc import ABC, abstractmethod
 
-import shap
 from google.cloud import storage
 from enum import Enum
 import pandas as pd
@@ -266,6 +265,7 @@ class ShapProcessor:
 
     @staticmethod
     def create_explainers(models, x_econ):
+        import shap
         explainers = {
             'gbm': shap.TreeExplainer(model=models['gbm']),
             'rf': shap.TreeExplainer(model=models['rf']),
