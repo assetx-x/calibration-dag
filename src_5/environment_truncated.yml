@@ -1,0 +1,24 @@
+name: bigdataml_v4
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - numpy=1.16.2
+  - pandas=0.24.2
+  - pip=19.0.3
+  - scikit-learn=0.20.3
+  - h5py=2.9.0
+  - pytables=3.5.1
+  - pyarrow=0.12.1
+
+  - pip:
+    - keras==2.2.4
+    - tensorflow==2.0.0
+    - tensorflowonspark==1.4.3
+    - tensorframes==0.2.9
+    - pyhocon==0.3.51
+    - gcsfs
+    - tqdm
+
+
+

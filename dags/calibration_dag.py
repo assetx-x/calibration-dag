@@ -481,13 +481,25 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #         network_mode='host',
     #     )
 
-
     with TaskGroup("PopulationSplit", tooltip="PopulationSplit") as PopulationSplit:
-            FilterRussell1000AugmentedWeekly = PythonOperator(
-                task_id="FilterRussell1000AugmentedWeekly",
-                python_callable=airflow_wrapper,
-                op_kwargs=task_params_manager['FilterRussell1000AugmentedWeekly'],
-            )
+        FilterRussell1000AugmentedWeekly = DockerOperator(
+            task_id="FilterRussell1000AugmentedWeekly",
+            container_name='task__filterr1k',
+            command="echo 'RUNNING GET FILTER R1K STEP'",
+            # command=f"python generate_gan_results.py",
+            api_version='auto',
+            auto_remove='success',
+            image='filter_r1k_image',
+            network_mode='host',
+        )
+
+
+    # with TaskGroup("PopulationSplit", tooltip="PopulationSplit") as PopulationSplit:
+    #         FilterRussell1000AugmentedWeekly = PythonOperator(
+    #             task_id="FilterRussell1000AugmentedWeekly",
+    #             python_callable=airflow_wrapper,
+    #             op_kwargs=task_params_manager['FilterRussell1000AugmentedWeekly'],
+    #         )
 
     # with TaskGroup("Residualization", tooltip="Residualization") as Residualization:
     #         FactorNeutralizationForStackingWeekly = PythonOperator(

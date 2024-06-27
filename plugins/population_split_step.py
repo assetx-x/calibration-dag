@@ -1,23 +1,168 @@
 import pandas as pd
-from core_classes import GCPReader, download_yahoo_data, DataReaderClass
 from market_timeline import marketTimeline
 import pandas as pd
 import numpy as np
 from datetime import datetime
 import os
-from core_classes import StatusType
+from abc import ABC, abstractmethod
 from google.cloud import storage
 import statsmodels.api as sm
+from google.cloud import storage
+import gcsfs
+from collections import defaultdict
 
 current_date = datetime.now().date()
-RUN_DATE = current_date.strftime('%Y-%m-%d')
-from core_classes import construct_required_path, construct_destination_path
+
 
 FILTER_MODES = ["growth", "value", "largecap_growth", "largecap_value"]
 DEFAULT_MARKETCAP = 2000000000.0
 NORMALIZATION_CONSTANT = 0.67448975019608171
 _SMALL_EPSILON = np.finfo(np.float64).eps
 
+
+
+
+def construct_required_path(step, file_name):
+    return (
+        "gs://{}/calibration_data/live"
+        + "/{}/".format(step)
+        + "{}.csv".format(file_name)
+    )
+
+
+def construct_destination_path(step):
+    return "gs://{}/calibration_data/live" + "/{}/".format(step) + "{}.csv"
+
+
+class DataFormatter(object):
+
+    def __init__(self, class_, class_parameters, provided_data, required_data):
+
+        self.class_ = class_
+        self.class_parameters = class_parameters
+        self.provided_data = provided_data
+        self.required_data = required_data
+
+    def construct_data(self):
+        return {
+            'class': self.class_,
+            'params': self.class_parameters,
+            # 'start_date':self.start_date,
+            'provided_data': self._provided_data_construction(),
+            'required_data': self._required_data_construction(),
+        }
+
+    def __call__(self):
+        # When an instance is called, return the result of construct_data
+        return self.construct_data()
+
+    def _required_data_construction(self):
+
+        if len(self.required_data) == 0:
+            return {}
+        elif len(self.required_data) == 1:
+            directory = list(self.required_data.keys())[0]
+            return {
+                k: construct_required_path(directory, k)
+                for k in self.required_data[directory]
+            }
+
+        else:
+            path_dictionary = {}
+            directories = list(self.required_data.keys())
+            for directory in directories:
+                path_dictionary.update(
+                    {
+                        k: construct_required_path(directory, k)
+                        for k in self.required_data[directory]
+                    }
+                )
+            return path_dictionary
+
+    def _provided_data_construction(self):
+        directory = list(self.provided_data.keys())[0]
+        return {
+            k: construct_destination_path(directory)
+            for k in self.provided_data[directory]
+        }
+
+
+class DataReaderClass(ABC):
+
+    def __init__(self, bucket, key):
+        self.bucket = bucket
+        self.key = key
+
+    @abstractmethod
+    def _prepare_to_pull_data(self, **kwargs):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def _get_data_lineage(self):
+        raise NotImplementedError()
+
+def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='dcm-prod-ba2f'):
+    """
+    Reads a CSV file from Google Cloud Storage in chunks.
+    Parameters:
+    - gcs_path (str): The path to the CSV file on GCS.
+    - batch_size (int, optional): The number of rows per chunk. Default is 10,000.
+    - project_id (str, optional): The GCP project id. Default is 'dcm-prod-ba2f'.
+    Yields:
+    - pd.DataFrame: The data chunk as a DataFrame.
+    """
+    # Create GCS file system object
+    fs = gcsfs.GCSFileSystem(project=project_id)
+
+    # Open the GCS file for reading
+    with fs.open(gcs_path, 'r') as f:
+        # Yield chunks from the CSV
+        for chunk in pd.read_csv(f, chunksize=batch_size, index_col=0):
+            yield chunk
+
+
+def airflow_wrapper(**kwargs):
+    params = kwargs['params']
+
+    # Read all required data into step_action_args dictionary
+    step_action_args = {
+        k: pd.read_csv(v.format(os.environ['GCS_BUCKET']), index_col=0)
+        for k, v in kwargs['required_data'].items()
+    }
+    #print(f'Executing step action with args {step_action_args}')
+
+    # Execute do_step_action method
+    data_outputs = kwargs['class'](**params).do_step_action(**step_action_args)
+
+    print('Your Params are')
+    print(params)
+
+    # If the method doesn't return a dictionary (for classes returning just a single DataFrame)
+    # convert it into a dictionary for consistency
+    if not isinstance(data_outputs, dict):
+        data_outputs = {list(kwargs['provided_data'].keys())[0]: data_outputs}
+
+    # Save each output data to its respective path on GCS
+    for data_key, data_value in data_outputs.items():
+        if data_key in kwargs['provided_data']:
+            gcs_path = kwargs['provided_data'][data_key].format(
+                os.environ['GCS_BUCKET'], data_key
+            )
+            print('Here is the path')
+            print(gcs_path)
+            data_value.to_csv(gcs_path)
+
+def offset_with_prices(data):
+    # Step 1: Extract unique dates
+    unique_dates = data["date"].unique()
+
+    # Step 2: Compute the offset for these unique dates
+    unique_dates_with_offset = {date: marketTimeline.get_trading_day_using_offset(date, 1) for date in unique_dates}
+
+    # Step 3: Create a mapping from the original dates to the offset dates
+    date_offset_mapping = pd.Series(unique_dates_with_offset)
+
+    return date_offset_mapping
 
 class FilterRussell1000Augmented(DataReaderClass):
     '''
@@ -170,13 +315,10 @@ class FilterRussell1000Augmented(DataReaderClass):
         ].rename(columns={"dcm_security_id": "ticker"})
         raw_prices = kwargs[self.__class__.REQUIRES_FIELDS[3]].copy(deep=True)
         raw_prices["ticker"] = raw_prices["ticker"].fillna(-1).astype(int)
-
-        raw_prices["date"] = raw_prices["date"].apply(
-            lambda x: marketTimeline.get_trading_day_using_offset(x, 1)
-        )
-        marketcap["date"] = marketcap["date"].apply(
-            lambda x: marketTimeline.get_trading_day_using_offset(x, 1)
-        )
+        raw_prices_day_map = offset_with_prices(raw_prices)
+        marketcap_day_map = offset_with_prices(marketcap)
+        raw_prices["date"] = raw_prices['date'].map(raw_prices_day_map)
+        marketcap["date"] = marketcap['date'].map(marketcap_day_map)
 
         if self.filter_price_marketcap:
             data_to_filter = self._filter_price_marketcap(
@@ -202,7 +344,7 @@ class FilterRussell1000Augmented(DataReaderClass):
             ]
 
         self.r1k_models = pd.DataFrame.from_dict(r1k_dict, orient='index')
-        return StatusType.Success
+        return self.r1k_models
 
     def _get_additional_step_results(self):
         return {"r1k_models": self.r1k_models}
@@ -266,20 +408,20 @@ class FilterRussell1000AugmentedWeekly(FilterRussell1000Augmented):
         raw_prices["ticker"] = raw_prices["ticker"].fillna(-1).astype(int)
         raw_prices['date'] = raw_prices['date'].apply(pd.Timestamp)
         marketcap['date'] = marketcap['date'].apply(pd.Timestamp)
-        data_to_filter_weekly['date'] = data_to_filter_weekly['date'].apply(
-            pd.Timestamp
+        data_to_filter_weekly_map = offset_with_prices(data_to_filter_weekly)
+        data_to_filter_monthly_map = offset_with_prices(data_to_filter_monthly)
+        data_to_filter_weekly['date'] = data_to_filter_weekly['date'].map(
+            data_to_filter_weekly_map
         )
-        data_to_filter_monthly['date'] = data_to_filter_monthly['date'].apply(
-            pd.Timestamp
-        )
-        russell_components['date'] = russell_components['date'].apply(pd.Timestamp)
+        data_to_filter_monthly['date'] = data_to_filter_monthly['date'].map(
+            data_to_filter_monthly_map
+)
+        russell_components['date'] = russell_components['date'].map(offset_with_prices(russell_components))
 
-        raw_prices["date"] = raw_prices["date"].apply(
-            lambda x: marketTimeline.get_trading_day_using_offset(x, 1)
-        )
-        marketcap["date"] = marketcap["date"].apply(
-            lambda x: marketTimeline.get_trading_day_using_offset(x, 1)
-        )
+        raw_prices_day_map = offset_with_prices(raw_prices)
+        marketcap_day_map = offset_with_prices(marketcap)
+        raw_prices["date"] = raw_prices['date'].map(raw_prices_day_map)
+        marketcap["date"] = marketcap['date'].map(marketcap_day_map)
 
         if self.filter_price_marketcap:
             data_to_filter_monthly = self._filter_price_marketcap(
@@ -385,7 +527,13 @@ def neutralize_data(df, factors, exclusion_list):
     return df
 
 
-params = {
+
+
+# Set specific date
+#RUN_DATE = current_date.strftime('%Y-%m-%d')
+RUN_DATE = '2024-06-21'
+
+filter_r1k_weekly_params = {
     'start_date': "2009-03-15",
     'end_date': RUN_DATE,
     'filter_price_marketcap': True,
@@ -395,26 +543,35 @@ params = {
 }
 
 
-FilterRussell1000AugmentedWeekly_params = {
-    'params': params,
-    'class': FilterRussell1000AugmentedWeekly,
-    'start_date': RUN_DATE,
-    'provided_data': {
-        'r1k_models': construct_destination_path('population_split'),
-        'r1k_models_sc_weekly': construct_destination_path('population_split'),
-        'r1k_models_lc_weekly': construct_destination_path('population_split'),
+filter_r1k_weekly = DataFormatter(
+    class_=FilterRussell1000AugmentedWeekly,
+    class_parameters=filter_r1k_weekly_params,
+    provided_data={
+        'PopulationSplit': [
+            'r1k_models_growth',
+            'r1k_models_value',
+            'r1k_models_largecap_value',
+            'r1k_models_largecap_growth',
+            'r1k_models_sc_weekly_growth',
+            'r1k_models_sc_weekly_value',
+            'r1k_models_lc_weekly_largecap_growth',
+            'r1k_models_lc_weekly_largecap_value',
+        ]
     },
-    'required_data': {
-        'data_full_population_signal': construct_required_path(
-            'merge_signal', 'data_full_population_signal'
-        ),
-        'data_full_population_signal_weekly': construct_required_path(
-            'merge_signal', 'data_full_population_signal_weekly'
-        ),
-        'russell_components': construct_required_path(
-            'data_pull', 'russell_components'
-        ),
-        'quandl_daily': construct_required_path('fundamental_cleanup', 'quandl_daily'),
-        'raw_price_data': construct_required_path('get_raw_prices', 'raw_price_data'),
+    required_data={
+        'GetAdjustmentFactors': ['adjustment_factor_data'],
+        'MergeSignal': [
+            'data_full_population_signal',
+            'data_full_population_signal_weekly',
+        ],
+        'DataPull': ['russell_components'],
+        'FundamentalCleanup': ['quandl_daily'],
+        'GetRawPrices': ['raw_price_data'],
     },
-}
+)
+
+if __name__ == "__main__":
+    os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
+
+    filter_r1k_weekly_data = filter_r1k_weekly()
+    airflow_wrapper(**filter_r1k_weekly_data)
