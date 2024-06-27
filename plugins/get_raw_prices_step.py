@@ -4,19 +4,79 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import os
-from core_classes import StatusType
 from google.cloud import storage
-from core_classes import DataFormatter
 
 
 from datetime import datetime
 import os
-from core_classes import StatusType
 from google.cloud import storage
 import gcsfs
 from collections import defaultdict
 
-from core_classes import construct_required_path, construct_destination_path
+def construct_required_path(step, file_name):
+    return (
+        "gs://{}/calibration_data/live"
+        + "/{}/".format(step)
+        + "{}.csv".format(file_name)
+    )
+
+
+def construct_destination_path(step):
+    return "gs://{}/calibration_data/live" + "/{}/".format(step) + "{}.csv"
+
+
+class DataFormatter(object):
+
+    def __init__(self, class_, class_parameters, provided_data, required_data):
+
+        self.class_ = class_
+        self.class_parameters = class_parameters
+        self.provided_data = provided_data
+        self.required_data = required_data
+
+    def construct_data(self):
+        return {
+            'class': self.class_,
+            'params': self.class_parameters,
+            # 'start_date':self.start_date,
+            'provided_data': self._provided_data_construction(),
+            'required_data': self._required_data_construction(),
+        }
+
+    def __call__(self):
+        # When an instance is called, return the result of construct_data
+        return self.construct_data()
+
+    def _required_data_construction(self):
+
+        if len(self.required_data) == 0:
+            return {}
+        elif len(self.required_data) == 1:
+            directory = list(self.required_data.keys())[0]
+            return {
+                k: construct_required_path(directory, k)
+                for k in self.required_data[directory]
+            }
+
+        else:
+            path_dictionary = {}
+            directories = list(self.required_data.keys())
+            for directory in directories:
+                path_dictionary.update(
+                    {
+                        k: construct_required_path(directory, k)
+                        for k in self.required_data[directory]
+                    }
+                )
+            return path_dictionary
+
+    def _provided_data_construction(self):
+        directory = list(self.provided_data.keys())[0]
+        return {
+            k: construct_destination_path(directory)
+            for k in self.provided_data[directory]
+        }
+
 
 class DataReaderClass(ABC):
 
