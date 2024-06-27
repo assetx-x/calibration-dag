@@ -469,18 +469,17 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #             op_kwargs=task_params_manager['SQLReaderAdjustmentFactors'],
     #         )
 
-    with TaskGroup( "GetRawPrices", tooltip="GetRawPrices") as GetRawPrices:
-                CalculateRawPrices = DockerOperator(
-                    task_id="CalculateRawPrices",
-                    container_name='task__get_raw_prices',
-                    command="echo 'RUNNING GET RAW PRICES STEP'",
-                    # command=f"python generate_gan_results.py",
-                    api_version='auto',
-                    auto_remove='success',
-                    image='get_raw_prices_image',
-                    network_mode='host',
-                )
-
+    with TaskGroup("GetRawPrices", tooltip="GetRawPrices") as GetRawPrices:
+        CalculateRawPrices = DockerOperator(
+            task_id="CalculateRawPrices",
+            container_name='task__prices',
+            command="echo 'RUNNING GET RAW PRICES STEP'",
+            # command=f"python generate_gan_results.py",
+            api_version='auto',
+            auto_remove='success',
+            image='get_raw_prices_image',
+            network_mode='host',
+        )
 
     # with TaskGroup("GetRawPrices", tooltip="GetRawPrices") as GetRawPrices:
     #         CalculateRawPrices = PythonOperator(
@@ -539,7 +538,6 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #         op_kwargs=task_params_manager['EconInterpretation'],
     #     )
 
-
     (
         # DataPull
         # >> EconData
@@ -558,19 +556,17 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         # >> SaveGANInputs
         # >> GenerateGANResults
         # >>MergeGANResults
-        #IntermediateModelTraining
-        #>> MergeSignal
-        #GetAdjustmentFactors
+        # IntermediateModelTraining
+        # >> MergeSignal
+        # GetAdjustmentFactors
         GetRawPrices
-        #>> PopulationSplit
+        # >> PopulationSplit
         # >> Residualization
         # >> ResidualizedStandardization
         # >> AddFinalFoldId
         # >> FinalModelTraining
         # >> EconFactorShap
     )
-
-
 
 
 if __name__ == '__main__':
