@@ -13,3 +13,4 @@ keras==2.2.4
 h5py==2.7.0
 tqdm
 lightgbm==4.3.0
+shap
