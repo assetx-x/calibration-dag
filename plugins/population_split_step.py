@@ -406,22 +406,18 @@ class FilterRussell1000AugmentedWeekly(FilterRussell1000Augmented):
         ].rename(columns={"dcm_security_id": "ticker"})
         raw_prices = kwargs[self.__class__.REQUIRES_FIELDS[4]].copy(deep=True)
         raw_prices["ticker"] = raw_prices["ticker"].fillna(-1).astype(int)
-        raw_prices['date'] = raw_prices['date'].apply(pd.Timestamp)
-        marketcap['date'] = marketcap['date'].apply(pd.Timestamp)
-        data_to_filter_weekly_map = offset_with_prices(data_to_filter_weekly)
-        data_to_filter_monthly_map = offset_with_prices(data_to_filter_monthly)
-        data_to_filter_weekly['date'] = data_to_filter_weekly['date'].map(
-            data_to_filter_weekly_map
-        )
-        data_to_filter_monthly['date'] = data_to_filter_monthly['date'].map(
-            data_to_filter_monthly_map
-)
-        russell_components['date'] = russell_components['date'].map(offset_with_prices(russell_components))
+        for dataframe in [raw_prices, data_to_filter_monthly,data_to_filter_weekly,marketcap]:
 
-        raw_prices_day_map = offset_with_prices(raw_prices)
-        marketcap_day_map = offset_with_prices(marketcap)
-        raw_prices["date"] = raw_prices['date'].map(raw_prices_day_map)
-        marketcap["date"] = marketcap['date'].map(marketcap_day_map)
+            dataframe['date'] = dataframe['date'].map(
+                {i: pd.Timestamp(i) for i in dataframe.date.unique()})
+
+            dataframe['date'] = dataframe['date'].map(
+                offset_with_prices(dataframe)
+            )
+
+            print('shape: {}'.format(dataframe.shape))
+            print('marketcap :{}'.format(self.marketcap_limit))
+
 
         if self.filter_price_marketcap:
             data_to_filter_monthly = self._filter_price_marketcap(
@@ -434,12 +430,17 @@ class FilterRussell1000AugmentedWeekly(FilterRussell1000Augmented):
         self.start_date = self.start_date
         self.end_date = self.end_date
 
+        print('start_date', self.start_date)
+        print('end_date', self.end_date)
+
         univ_monthly = self._get_whole_univ(
             data_to_filter_monthly, russell_components, marketcap
         )
         univ_weekly = self._get_whole_univ(
             data_to_filter_weekly, russell_components, marketcap
         )
+
+        print('univ_monthly: {}'.format(univ_monthly.shape))
 
         r1k_dict_monthly = {}
         r1k_dict_sc_weekly = {}
@@ -572,6 +573,6 @@ filter_r1k_weekly = DataFormatter(
 
 if __name__ == "__main__":
     os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
-
+    RUN_DATE = '2024-06-22'
     filter_r1k_weekly_data = filter_r1k_weekly()
     airflow_wrapper(**filter_r1k_weekly_data)
