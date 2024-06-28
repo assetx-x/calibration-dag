@@ -154,10 +154,10 @@ def airflow_wrapper(**kwargs):
 
 def offset_with_prices(data):
     # Step 1: Extract unique dates
-    unique_dates = data["date"].unique()
+    unique_dates = pd.to_datetime(data["date"].unique())
 
     # Step 2: Compute the offset for these unique dates
-    unique_dates_with_offset = {date: marketTimeline.get_trading_day_using_offset(date, 1) for date in unique_dates}
+    unique_dates_with_offset = {date: marketTimeline.get_trading_day_using_offset(pd.Timestamp(date), 1) for date in unique_dates}
 
     # Step 3: Create a mapping from the original dates to the offset dates
     date_offset_mapping = pd.Series(unique_dates_with_offset)
