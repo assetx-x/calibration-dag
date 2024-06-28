@@ -415,8 +415,11 @@ class FilterRussell1000AugmentedWeekly(FilterRussell1000Augmented):
                 offset_with_prices(dataframe)
             )
 
-            print('shape: {}'.format(dataframe.shape))
-            print('marketcap :{}'.format(self.marketcap_limit))
+        print('raw_prices shape: {}'.format(raw_prices.shape))
+        print('data_to_filter_monthly shape: {}'.format(data_to_filter_monthly.shape))
+        print('marketcap shape: {}'.format(marketcap.shape))
+
+        print('marketcap limit param :{}'.format(self.marketcap_limit))
 
 
         if self.filter_price_marketcap:
@@ -427,8 +430,12 @@ class FilterRussell1000AugmentedWeekly(FilterRussell1000Augmented):
                 data_to_filter_weekly, raw_prices, marketcap
             )
 
+            print('data_to_filter_monthly : {}'.format(data_to_filter_monthly.shape))
+
         self.start_date = self.start_date
         self.end_date = self.end_date
+
+        print('pandas version : {}'.format(pd.__version__))
 
         print('start_date', self.start_date)
         print('end_date', self.end_date)
@@ -532,7 +539,7 @@ def neutralize_data(df, factors, exclusion_list):
 
 # Set specific date
 #RUN_DATE = current_date.strftime('%Y-%m-%d')
-RUN_DATE = '2024-06-21'
+RUN_DATE = '2024-06-22'
 
 filter_r1k_weekly_params = {
     'start_date': "2009-03-15",
