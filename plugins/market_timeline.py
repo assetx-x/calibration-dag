@@ -8,7 +8,7 @@ import pytz
 import pandas as pd
 from numpy import int64
 import os
-from commonlib import transform_data
+import numpy as np
 
 FIRST_POSSIBLE_TRADING_DATE = "1990-01-01"
 LAST_POSSIBLE_TRADING_DATE = "2050-12-31"
@@ -336,6 +336,22 @@ def pick_trading_month_dates(start_date, end_date, mode="bme"):
     dates = dates[(dates >= start_date) & (dates <= end_date)]
     return dates
 
+def transform_data(ts, transform_type=1):
+    if transform_type == 2:
+        transformed = ts.diff()
+    elif transform_type == 3:
+        transformed = ts.diff().diff()
+    elif transform_type == 4:
+        transformed = np.log(ts)
+    elif transform_type == 5:
+        transformed = np.log(ts).diff()
+    elif transform_type == 6:
+        transformed = np.log(ts).diff().diff()
+    elif transform_type == 7:
+        transformed = ts.pct_change().diff()
+    else:
+        transformed = ts  # Default is no transform
+    return transformed
 
 def transform_wrapper(ts, transform_dict):
     try:
