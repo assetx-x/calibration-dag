@@ -406,7 +406,8 @@ class FilterRussell1000AugmentedWeekly(FilterRussell1000Augmented):
         ].rename(columns={"dcm_security_id": "ticker"})
         raw_prices = kwargs[self.__class__.REQUIRES_FIELDS[4]].copy(deep=True)
         raw_prices["ticker"] = raw_prices["ticker"].fillna(-1).astype(int)
-        for dataframe in [raw_prices, data_to_filter_monthly,data_to_filter_weekly,marketcap]:
+        for dataframe in [raw_prices, data_to_filter_monthly,
+                          data_to_filter_weekly,marketcap,russell_components]:
 
             dataframe['date'] = dataframe['date'].map(
                 {i: pd.Timestamp(i) for i in dataframe.date.unique()})
