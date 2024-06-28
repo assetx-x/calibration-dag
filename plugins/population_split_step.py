@@ -216,7 +216,7 @@ class FilterRussell1000Augmented(DataReaderClass):
 
         data.rename(columns={'ticker': 'dcm_security_id'}, inplace=True)
         univ = russell_df[['date', 'dcm_security_id', 'wt-r1', 'wt-r1v', 'wt-r1g']]
-        univ['dcm_security_id'] = univ['dcm_security_id'].astype(int)
+        #univ['dcm_security_id'] = univ['dcm_security_id'].astype(int)
         univ = pd.merge(data, univ, how='left', on=['date', 'dcm_security_id'])
         univ['dcm_security_id'] = univ['dcm_security_id'].astype(int)
         univ.rename(columns={"dcm_security_id": "ticker"}, inplace=True)
