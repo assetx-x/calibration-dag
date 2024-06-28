@@ -6,7 +6,7 @@ from datetime import datetime
 import os
 from abc import ABC, abstractmethod
 from google.cloud import storage
-import statsmodels.api as sm
+#import statsmodels.api as sm
 from google.cloud import storage
 import gcsfs
 from collections import defaultdict
