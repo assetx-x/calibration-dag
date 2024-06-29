@@ -494,13 +494,6 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         )
 
 
-    with TaskGroup("PopulationSplit", tooltip="PopulationSplit") as PopulationSplit:
-            FilterRussell1000AugmentedWeekly = PythonOperator(
-                task_id="FilterRussell1000AugmentedWeekly",
-                python_callable=airflow_wrapper,
-                op_kwargs=task_params_manager['FilterRussell1000AugmentedWeekly'],
-            )
-
     with TaskGroup("Residualization", tooltip="Residualization") as Residualization:
             FactorNeutralizationForStackingWeekly = PythonOperator(
                 task_id="FactorNeutralizationForStackingWeekly",
