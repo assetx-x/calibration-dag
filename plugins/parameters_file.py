@@ -88,7 +88,7 @@ JUMP_DATES_CSV = os.path.join(data_processing_folder, 'intervals_for_jump.csv')
 # load_dotenv()
 
 #TODO; Only here for testing purposes
-RUN_DATE = '2024-06-22'
+RUN_DATE = datetime.datetime.now().date().strftime('%Y-%m-%d')
 
 ###################### DataPull ######################
 
