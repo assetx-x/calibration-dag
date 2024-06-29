@@ -539,8 +539,7 @@ def neutralize_data(df, factors, exclusion_list):
 
 
 # Set specific date
-#RUN_DATE = current_date.strftime('%Y-%m-%d')
-RUN_DATE = '2024-06-22'
+RUN_DATE = current_date.strftime('%Y-%m-%d')
 
 filter_r1k_weekly_params = {
     'start_date': "2009-03-15",
@@ -581,6 +580,5 @@ filter_r1k_weekly = DataFormatter(
 
 if __name__ == "__main__":
     os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
-    RUN_DATE = '2024-06-22'
     filter_r1k_weekly_data = filter_r1k_weekly()
     airflow_wrapper(**filter_r1k_weekly_data)
