@@ -152,12 +152,16 @@ def airflow_wrapper(**kwargs):
             print(gcs_path)
             data_value.to_csv(gcs_path)
 
-def offset_with_prices(data):
+def offset_with_prices(data, use_offset=True):
     # Step 1: Extract unique dates
     unique_dates = pd.to_datetime(data["date"].unique())
 
     # Step 2: Compute the offset for these unique dates
-    unique_dates_with_offset = {date: marketTimeline.get_trading_day_using_offset(pd.Timestamp(date), 1) for date in unique_dates}
+    if use_offset:
+        unique_dates_with_offset = {date: marketTimeline.get_trading_day_using_offset(pd.Timestamp(date), 1) for date in unique_dates}
+    else:
+        unique_dates_with_offset = {date: pd.Timestamp(date) for date in
+                                    unique_dates}
 
     # Step 3: Create a mapping from the original dates to the offset dates
     date_offset_mapping = pd.Series(unique_dates_with_offset)
@@ -406,15 +410,23 @@ class FilterRussell1000AugmentedWeekly(FilterRussell1000Augmented):
         ].rename(columns={"dcm_security_id": "ticker"})
         raw_prices = kwargs[self.__class__.REQUIRES_FIELDS[4]].copy(deep=True)
         raw_prices["ticker"] = raw_prices["ticker"].fillna(-1).astype(int)
-        for dataframe in [raw_prices, data_to_filter_monthly,
-                          data_to_filter_weekly,marketcap,russell_components]:
+        datasets = {'raw_prices': raw_prices,
+                    'data_filt': data_to_filter_monthly,
+                    'marketcap': marketcap,
+                    'russell_components': russell_components}
+
+        for name,dataframe in datasets.items():
 
             dataframe['date'] = dataframe['date'].map(
                 {i: pd.Timestamp(i) for i in dataframe.date.unique()})
 
-            dataframe['date'] = dataframe['date'].map(
-                offset_with_prices(dataframe)
-            )
+            if name in ['marketcap', 'raw_prices']:
+
+                dataframe['date'] = dataframe['date'].map(
+                    offset_with_prices(dataframe,use_offset=True)
+                )
+
+
 
         print('raw_prices shape: {}'.format(raw_prices.shape))
         print('data_to_filter_monthly shape: {}'.format(data_to_filter_monthly.shape))
@@ -432,9 +444,6 @@ class FilterRussell1000AugmentedWeekly(FilterRussell1000Augmented):
             )
 
             print('data_to_filter_monthly : {}'.format(data_to_filter_monthly.shape))
-
-        self.start_date = self.start_date
-        self.end_date = self.end_date
 
         print('pandas version : {}'.format(pd.__version__))
 
