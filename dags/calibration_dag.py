@@ -492,49 +492,61 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #         image='filter_r1k_image',
     #         network_mode='host',
     #     )
+    #
+    #
+    # with TaskGroup("Residualization", tooltip="Residualization") as Residualization:
+    #         FactorNeutralizationForStackingWeekly = PythonOperator(
+    #             task_id="FactorNeutralizationForStackingWeekly",
+    #             python_callable=airflow_wrapper,
+    #             op_kwargs=task_params_manager['FactorNeutralizationForStackingWeekly'],
+    #         )
+    #
+    # with TaskGroup("ResidualizedStandardization", tooltip="ResidualizedStandardization") as ResidualizedStandardization:
+    #         FactorStandardizationNeutralizedForStackingWeekly = PythonOperator(
+    #             task_id="FactorStandardizationNeutralizedForStackingWeekly",
+    #             python_callable=airflow_wrapper,
+    #             op_kwargs=task_params_manager['FactorStandardizationNeutralizedForStackingWeekly'],
+    #         )
+    #
+    # with TaskGroup("AddFinalFoldId", tooltip="AddFinalFoldId") as AddFinalFoldId:
+    #         AddFoldIdToNormalizedDataPortfolioWeekly = PythonOperator(
+    #             task_id="AddFoldIdToNormalizedDataPortfolioWeekly",
+    #             python_callable=airflow_wrapper,
+    #             op_kwargs=task_params_manager['AddFoldIdToNormalizedDataPortfolioWeekly'],
+    #         )
+    #
+    #
+    #
+    # with TaskGroup(
+    #         "FinalModelTraining", tooltip="FinalModelTraining"
+    # ) as FinalModelTraining:
+    #     RollingModelEstimationWeekly = DockerOperator(
+    #         task_id="RollingModelEstimationWeekly",
+    #         container_name='task__rolling_model_estimation',
+    #         # command=f"python rolling_model_estimation.py",
+    #         api_version='auto',
+    #         auto_remove='success',
+    #         image='rolling_image',
+    #         network_mode='host',
+    #     )
+    #
+    # with TaskGroup("EconFactorShap", tooltip="EconFactorShap") as EconFactorShap:
+    #     EconInterpretation = PythonOperator(
+    #         task_id="EconInterpretation",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['EconInterpretation'],
+    #     )
 
-
-    with TaskGroup("Residualization", tooltip="Residualization") as Residualization:
-            FactorNeutralizationForStackingWeekly = PythonOperator(
-                task_id="FactorNeutralizationForStackingWeekly",
-                python_callable=airflow_wrapper,
-                op_kwargs=task_params_manager['FactorNeutralizationForStackingWeekly'],
-            )
-
-    with TaskGroup("ResidualizedStandardization", tooltip="ResidualizedStandardization") as ResidualizedStandardization:
-            FactorStandardizationNeutralizedForStackingWeekly = PythonOperator(
-                task_id="FactorStandardizationNeutralizedForStackingWeekly",
-                python_callable=airflow_wrapper,
-                op_kwargs=task_params_manager['FactorStandardizationNeutralizedForStackingWeekly'],
-            )
-
-    with TaskGroup("AddFinalFoldId", tooltip="AddFinalFoldId") as AddFinalFoldId:
-            AddFoldIdToNormalizedDataPortfolioWeekly = PythonOperator(
-                task_id="AddFoldIdToNormalizedDataPortfolioWeekly",
-                python_callable=airflow_wrapper,
-                op_kwargs=task_params_manager['AddFoldIdToNormalizedDataPortfolioWeekly'],
-            )
-
-
-
-    with TaskGroup(
-            "FinalModelTraining", tooltip="FinalModelTraining"
-    ) as FinalModelTraining:
-        RollingModelEstimationWeekly = DockerOperator(
-            task_id="RollingModelEstimationWeekly",
-            container_name='task__rolling_model_estimation',
-            # command=f"python rolling_model_estimation.py",
+    with TaskGroup("FinalModelInterpretation", tooltip="FinalModelInterpretation") as FinalModelInterpretation:
+        FinalUnravelingFactors = DockerOperator(
+            task_id="FinalUnravelingFactors",
+            container_name='task__unravel_r1k',
+            command="echo 'RUNNING SHAP UNRAVELING'",
+            # command=f"python generate_gan_results.py",
             api_version='auto',
             auto_remove='success',
-            image='rolling_image',
+            image='model_unravel_image',
             network_mode='host',
-        )
-
-    with TaskGroup("EconFactorShap", tooltip="EconFactorShap") as EconFactorShap:
-        EconInterpretation = PythonOperator(
-            task_id="EconInterpretation",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['EconInterpretation'],
         )
 
     (
@@ -560,11 +572,12 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         #>> GetAdjustmentFactors
         #GetRawPrices
         #PopulationSplit
-        Residualization
-        >> ResidualizedStandardization
-        >> AddFinalFoldId
-        >> FinalModelTraining
-        >> EconFactorShap
+        # Residualization
+        # >> ResidualizedStandardization
+        # >> AddFinalFoldId
+        # >> FinalModelTraining
+        # >> EconFactorShap
+        FinalModelInterpretation
     )
 
 
