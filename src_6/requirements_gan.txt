@@ -14,3 +14,4 @@ h5py==2.7.0
 tqdm
 lightgbm==4.3.0
 shap
+joblib==1.1.1
