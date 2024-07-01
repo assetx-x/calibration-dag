@@ -412,6 +412,7 @@ class FilterRussell1000AugmentedWeekly(FilterRussell1000Augmented):
         raw_prices["ticker"] = raw_prices["ticker"].fillna(-1).astype(int)
         datasets = {'raw_prices': raw_prices,
                     'data_filt': data_to_filter_monthly,
+                    'data_filt_weekly': data_to_filter_weekly,
                     'marketcap': marketcap,
                     'russell_components': russell_components}
 
