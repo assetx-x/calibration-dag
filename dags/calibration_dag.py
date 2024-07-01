@@ -481,17 +481,17 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #         network_mode='host',
     #     )
     #
-    with TaskGroup("PopulationSplit", tooltip="PopulationSplit") as PopulationSplit:
-        FilterRussell1000AugmentedWeekly = DockerOperator(
-            task_id="FilterRussell1000AugmentedWeekly",
-            container_name='task__filterr1k',
-            command="echo 'RUNNING GET FILTER R1K STEP'",
-            # command=f"python generate_gan_results.py",
-            api_version='auto',
-            auto_remove='success',
-            image='filter_r1k_image',
-            network_mode='host',
-        )
+    # with TaskGroup("PopulationSplit", tooltip="PopulationSplit") as PopulationSplit:
+    #     FilterRussell1000AugmentedWeekly = DockerOperator(
+    #         task_id="FilterRussell1000AugmentedWeekly",
+    #         container_name='task__filterr1k',
+    #         command="echo 'RUNNING GET FILTER R1K STEP'",
+    #         # command=f"python generate_gan_results.py",
+    #         api_version='auto',
+    #         auto_remove='success',
+    #         image='filter_r1k_image',
+    #         network_mode='host',
+    #     )
 
 
     with TaskGroup("Residualization", tooltip="Residualization") as Residualization:
