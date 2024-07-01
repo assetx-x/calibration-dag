@@ -1383,6 +1383,40 @@ econ_model_interpreter = DataFormatter(
     },
 )
 
+########## Final Predictions
+from model_predictions import Predictions
+
+predictions_parameters = DataFormatter(
+    class_=Predictions,
+    class_parameters=add_fold_params,
+    provided_data={
+        'Predictions': [
+            'signals_growth_predictions',
+            'signals_value_predictions',
+            'signals_largecap_value_predictions',
+            'signals_largecap_growth_predictions',
+            'signals_weekly_growth_predictions',
+            'signals_weekly_value_predictions',
+            'signals_weekly_largecap_growth_predictions',
+            'signals_weekly_largecap_value_predictions',
+        ]
+    },
+    required_data={
+        'FinalModelTraining': [
+            'signals_growth',
+            'signals_value',
+            'signals_largecap_value',
+            'signals_largecap_growth',
+            'signals_weekly_growth',
+            'signals_weekly_value',
+            'signals_weekly_largecap_growth',
+            'signals_weekly_largecap_value',
+        ],
+        'DataPull': ['security_master']
+    },
+)
+
+
 
 
 PARAMS_DICTIONARY = {
@@ -1434,6 +1468,7 @@ PARAMS_DICTIONARY = {
     'FactorNeutralizationForStackingWeekly': fnstacking_weekly,
     'FactorStandardizationNeutralizedForStackingWeekly': fnstackingneutral_weekly,
     'AddFoldIdToNormalizedDataPortfolioWeekly': afi_step_weekly,
-    'EconInterpretation':econ_model_interpreter
+    'EconInterpretation':econ_model_interpreter,
+    'WritePrediction':predictions_parameters
     #'RollingModelEstimationWeekly': rolling_model_est,
 }

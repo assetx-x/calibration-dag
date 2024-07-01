@@ -549,6 +549,13 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
             network_mode='host',
         )
 
+    with TaskGroup("WritePredictions", tooltip="WritePredictions") as WritePredictions:
+        WritePreds = PythonOperator(
+                    task_id="WritePreds",
+                    python_callable=airflow_wrapper,
+                    op_kwargs=task_params_manager['WritePrediction'],
+                )
+
     (
         # DataPull
         # >> EconData
@@ -578,6 +585,7 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         # >> FinalModelTraining
         # >> EconFactorShap
         FinalModelInterpretation
+        >> WritePredictions
     )
 
 
