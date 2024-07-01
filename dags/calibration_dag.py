@@ -559,8 +559,8 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         #>> MergeSignal
         #>> GetAdjustmentFactors
         #GetRawPrices
-        PopulationSplit
-        >> Residualization
+        #PopulationSplit
+        Residualization
         >> ResidualizedStandardization
         >> AddFinalFoldId
         >> FinalModelTraining
