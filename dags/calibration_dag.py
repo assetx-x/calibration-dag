@@ -537,17 +537,17 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
     #         op_kwargs=task_params_manager['EconInterpretation'],
     #     )
 
-    with TaskGroup("FinalModelInterpretation", tooltip="FinalModelInterpretation") as FinalModelInterpretation:
-        FinalUnravelingFactors = DockerOperator(
-            task_id="FinalUnravelingFactors",
-            container_name='task__unravel_r1k',
-            command="echo 'RUNNING SHAP UNRAVELING'",
-            # command=f"python generate_gan_results.py",
-            api_version='auto',
-            auto_remove='success',
-            image='model_unravel_image',
-            network_mode='host',
-        )
+    # with TaskGroup("FinalModelInterpretation", tooltip="FinalModelInterpretation") as FinalModelInterpretation:
+    #     FinalUnravelingFactors = DockerOperator(
+    #         task_id="FinalUnravelingFactors",
+    #         container_name='task__unravel_r1k',
+    #         command="echo 'RUNNING SHAP UNRAVELING'",
+    #         # command=f"python generate_gan_results.py",
+    #         api_version='auto',
+    #         auto_remove='success',
+    #         image='model_unravel_image',
+    #         network_mode='host',
+    #     )
 
     with TaskGroup("WritePredictions", tooltip="WritePredictions") as WritePredictions:
         WritePreds = PythonOperator(
@@ -584,8 +584,8 @@ with DAG(dag_id="calibration", start_date=days_ago(1)) as dag:
         # >> AddFinalFoldId
         # >> FinalModelTraining
         # >> EconFactorShap
-        FinalModelInterpretation
-        >> WritePredictions
+        #FinalModelInterpretation
+        WritePredictions
     )
 
 
