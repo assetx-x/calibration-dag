@@ -618,8 +618,12 @@ class RollingModelUnraveling(DataReaderClass):
         'x_econ'
     ]
 
-    def __init__(self):
-        self.data = None
+    def __init__(self, y_col_rolling, X_cols_rolling, ensemble_weights, rolling_models_path, truncating_date):
+        self.y_col_rolling = y_col_rolling
+        self.X_cols_rolling = X_cols_rolling
+        self.ensemble_weights = ensemble_weights
+        self.rolling_models_path = rolling_models_path
+        self.truncating_date = truncating_date
 
     def _get_data_lineage(self):
         pass
@@ -661,11 +665,13 @@ class RollingModelUnraveling(DataReaderClass):
                             ]
         r1k_model_keys = ['results_g', 'results_v', 'results_lv', 'results_lg']
 
-        rmc = RollingComponentCalculation(kwargs['y_col_rolling'],
-                                          kwargs['X_cols_rolling'],
-                                          kwargs['ensemble_weights'],
-                                          kwargs['rolling_models_data_path'],
-                                          truncating_date=kwargs['truncating_date'])
+
+
+        rmc = RollingComponentCalculation(self.y_col_rolling,
+                                          self.X_cols_rolling,
+                                          self.ensemble_weights,
+                                          self.rolling_models_path,
+                                          truncating_date=self.truncating_date)
         self.final_results = {}
 
         for model, df, key in zip(r1k_filtered_model_map, r1k_filtered_dfs, r1k_model_keys):
