@@ -747,7 +747,7 @@ unraveling_rolling_model_dataformatter = DataFormatter(
             'econ_lasso',
             'econ_ols',
             'econ_et',
-            'econ_enet'
+            'econ_enet',
             'x_econ'
         ],
         'AddFinalFoldId': [
