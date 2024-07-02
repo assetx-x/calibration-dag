@@ -731,7 +731,7 @@ ensemble_weights = {'enet': 0.03333333333333333,'et': 0.3,'gbm': 0.2,'lasso': 0.
 rolling_params = {'y_col_rolling':y_col_rolling,
                   'X_cols_rolling':X_cols_rolling,
                   'ensemble_weights':ensemble_weights,
-                  'rolling_models_data_path':rolling_models_data_path,
+                  'rolling_models_path':rolling_models_data_path,
                   'truncating_date':'2024-01-01'
 }
 
