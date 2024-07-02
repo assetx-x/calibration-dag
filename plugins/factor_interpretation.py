@@ -741,10 +741,10 @@ unraveling_rolling_model_dataformatter = DataFormatter(
     class_parameters=rolling_params,
     provided_data={
         'FactorIntepretation': [
-            'r1k_neutral_growth_shap',
-            'r1k_neutral_value_shap',
-            'r1k_neutral_largecap_growth_shap',
-            'r1k_neutral_largecap_value_shap',
+            'factor_exposure_monthly_growth',
+            'factor_exposure_monthly_value',
+            'factor_exposure_monthly_lcgrowth',
+            'factor_exposure_monthly_lcvalue',
         ]
     },
     required_data={
