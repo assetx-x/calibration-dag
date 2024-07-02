@@ -15,3 +15,4 @@ tqdm
 lightgbm==4.3.0
 shap
 joblib==1.1.1
+scikit-learn==0.21.3
