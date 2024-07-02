@@ -650,8 +650,8 @@ class RollingModelUnraveling(DataReaderClass):
                 pd.Timestamp)
 
     def do_step_action(self, **kwargs):
-        self._apply_timestamp()
-        complete_econ_shap_dictionary = self._set_econ_shap_df()
+        self._apply_timestamp(**kwargs)
+        complete_econ_shap_dictionary = self._set_econ_shap_df(**kwargs)
         security_master = kwargs['security_master']
         security_master_dict = security_master.set_index(['dcm_security_id'])['ticker'].to_dict()
         x_econ = kwargs[self.__class__.REQUIRES_FIELDS[6]].copy(deep=True).set_index(['date', 'ticker'])
