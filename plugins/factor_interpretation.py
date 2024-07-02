@@ -601,7 +601,7 @@ class RollingComponentCalculation(object):
             return self.large_cap_calculation(df, key)
 
 
-class RollingModelUnraveling(DataReaderClass):
+class RollingModelUnraveling(object):
     PROVIDES_FIELDS = [
         'factor_exposure_monthly_growth',
         'factor_exposure_monthly_value',
@@ -618,11 +618,13 @@ class RollingModelUnraveling(DataReaderClass):
         'x_econ'
     ]
 
-    def __init__(self, y_col_rolling, X_cols_rolling, ensemble_weights, rolling_models_path, truncating_date):
+    def __init__(self, y_col_rolling, X_cols_rolling, ensemble_weights,
+                 rolling_models_path, mapping_dictionary, truncating_date):
         self.y_col_rolling = y_col_rolling
         self.X_cols_rolling = X_cols_rolling
         self.ensemble_weights = ensemble_weights
         self.rolling_models_path = rolling_models_path
+        self.mapping_dictionary = mapping_dictionary
         self.truncating_date = truncating_date
 
     def _get_data_lineage(self):
@@ -631,7 +633,7 @@ class RollingModelUnraveling(DataReaderClass):
     def _prepare_to_pull_data(self, **kwargs):
         pass
 
-    def _set_econ_shap_df(self,**kwargs):
+    def _set_econ_shap_df(self, **kwargs):
         econ_models = ['rf',
                        'gbm',
                        'lasso',
@@ -644,8 +646,10 @@ class RollingModelUnraveling(DataReaderClass):
         return {k: kwargs[self.__class__.REQUIRES_FIELDS[i]].copy(deep=True).set_index(['date', 'ticker']) for i, k in
                 enumerate(econ_models)}
 
-    def _apply_timestamp(self,**kwargs):
+    def _apply_timestamp(self, **kwargs):
+        print(self.__class__.REQUIRES_FIELDS)
         for i in range(len(self.__class__.REQUIRES_FIELDS)):
+            kwargs[self.__class__.REQUIRES_FIELDS[i]].reset_index(inplace=True)
             kwargs[self.__class__.REQUIRES_FIELDS[i]]['date'] = kwargs[self.__class__.REQUIRES_FIELDS[i]]['date'].apply(
                 pd.Timestamp)
 
@@ -656,7 +660,6 @@ class RollingModelUnraveling(DataReaderClass):
         security_master_dict = security_master.set_index(['dcm_security_id'])['ticker'].to_dict()
         x_econ = kwargs[self.__class__.REQUIRES_FIELDS[6]].copy(deep=True).set_index(['date', 'ticker'])
 
-
         r1k_filtered_model_map = ['growth', 'value', 'largecap_value', 'largecap_growth']
         r1k_filtered_dfs = [kwargs['r1k_neutral_normal_models_with_foldId_growth'],
                             kwargs['r1k_neutral_normal_models_with_foldId_value'],
@@ -664,8 +667,6 @@ class RollingModelUnraveling(DataReaderClass):
                             kwargs['r1k_neutral_normal_models_with_foldId_largecap_growth'],
                             ]
         r1k_model_keys = ['results_g', 'results_v', 'results_lv', 'results_lg']
-
-
 
         rmc = RollingComponentCalculation(self.y_col_rolling,
                                           self.X_cols_rolling,
@@ -684,10 +685,9 @@ class RollingModelUnraveling(DataReaderClass):
             unraveled_shap.reset_index(inplace=True)
             unraveled_shap['ticker'] = unraveled_shap['ticker'].replace(security_master_dict)
             unraveled_shap.set_index(['date', 'ticker'], inplace=True)
-            grouped_exposure, grouped_raw = factor_grouping(unraveled_shap, kwargs['MAPPING_DICTIONARY'])
+            grouped_exposure, grouped_raw = factor_grouping(unraveled_shap, self.mapping_dictionary)
 
             self.final_results[model] = grouped_exposure
-
 
         return self._get_additional_step_results()
 
@@ -732,7 +732,8 @@ rolling_params = {'y_col_rolling':y_col_rolling,
                   'X_cols_rolling':X_cols_rolling,
                   'ensemble_weights':ensemble_weights,
                   'rolling_models_path':rolling_models_data_path,
-                  'truncating_date':'2024-01-01'
+                  'truncating_date':'2024-01-01',
+                  'mapping_dictionary':MAPPING_DICTIONARY
 }
 
 unraveling_rolling_model_dataformatter = DataFormatter(
