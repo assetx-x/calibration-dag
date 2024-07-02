@@ -35,8 +35,8 @@ class Predictions(DataReaderClass):
         self.final_data = []
 
         k = 'ensemble'
-        for i,df in enumerate([growth_signals,value_signals,
-                               largecap_value_signals,largecap_growth_signals]):
+        for df in [growth_signals,value_signals,
+                               largecap_value_signals,largecap_growth_signals]:
 
             df['date'] = df['date'].apply(pd.Timestamp)
             df[k + '_qt'] = df.groupby('date')[k].transform(lambda x: pd.qcut(x, 5, labels=False, duplicates='drop'))
