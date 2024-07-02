@@ -14,12 +14,12 @@ web:
 	echo "Airflow UI available at http://localhost:8080"
 
 build:
-#	docker build -t base_docker:latest -f src/base.Dockerfile .
-#	docker build -t intermediate_training_image:latest -f src_2/Dockerfile .
-#	docker build -t gan_image:latest -f src/Dockerfile .
-#	docker build -t rolling_image:latest -f src_3/Dockerfile .
-#	docker build -t get_raw_prices_image:latest -f src_4/Dockerfile .
-#	docker build -t filter_r1k_image:latest -f src_5/Dockerfile .
+	docker build -t base_docker:latest -f src/base.Dockerfile .
+	docker build -t intermediate_training_image:latest -f src_2/Dockerfile .
+	docker build -t gan_image:latest -f src/Dockerfile .
+	docker build -t rolling_image:latest -f src_3/Dockerfile .
+	docker build -t get_raw_prices_image:latest -f src_4/Dockerfile .
+	docker build -t filter_r1k_image:latest -f src_5/Dockerfile .
 	docker build -t model_unravel_image:latest -f src_6/Dockerfile .
 
 deploy:
