@@ -480,9 +480,9 @@ def airflow_wrapper(**kwargs):
 
 class RollingComponentCalculation(object):
 
-    def __init__(self, y_cols, x_cols, ensemble_weights, rolling_models_path, truncating_date='2024-01-01'):
-        self.y_col_rolling = y_cols
-        self.X_cols_rolling = x_cols
+    def __init__(self, y_col_rolling, X_cols_rolling, ensemble_weights, rolling_models_path, truncating_date):
+        self.y_col_rolling = y_col_rolling
+        self.X_cols_rolling = X_cols_rolling
         self.ensemble_weights = ensemble_weights
         self.model_loader = ModelLoader(
             base_dir=rolling_models_path['BASE_KEY'],
