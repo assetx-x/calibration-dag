@@ -1404,10 +1404,6 @@ predictions_parameters = DataFormatter(
             'signals_value',
             'signals_largecap_value',
             'signals_largecap_growth',
-            'signals_weekly_growth',
-            'signals_weekly_value',
-            'signals_weekly_largecap_growth',
-            'signals_weekly_largecap_value',
         ],
         'DataPull': ['security_master']
     },

@@ -35,7 +35,9 @@ class Predictions(DataReaderClass):
         self.final_data = []
 
         k = 'ensemble'
-        for df in [growth_signals,value_signals,largecap_value_signals,largecap_growth_signals]:
+        for i,df in enumerate([growth_signals,value_signals,
+                               largecap_value_signals,largecap_growth_signals]):
+            print('WHICH DIF: ',i)
             df['date'] = df['date'].apply(pd.Timestamp)
             df[k + '_qt'] = df.groupby('date')[k].apply(pd.qcut, 5, labels=False,duplicates='drop')
             df['ticker'] = df['ticker'].replace(security_master_dict)
