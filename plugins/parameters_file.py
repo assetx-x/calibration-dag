@@ -1388,17 +1388,14 @@ from model_predictions import Predictions
 
 predictions_parameters = DataFormatter(
     class_=Predictions,
-    class_parameters=add_fold_params,
+    class_parameters={},
     provided_data={
         'Predictions': [
             'signals_growth_predictions',
             'signals_value_predictions',
             'signals_largecap_value_predictions',
             'signals_largecap_growth_predictions',
-            'signals_weekly_growth_predictions',
-            'signals_weekly_value_predictions',
-            'signals_weekly_largecap_growth_predictions',
-            'signals_weekly_largecap_value_predictions',
+
         ]
     },
     required_data={
