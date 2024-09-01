@@ -426,7 +426,7 @@ class DataReaderClass(ABC):
     def _get_data_lineage(self):
         raise NotImplementedError()
 
-def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='dcm-prod-ba2f'):
+def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='ax-prod-393101'):
     """
     Reads a CSV file from Google Cloud Storage in chunks.
     Parameters:
@@ -705,8 +705,8 @@ class RollingModelUnraveling(object):
 
 
 
-rolling_models_data_path ={'BASE_KEY':'calibration_data/live/saved_rolling_models_gan',
-'bucket':'dcm-prod-ba2f-us-dcm-data-test',
+rolling_models_data_path ={'BASE_KEY':'data/live/saved_rolling_models_gan',
+'bucket':'assetx-equity-data',
 'leaf_path':'{}.joblib'}
 
 y_col_rolling = ["future_ret_21B_std"]
@@ -770,6 +770,6 @@ unraveling_rolling_model_dataformatter = DataFormatter(
 )
 
 if __name__ == "__main__":
-    os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
+    os.environ['GCS_BUCKET'] = 'assetx-equity-data'
     filter_r1k_weekly_data = unraveling_rolling_model_dataformatter()
     airflow_wrapper(**filter_r1k_weekly_data)

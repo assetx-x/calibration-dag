@@ -44,12 +44,12 @@ data_processing_folder = os.path.join(plugins_folder, "data_processing")
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
     data_processing_folder, 'dcm-prod.json'
 )
-os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
+os.environ['GCS_BUCKET'] = 'assetx-equity-data'
 
 JUMP_DATES_CSV = os.path.join(data_processing_folder, 'intervals_for_jump.csv')
 
 
-def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='dcm-prod-ba2f'):
+def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='ax-prod-393101'):
     """
     Reads a CSV file from Google Cloud Storage in chunks.
     Parameters:

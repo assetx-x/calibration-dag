@@ -219,7 +219,7 @@ calculate_raw_prices = DataFormatter(
 
 
 if __name__ == "__main__":
-    os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
+    os.environ['GCS_BUCKET'] = 'assetx-equity-data'
 
     raw_price_data = calculate_raw_prices()
     airflow_wrapper(**raw_price_data)

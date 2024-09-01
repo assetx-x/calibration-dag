@@ -110,7 +110,7 @@ s3_security_master_reader = DataFormatter(
     class_=S3SecurityMasterReader,
     class_parameters={
         "bucket": os.environ['GCS_BUCKET'],
-        "key": "alex/security_master_20230603.csv",
+        "key": "data/security_master_20230603.csv",
     },
     provided_data={'DataPull': ['security_master']},
     required_data={},
@@ -121,7 +121,7 @@ s3_gan_universe_reader = DataFormatter(
     class_=S3GANUniverseReader,
     class_parameters={
         "bucket": os.environ['GCS_BUCKET'],
-        "key": "calibration_data/current_gan_training_universe.csv",
+        "key": "data/current_gan_training_universe.csv",
     },
     provided_data={'DataPull': ['current_gan_universe']},
     required_data={'DataPull': ['security_master']},
@@ -132,7 +132,7 @@ s3_industry_map_reader = DataFormatter(
     class_=S3IndustryMappingReader,
     class_parameters={
         "bucket": os.environ['GCS_BUCKET'],
-        "key": "alex/industry_map.csv",
+        "key": "data/industry_map.csv",
     },
     provided_data={'DataPull': ['industry_mapper']},
     required_data={'DataPull': ['security_master']},
@@ -143,8 +143,8 @@ s3_econ_transformation = DataFormatter(
     class_=S3EconTransformationReader,
     class_parameters={
         "sector_etfs": ["SPY", "MDY", "EWG", "EWH", "EWJ", "EWW", "EWS", "EWU"],
-        "bucket": "dcm-prod-ba2f-us-dcm-data-test",
-        "key": "alex/econ_transform_definitions.csv",
+        "bucket": "assetx-equity-data",
+        "key": "data/econ_transform_definitions.csv",
     },
     provided_data={'DataPull': ['econ_transformation']},
     required_data={'DataPull': ['security_master']},
@@ -163,26 +163,15 @@ yahoo_daily_price_reader = DataFormatter(
 )
 
 
-s3_russull_component_reader = DataFormatter(
-    class_=S3RussellComponentReader,
-    class_parameters={
-        "bucket": "dcm-prod-ba2f-us-dcm-data-test",
-        'key': 'N/A',
-        "r3k_key": "alex/r3k.csv",
-        "r1k_key": "alex/r1k.csv",
-    },
-    provided_data={'DataPull': ['russell_components']},
-    required_data={'DataPull': ['security_master']},
-)
 
 
 s3_russell_component_reader = DataFormatter(
     class_=S3RussellComponentReader,
     class_parameters={
-        "bucket": "dcm-prod-ba2f-us-dcm-data-test",
+        "bucket": "assetx-equity-data",
         'key': 'N/A',
-        "r3k_key": "alex/r3k.csv",
-        "r1k_key": "alex/r1k.csv",
+        "r3k_key": "data/r3k.csv",
+        "r1k_key": "data/r1k.csv",
     },
     provided_data={'DataPull': ['russell_components']},
     required_data={'DataPull': ['security_master']},
@@ -192,8 +181,8 @@ s3_russell_component_reader = DataFormatter(
 s3_raw_quandl_reader = DataFormatter(
     class_=S3RawQuandlDataReader,
     class_parameters={
-        "bucket": "dcm-prod-ba2f-us-dcm-data-temp",
-        "key": "jack/SHARADAR_SF1.csv",
+        "bucket": "assetx-equity-data",
+        "key": "data/SHARADAR_SF1.csv",
         'index_col': False,
         "start_date": "2000-01-03",
         "end_date": RUN_DATE,
@@ -1012,9 +1001,9 @@ TMW_params = {
         "rf": 0.4,
     },
     'load_from_s3': False,
-    'bucket': 'dcm-prod-ba2f-us-dcm-data-test',
-    'key_base': "gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/live/saved_econ_models_gan",
-    'source_path': 'calibration_data/live/saved_econ_models_gan',
+    'bucket': 'assetx-equity-data',
+    'key_base': "gs://assetx-equity-data/data/live/saved_econ_models_gan",
+    'source_path': 'data/live/saved_econ_models_gan',
     'local_save_dir': "econ_models_gan",
 }
 
@@ -1342,8 +1331,8 @@ afi_step_weekly = DataFormatter(
 
 from econ_model_interpreter import EconFactorInterpretation
 econ_model_interpreter_params = {
-    'BASE_DIR': 'calibration_data/live/saved_econ_models_gan',
-    'bucket': 'dcm-prod-ba2f-us-dcm-data-test',
+    'BASE_DIR': 'data/live/saved_econ_models_gan',
+    'bucket': 'assetx-equity-data',
     'leaf_path': '{}_econ_no_gan.joblib',
     'x_cols':['date', 'ticker',"EWG_close", "HWI", "IPDCONGD", "DEXUSUK",
          "CPFF", "GS5", "CUSR0000SAC", "T5YFFM", "PPO_21_126_InformationTechnology",

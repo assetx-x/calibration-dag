@@ -101,7 +101,7 @@ class DataReaderClass(ABC):
     def _get_data_lineage(self):
         raise NotImplementedError()
 
-def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='dcm-prod-ba2f'):
+def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='ax-prod-393101'):
     """
     Reads a CSV file from Google Cloud Storage in chunks.
     Parameters:
@@ -589,6 +589,6 @@ filter_r1k_weekly = DataFormatter(
 )
 
 if __name__ == "__main__":
-    os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
+    os.environ['GCS_BUCKET'] = 'assetx-equity-data'
     filter_r1k_weekly_data = filter_r1k_weekly()
     airflow_wrapper(**filter_r1k_weekly_data)

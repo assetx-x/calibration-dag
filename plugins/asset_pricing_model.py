@@ -1410,9 +1410,9 @@ class SDFExtraction(object):  # This is a complete version with data and gan net
         client = storage.Client()
 
         # Define GCS bucket name and destination file name
-        bucket_name = 'dcm-prod-ba2f-us-dcm-data-test'
+        bucket_name = 'assetx-equity-data'
         gcs_destination = (
-            'calibration_data/live/save_gan_inputs/save_gan_inputs/all_factors.h5'
+            'data/live/save_gan_inputs/save_gan_inputs/all_factors.h5'
         )
 
         # Get the bucket and blob
@@ -1429,9 +1429,9 @@ class SDFExtraction(object):  # This is a complete version with data and gan net
 
 def get_saved_weights(gan_model, skip=True):
 
-    bucket_name = 'dcm-prod-ba2f-us-dcm-data-test'
+    bucket_name = 'assetx-equity-data'
     source_blob_name = (
-        'calibration_data/live/save_gan_inputs/save_gan_inputs/saved_weights.h5'
+        'data/live/save_gan_inputs/save_gan_inputs/saved_weights.h5'
     )
     destination_file_name = os.path.join(os.getcwd(), 'saved_weights.h5')
     if skip == True:

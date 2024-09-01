@@ -114,7 +114,7 @@ class ModelType(Enum):
     gan_growth = 4
 
 
-def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='dcm-prod-ba2f'):
+def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='ax-prod-393101'):
     """
     Reads a CSV file from Google Cloud Storage in chunks.
     Parameters:
@@ -968,8 +968,8 @@ rolling_model_estimator_params = {
         "largecap_value": "load_from_s3",
         "largecap_growth": "load_from_s3",
     },  # load_from_s3, append, full_train
-    'bucket': "dcm-prod-ba2f-us-dcm-data-test",
-    'key_base': "calibration_data/live/saved_rolling_models_gan",
+    'bucket': "assetx-equity-data",
+    'key_base': "data/live/saved_rolling_models_gan",
     'local_save_dir': "rolling_models_gan",
     'model_codes': {"value": 1, "growth": 2, "largecap_value": 6, "largecap_growth": 7},
     'target_cols': {
@@ -1021,7 +1021,7 @@ rolling_model_est = DataFormatter(
 
 
 if __name__ == "__main__":
-    os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
+    os.environ['GCS_BUCKET'] = 'assetx-equity-data'
     os.environ['MODEL_DIR'] = '/models'
 
     rolling_model_data = rolling_model_est()

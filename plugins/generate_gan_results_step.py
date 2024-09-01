@@ -9,7 +9,7 @@ from datetime import datetime
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
 #     data_processing_folder, 'dcm-prod.json'
 # )
-os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
+os.environ['GCS_BUCKET'] = 'assetx-equity-data'
 JUMP_DATES_CSV = os.path.join('data_processing', 'intervals_for_jump.csv')
 current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
@@ -38,7 +38,7 @@ class ExtractGANFactors:
         pass
 
     def do_step_action(self, **kwargs):
-        full_path = 'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/live/save_gan_inputs/save_gan_inputs'
+        full_path = 'gs://assetx-equity-data/data/live/save_gan_inputs/save_gan_inputs'
         factor_file = os.path.join(full_path, "all_factors.h5")
 
         # Call the extract_factors function directly
@@ -50,7 +50,7 @@ class ExtractGANFactors:
 
 
 extract_gan_factors_params = {
-    'data_dir': 'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/live/save_gan_inputs/save_gan_inputs',
+    'data_dir': 'gs://assetx-equity-data/data/live/save_gan_inputs/save_gan_inputs',
     'insample_cut_date': "2023-02-03",
     'epochs': 150,
     'epochs_discriminator': 50,
@@ -63,7 +63,7 @@ ExtractGANFactors_params = {
     'class': ExtractGANFactors,
     'start_date': RUN_DATE,
     'provided_data': {
-        'gan_factors': "gs://{}/calibration_data/live"
+        'gan_factors': "gs://{}/data/live"
         + "/{}/".format('generate_gan_result')
         + "{}.csv"
     },
