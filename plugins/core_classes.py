@@ -153,14 +153,14 @@ class GCPReader(DataReaderClass):
 
 def construct_required_path(step, file_name):
     return (
-        "gs://{}/calibration_data/live"
+        "gs://{}/data/live/calib_data"
         + "/{}/".format(step)
         + "{}.csv".format(file_name)
     )
 
 
 def construct_destination_path(step):
-    return "gs://{}/calibration_data/live" + "/{}/".format(step) + "{}.csv"
+    return "gs://{}/data/live/calib_data" + "/{}/".format(step) + "{}.csv"
 
 
 def pick_trading_quarterly_dates(start_date, end_date, mode='BQ'):

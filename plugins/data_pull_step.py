@@ -30,7 +30,7 @@ data_processing_folder = os.path.join(plugins_folder, "data_processing")
 # os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
 #     data_processing_folder, 'dcm-prod.json'
 # )
-os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
+os.environ['GCS_BUCKET'] = 'assetx-equity-data'
 JUMP_DATES_CSV = os.path.join(data_processing_folder, 'intervals_for_jump.csv')
 current_date = datetime.now().date()
 RUN_DATE = current_date.strftime('%Y-%m-%d')
