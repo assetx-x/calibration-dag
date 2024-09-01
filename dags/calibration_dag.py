@@ -94,6 +94,7 @@ def airflow_wrapper(**kwargs):
                 os.environ['GCS_BUCKET'], data_key
             )
             print('GCS BUCKET {}'.format(os.environ['GCS_BUCKET']))
+            print('WHERES THE CREDS {}'.format(os.environ['GOOGLE_APPLICATION_CREDENTIALS']))
             print('Data Dimensions {}'.format(data_value.shape))
             print(gcs_path)
             data_value.to_csv(gcs_path)
