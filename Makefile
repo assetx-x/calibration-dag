@@ -47,3 +47,8 @@ push:
 	sudo docker build -t calibration-airflow -f Dockerfile .
 	sudo docker tag dcm gcr.io/dcm-prod-ba2f/assetx-api:${TAG}
 	docker push gcr.io/dcm-prod-ba2f/assetx-api:${TAG}
+
+insert:
+	gcloud config set account hl@datacapitalmanagement.com
+	gcloud config set project dcm-prod-ba2f
+	python insert_data.py

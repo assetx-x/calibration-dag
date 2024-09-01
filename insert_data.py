@@ -8,34 +8,38 @@ import warnings
 import zipfile
 
 from dotenv import load_dotenv
-from google.cloud import bigquery
+from google.cloud import bigquery, storage
 from datetime import datetime, date
 
 from tqdm import tqdm
 
 warnings.filterwarnings("ignore")
 
-load_dotenv()
+# load_dotenv()
 
-if sys.platform in ['darwin', 'linux']:
-    """
-    To log in into GCP locally use the following command:
-    $ gcloud auth application-default login
-    and follow the instructions, then the json will be created automatically
-    """
-    home_path = os.getenv('HOME')
-    credentials_path = os.path.join(
-        home_path, '.config/gcloud/application_default_credentials.json'
-    )
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
-    print(f'Credentials set to {os.environ["GOOGLE_APPLICATION_CREDENTIALS"]}')
-else:
-    raise ValueError('Only Linux is supported')
+# if sys.platform in ['darwin', 'linux']:
+#     """
+#     To log in into GCP locally use the following command:
+#     $ gcloud auth application-default login
+#     and follow the instructions, then the json will be created automatically
+#     """
+#     home_path = os.getenv('HOME')
+#     credentials_path = os.path.join(
+#         home_path, '.config/gcloud/application_default_credentials.json'
+#     )
+#     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
+#     print(f'Credentials set to {os.environ["GOOGLE_APPLICATION_CREDENTIALS"]}')
+# else:
+#     raise ValueError('Only Linux is supported')
 
-os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
+# os.environ['GCS_BUCKET'] = 'dcm-prod-ba2f-us-dcm-data-test'
+# os.environ['GCS_BUCKET'] = 'assetx-equity-data'
 
-client = bigquery.Client()
-table_name = 'dcm-prod-ba2f.marketdata.daily_equity_prices'
+GCS_BUCKET = 'assetx-equity-data'
+
+client = bigquery.Client(project='ax-prod-393101')
+storage_client = storage.Client(project='ax-prod-393101')
+table_name = 'ax-prod-393101.marketdata.daily_equity_prices'
 
 iso_format = '%Y-%m-%dT%H:%M:%S'
 
@@ -94,7 +98,7 @@ def get_last_date_in_table():
 
 
 def download_tickers_list_by_date(start: str, end: str = None):
-    nasdaq_api_key = os.getenv('NASDAQ_DATA_LINK_API_KEY')
+    nasdaq_api_key = os.getenv('NASDAQ_DATA_LINK_API_KEY', 'tzfgtC1umXNxmDLcUZ-5')
     api_url = 'https://data.nasdaq.com/api/v3/datatables/SHARADAR/SEP.json'
     filename_zip = f'data_{start}.zip'.replace(" ", "")
     if not os.path.exists(filename_zip):
@@ -177,6 +181,23 @@ def is_updated(*args):
 
 
 def main():
+
+    # check if have database access
+    try:
+        client.query('SELECT 1').result()
+        print('[*] Connected to BigQuery')
+    except Exception as e:
+        print(f'[!] Error: {e}')
+        return
+
+    try:
+        storage_client.get_bucket(GCS_BUCKET)
+        print(f'[*] Connected to GCS bucket: {GCS_BUCKET}')
+    except Exception as e:
+        print(f'[!] Error: {e}')
+        storage_client.create_bucket(GCS_BUCKET)
+        print(f'[*] Bucket {GCS_BUCKET} created')
+
     queries = []
     last_date_df = get_last_date_in_table()
     last_date = last_date_df['max_date'].iloc[0].date()

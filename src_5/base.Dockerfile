@@ -5,4 +5,4 @@ COPY plugins/ .
 
 USER root
 
-ENV GOOGLE_APPLICATION_CREDENTIALS data_processing/dcm-prod.json
+#ENV GOOGLE_APPLICATION_CREDENTIALS data_processing/dcm-prod.json
