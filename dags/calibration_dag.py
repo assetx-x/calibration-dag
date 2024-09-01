@@ -41,9 +41,9 @@ load_dotenv()
 parent_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 plugins_folder = os.path.join(parent_directory, "plugins")
 data_processing_folder = os.path.join(plugins_folder, "data_processing")
-# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
-#     data_processing_folder, 'dcm-prod.json'
-# )
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
+     data_processing_folder, 'dcm-prod.json')
+
 os.environ['GCS_BUCKET'] = 'assetx-equity-data'
 
 JUMP_DATES_CSV = os.path.join(data_processing_folder, 'intervals_for_jump.csv')
@@ -93,6 +93,7 @@ def airflow_wrapper(**kwargs):
             gcs_path = kwargs['provided_data'][data_key].format(
                 os.environ['GCS_BUCKET'], data_key
             )
+            print('GCS BUCKET {}'.format(os.environ['GCS_BUCKET']))
             print('Data Dimensions {}'.format(data_value.shape))
             print(gcs_path)
             data_value.to_csv(gcs_path)
