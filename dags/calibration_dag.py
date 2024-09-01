@@ -93,6 +93,7 @@ def airflow_wrapper(**kwargs):
             gcs_path = kwargs['provided_data'][data_key].format(
                 os.environ['GCS_BUCKET'], data_key
             )
+            print('Data Dimensions {}'.format(data_value.shape))
             print(gcs_path)
             data_value.to_csv(gcs_path)
 
