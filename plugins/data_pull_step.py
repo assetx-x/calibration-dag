@@ -303,9 +303,9 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
         from
             marketdata.daily_equity_prices
         where
-            date > '{}'
+            date > TIMESTAMP('{}')
             and
-            date < '{}'
+            date < TIMESTAMP('{}')
             and
             ticker in {}
         """.strip()
