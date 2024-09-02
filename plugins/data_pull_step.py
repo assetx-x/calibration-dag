@@ -342,7 +342,9 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
     def _post_process_pulled_data(self, price, **kwargs):
         # import pdb; pdb.set_trace()
         print(self.__class__.REQUIRES_FIELDS[0])
-        sec_master = kwargs[self.__class__.REQUIRES_FIELDS[0]]
+        #sec_master = kwargs[self.__class__.REQUIRES_FIELDS[0]]
+        print('DIMENSIONS', price.columns)
+        price.reset_index(inplace=True)
         price = price.drop_duplicates().sort_values(['date'])
         price = (
             price.groupby(['ticker', 'date'])
