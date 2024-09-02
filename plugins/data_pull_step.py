@@ -311,7 +311,7 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
         """.strip()
         self.start_date = start_date
         self.end_date = end_date
-        self.table_id = "ax-prod-393101.marketdata.daily_equity_prices"
+        self.table_id = "ax-prod-393101.marketdata.daily_equity_prices_minute-to-daily"
 
     def _prepare_to_pull_data(self, **kwargs):
         self.query_client = bigquery.Client()
