@@ -320,7 +320,7 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
         job_config = bigquery.QueryJobConfig(
             allow_large_results=True,
             use_legacy_sql=True,
-            destination='ax-prod-393101.marketdata.daily_equity_prices'
+            destination='ax-prod-393101.marketdata.daily_equity_prices_minute-to-daily'
         )
         final_query = self.compose_query(**kwargs)
         data = self.query_client.query(final_query, job_config=job_config)
