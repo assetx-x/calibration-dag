@@ -311,20 +311,27 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
         """.strip()
         self.start_date = start_date
         self.end_date = end_date
+        self.table_id = "marketdata.daily_equity_prices"
 
     def _prepare_to_pull_data(self, **kwargs):
         self.query_client = bigquery.Client()
+        self.query_config = bigquery.QueryJobConfig(allow_large_results=True)
 
     def _pull_data(self, **kwargs):
-
+        """
+        Example at https://cloud.google.com/bigquery/docs/samples/bigquery-query-legacy-large-results#bigquery_query_legacy_large_results-python
+        """
         job_config = bigquery.QueryJobConfig(
             allow_large_results=True,
-            use_legacy_sql=True,
-            destination='ax-prod-393101.marketdata.daily_equity_prices_minute-to-daily'
+            destination=self.table_id,
+            use_legacy_sql=False
         )
+        
         final_query = self.compose_query(**kwargs)
-        data = self.query_client.query(final_query, job_config=job_config)
-        data = data.to_dataframe()
+        query_job = self.query_client.query(final_query, job_config=job_config)
+        query_job.result()
+
+        data = self.query_client.list_rows(self.table_id).to_dataframe()
         return data
 
     def compose_query(self, **kwargs):
