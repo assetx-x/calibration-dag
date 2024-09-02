@@ -297,8 +297,18 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
     REQUIRES_FIELDS = ["security_master"]
 
     def __init__(self, start_date, end_date):
-        base_query = """select date,ticker,dcm_security_id, open, high,low,close,volume from marketdata.daily_equity_prices where date > date('{}') and date < date('{}') and ticker in {}"""
-        self.base_query = base_query
+        self.base_query = """
+        select
+            date, ticker, dcm_security_id, open, high, low, close, volume
+        from
+            marketdata.daily_equity_prices
+        where
+            date > date('{}')
+            and
+            date < date('{}')
+            and
+            ticker in {}
+        """.strip()
         self.start_date = start_date
         self.end_date = end_date
 
@@ -308,7 +318,7 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
 
     def _pull_data(self, **kwargs):
 
-        job_config = bigquery.QueryJobConfig(allow_large_results=True)
+        job_config = bigquery.QueryJobConfig(allow_large_results=True, use_legacy_sql=True)
         final_query = self.compose_query(**kwargs)
         data = self.query_client.query(final_query, job_config=job_config)
         data = data.to_dataframe()
