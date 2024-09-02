@@ -297,18 +297,8 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
     REQUIRES_FIELDS = ["security_master"]
 
     def __init__(self, start_date, end_date):
-        self.base_query = """
-        select
-            dep.date, dep.ticker, dep.dcm_security_id, dep.open, dep.high, dep.low, dep.close, volume
-        from
-            marketdata.daily_equity_prices dep
-        where
-            date(dep.date) > date('{}')
-            and
-            date(dep.date) < date('{}')
-            and
-            dep.ticker in {}
-        """.strip()
+        base_query = """select date,ticker,dcm_security_id, open, high,low,close,volume from marketdata.daily_equity_prices where date > date('{}') and date < date('{}') and ticker in {}"""
+        self.base_query = base_query
         self.start_date = start_date
         self.end_date = end_date
         self.table_id = "ax-prod-393101.marketdata.daily_equity_prices_minute-to-daily"
@@ -332,6 +322,7 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
         query_job.result()
 
         data = self.query_client.list_rows(self.table_id).to_dataframe()
+        print('OG DF SIZE ', data)
         return data
 
     def compose_query(self, **kwargs):
@@ -341,6 +332,7 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
         end_dt = self.end_date
         universe = tuple(sec_master['ticker'].values)
         final_query = self.base_query.format(start_dt, end_dt, universe)
+        print('SECURITY MASTER SIZE', len(universe))
         return final_query
 
     def _get_return_types_for_permutations(self, data, **kwargs):
