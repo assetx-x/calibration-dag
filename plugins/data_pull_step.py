@@ -27,9 +27,9 @@ from core_classes import (
 parent_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 plugins_folder = os.path.join(parent_directory, "plugins")
 data_processing_folder = os.path.join(plugins_folder, "data_processing")
-# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
-#     data_processing_folder, 'dcm-prod.json'
-# )
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
+    data_processing_folder, 'dcm-prod.json'
+)
 os.environ['GCS_BUCKET'] = 'assetx-equity-data'
 JUMP_DATES_CSV = os.path.join(data_processing_folder, 'intervals_for_jump.csv')
 current_date = datetime.now().date()
@@ -301,26 +301,17 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
         self.base_query = base_query
         self.start_date = start_date
         self.end_date = end_date
-        self.table_id = "marketdata.daily_equity_prices"
 
     def _prepare_to_pull_data(self, **kwargs):
-        self.query_client = bigquery.Client(project='ax-prod')
+
+        self.query_client = bigquery.Client()
 
     def _pull_data(self, **kwargs):
-        """
-        Example at https://cloud.google.com/bigquery/docs/samples/bigquery-query-legacy-large-results#bigquery_query_legacy_large_results-python
-        """
-        job_config = bigquery.QueryJobConfig(
-            allow_large_results=True,
-            destination=self.table_id,
-            use_legacy_sql=False
-        )
 
+        job_config = bigquery.QueryJobConfig(allow_large_results=True)
         final_query = self.compose_query(**kwargs)
-        query_job = self.query_client.query(final_query, job_config=job_config)
-        query_job.result()
-
-        data = self.query_client.list_rows(self.table_id).to_dataframe()
+        data = self.query_client.query(final_query, job_config=job_config)
+        data = data.to_dataframe()
         return data
 
     def compose_query(self, **kwargs):
