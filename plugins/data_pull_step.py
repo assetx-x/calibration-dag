@@ -313,12 +313,15 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
         self.end_date = end_date
 
     def _prepare_to_pull_data(self, **kwargs):
-
         self.query_client = bigquery.Client()
 
     def _pull_data(self, **kwargs):
 
-        job_config = bigquery.QueryJobConfig(allow_large_results=True, use_legacy_sql=True)
+        job_config = bigquery.QueryJobConfig(
+            allow_large_results=True,
+            use_legacy_sql=True,
+            destination='ax-prod-393101.marketdata.daily_equity_prices'
+        )
         final_query = self.compose_query(**kwargs)
         data = self.query_client.query(final_query, job_config=job_config)
         data = data.to_dataframe()
