@@ -351,6 +351,7 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
         print(self.__class__.REQUIRES_FIELDS[0])
         #sec_master = kwargs[self.__class__.REQUIRES_FIELDS[0]]
         print('DIMENSIONS', price.columns)
+        print('ORIGINAL SIZE', price.size)
         price.reset_index(inplace=True)
         price = price.drop_duplicates().sort_values(['date'])
         price = (
@@ -359,16 +360,16 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
             .reset_index()
             .sort_values(by=['date'])
         )
-
+        print('NEW SIZE', price.size)
         price = price[price['dcm_security_id'].notna()]
         price['dcm_security_id'] = price['dcm_security_id'].astype(int)
         price['date'] = price['date'].apply(pd.Timestamp)
         price['date'] = price['date'].dt.normalize()
-
+        print(' DEBUGG')
         price.drop_duplicates(subset=['date', 'ticker'], inplace=True)
         price.drop('ticker', axis=1, inplace=True)
         price.rename(columns={"dcm_security_id": "ticker"}, inplace=True)
-
+        print('DEBUGG 2')
         return price
 
 
