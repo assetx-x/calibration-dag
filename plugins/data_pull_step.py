@@ -299,13 +299,13 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
     def __init__(self, start_date, end_date):
         self.base_query = """
         select
-            date, ticker, dcm_security_id, open, high, low, close, volume
+            dep.date, dep.ticker, dep.dcm_security_id, dep.open, dep.high, dep.low, dep.close, volume
         from
-            marketdata.daily_equity_prices
+            marketdata.daily_equity_prices dep
         where
-            date > TIMESTAMP('{}')
+            date(dep.date) > date('{}')
             and
-            date < TIMESTAMP('{}')
+            date(dep.date) < date('{}')
             and
             ticker in {}
         """.strip()
