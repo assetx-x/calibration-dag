@@ -297,32 +297,21 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
     REQUIRES_FIELDS = ["security_master"]
 
     def __init__(self, start_date, end_date):
-        base_query = """select date,ticker,dcm_security_id, open, high,low,close,volume from marketdata.daily_equity_prices where date > date('{}') and date < date('{}') and ticker in {}"""
+        base_query = """select date,ticker,dcm_security_id, open, high,low,close,volume from marketdata.daily_equity_prices_d where date > date('{}') and date < date('{}') and ticker in {}"""
         self.base_query = base_query
         self.start_date = start_date
         self.end_date = end_date
-        self.table_id = "ax-prod-393101.marketdata.daily_equity_prices_minute-to-daily"
 
     def _prepare_to_pull_data(self, **kwargs):
+
         self.query_client = bigquery.Client()
-        self.query_config = bigquery.QueryJobConfig(allow_large_results=True)
 
     def _pull_data(self, **kwargs):
-        """
-        Example at https://cloud.google.com/bigquery/docs/samples/bigquery-query-legacy-large-results#bigquery_query_legacy_large_results-python
-        """
-        job_config = bigquery.QueryJobConfig(
-            allow_large_results=True,
-            destination=self.table_id,
-            use_legacy_sql=False
-        )
-        
-        final_query = self.compose_query(**kwargs)
-        query_job = self.query_client.query(final_query, job_config=job_config)
-        query_job.result()
 
-        data = self.query_client.list_rows(self.table_id).to_dataframe()
-        print('OG DF SIZE ', data)
+        job_config = bigquery.QueryJobConfig(allow_large_results=True)
+        final_query = self.compose_query(**kwargs)
+        data = self.query_client.query(final_query, job_config=job_config)
+        data = data.to_dataframe()
         return data
 
     def compose_query(self, **kwargs):
@@ -332,7 +321,6 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
         end_dt = self.end_date
         universe = tuple(sec_master['ticker'].values)
         final_query = self.base_query.format(start_dt, end_dt, universe)
-        print('SECURITY MASTER SIZE', len(universe))
         return final_query
 
     def _get_return_types_for_permutations(self, data, **kwargs):
@@ -341,10 +329,7 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
     def _post_process_pulled_data(self, price, **kwargs):
         # import pdb; pdb.set_trace()
         print(self.__class__.REQUIRES_FIELDS[0])
-        #sec_master = kwargs[self.__class__.REQUIRES_FIELDS[0]]
-        print('DIMENSIONS', price.columns)
-        print('ORIGINAL SIZE', price.size)
-        price.reset_index(inplace=True)
+        sec_master = kwargs[self.__class__.REQUIRES_FIELDS[0]]
         price = price.drop_duplicates().sort_values(['date'])
         price = (
             price.groupby(['ticker', 'date'])
@@ -352,16 +337,16 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
             .reset_index()
             .sort_values(by=['date'])
         )
-        print('NEW SIZE', price.size)
+
         price = price[price['dcm_security_id'].notna()]
         price['dcm_security_id'] = price['dcm_security_id'].astype(int)
         price['date'] = price['date'].apply(pd.Timestamp)
         price['date'] = price['date'].dt.normalize()
-        print(' DEBUGG')
+
         price.drop_duplicates(subset=['date', 'ticker'], inplace=True)
         price.drop('ticker', axis=1, inplace=True)
         price.rename(columns={"dcm_security_id": "ticker"}, inplace=True)
-        print('DEBUGG 2')
+
         return price
 
 
