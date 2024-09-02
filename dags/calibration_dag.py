@@ -227,78 +227,78 @@ with DAG(
     #          SQLMinuteToDailyEquityPrices
     #     )
 
-    with TaskGroup("EconData", tooltip="EconData") as EconData:
-        DownloadEconomicData = PythonOperator(
-            task_id="DownloadEconomicData",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['DownloadEconomicData'],
-        )
-
-    with TaskGroup(
-        "FundamentalCleanup", tooltip="FundamentalCleanup"
-    ) as FundamentalCleanup:
-        QuandlDataCleanup = PythonOperator(
-            task_id="QuandlDataCleanup",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['QuandlDataCleanup'],
-        )
-
-    with TaskGroup("Targets", tooltip="Targets") as Targets:
-        CalculateTargetReturns = PythonOperator(
-            task_id="CalculateTargetReturns",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['CalculateTargetReturns'],
-        )
-
-    with TaskGroup(
-        "DerivedFundamentalDataProcessing", tooltip="DerivedFundamentalDataProcessing"
-    ) as DerivedFundamentalDataProcessing:
-        CalculateDerivedQuandlFeatures = PythonOperator(
-            task_id="CalculateDerivedQuandlFeatures",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['CalculateDerivedQuandlFeatures'],
-        )
-
-    with TaskGroup(
-        "DerivedTechnicalDataProcessing", tooltip="DerivedTechnicalDataProcessing"
-    ) as DerivedTechnicalDataProcessing:
-        CalculateTaLibSTOCHRSIMultiParam = PythonOperator(
-            task_id="CalculateTaLibSTOCHRSIMultiParam",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['CalculateTaLibSTOCHRSIMultiParam'],
-        )
-
-        CalculateVolatilityMultiParam = PythonOperator(
-            task_id="CalculateVolatilityMultiParam",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['CalculateVolatilityMultiParam'],
-        )
-
-        CalculateTaLibWILLRMultiParam = PythonOperator(
-            task_id="CalculateTaLibWILLRMultiParam",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['CalculateTaLibWILLRMultiParam'],
-        )
-
-        CalculateTaLibPPOMultiParam = PythonOperator(
-            task_id="CalculateTaLibPPOMultiParam",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['CalculateTaLibPPOMultiParam'],
-        )
-
-        CalculateTaLibADXMultiParam = PythonOperator(
-            task_id="CalculateTaLibADXMultiParam",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['CalculateTaLibADXMultiParam'],
-        )
-
-        (
-            CalculateTaLibSTOCHRSIMultiParam
-            >> CalculateVolatilityMultiParam
-            >> CalculateTaLibWILLRMultiParam
-            >> CalculateTaLibPPOMultiParam
-            >> CalculateTaLibADXMultiParam
-        )
+    # with TaskGroup("EconData", tooltip="EconData") as EconData:
+    #     DownloadEconomicData = PythonOperator(
+    #         task_id="DownloadEconomicData",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['DownloadEconomicData'],
+    #     )
+    #
+    # with TaskGroup(
+    #     "FundamentalCleanup", tooltip="FundamentalCleanup"
+    # ) as FundamentalCleanup:
+    #     QuandlDataCleanup = PythonOperator(
+    #         task_id="QuandlDataCleanup",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['QuandlDataCleanup'],
+    #     )
+    #
+    # with TaskGroup("Targets", tooltip="Targets") as Targets:
+    #     CalculateTargetReturns = PythonOperator(
+    #         task_id="CalculateTargetReturns",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['CalculateTargetReturns'],
+    #     )
+    #
+    # with TaskGroup(
+    #     "DerivedFundamentalDataProcessing", tooltip="DerivedFundamentalDataProcessing"
+    # ) as DerivedFundamentalDataProcessing:
+    #     CalculateDerivedQuandlFeatures = PythonOperator(
+    #         task_id="CalculateDerivedQuandlFeatures",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['CalculateDerivedQuandlFeatures'],
+    #     )
+    #
+    # with TaskGroup(
+    #     "DerivedTechnicalDataProcessing", tooltip="DerivedTechnicalDataProcessing"
+    # ) as DerivedTechnicalDataProcessing:
+    #     CalculateTaLibSTOCHRSIMultiParam = PythonOperator(
+    #         task_id="CalculateTaLibSTOCHRSIMultiParam",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['CalculateTaLibSTOCHRSIMultiParam'],
+    #     )
+    #
+    #     CalculateVolatilityMultiParam = PythonOperator(
+    #         task_id="CalculateVolatilityMultiParam",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['CalculateVolatilityMultiParam'],
+    #     )
+    #
+    #     CalculateTaLibWILLRMultiParam = PythonOperator(
+    #         task_id="CalculateTaLibWILLRMultiParam",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['CalculateTaLibWILLRMultiParam'],
+    #     )
+    #
+    #     CalculateTaLibPPOMultiParam = PythonOperator(
+    #         task_id="CalculateTaLibPPOMultiParam",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['CalculateTaLibPPOMultiParam'],
+    #     )
+    #
+    #     CalculateTaLibADXMultiParam = PythonOperator(
+    #         task_id="CalculateTaLibADXMultiParam",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['CalculateTaLibADXMultiParam'],
+    #     )
+    #
+    #     (
+    #         CalculateTaLibSTOCHRSIMultiParam
+    #         >> CalculateVolatilityMultiParam
+    #         >> CalculateTaLibWILLRMultiParam
+    #         >> CalculateTaLibPPOMultiParam
+    #         >> CalculateTaLibADXMultiParam
+    #     )
 
     with TaskGroup(
         "DerivedSimplePriceFeatureProcessing",
