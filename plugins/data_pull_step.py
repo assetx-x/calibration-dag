@@ -307,7 +307,7 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
             and
             date(dep.date) < date('{}')
             and
-            ticker in {}
+            dep.ticker in {}
         """.strip()
         self.start_date = start_date
         self.end_date = end_date
