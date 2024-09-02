@@ -304,7 +304,7 @@ class SQLMinuteToDailyEquityPrices(GCPReader):
         self.table_id = "marketdata.daily_equity_prices"
 
     def _prepare_to_pull_data(self, **kwargs):
-        self.query_client = bigquery.Client()
+        self.query_client = bigquery.Client(project='ax-prod')
         self.query_config = bigquery.QueryJobConfig(allow_large_results=True)
 
     def _pull_data(self, **kwargs):
