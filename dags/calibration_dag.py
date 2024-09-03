@@ -441,28 +441,28 @@ with DAG(
     #         op_kwargs=task_params_manager['FactorStandardizationFullPopulationWeekly'],
     #     )
     #
-    # with TaskGroup("ActiveMatrix", tooltip="ActiveMatrix") as ActiveMatrix:
-    #     GenerateActiveMatrixWeekly = PythonOperator(
-    #         task_id="GenerateActiveMatrixWeekly",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['GenerateActiveMatrixWeekly'],
-    #     )
-    #
-    # with TaskGroup(
-    #     "AdditionalGanFeatures", tooltip="AdditionalGanFeatures"
-    # ) as AdditionalGanFeatures:
-    #     GenerateBMEReturnsWeekly = PythonOperator(
-    #         task_id="GenerateBMEReturnsWeekly",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['GenerateBMEReturnsWeekly'],
-    #     )
+    with TaskGroup("ActiveMatrix", tooltip="ActiveMatrix") as ActiveMatrix:
+        GenerateActiveMatrixWeekly = PythonOperator(
+            task_id="GenerateActiveMatrixWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['GenerateActiveMatrixWeekly'],
+        )
 
-    # with TaskGroup("SaveGANInputs", tooltip="SaveGANInputs") as SaveGANInputs:
-    #     GenerateDataGANWeekly = PythonOperator(
-    #         task_id="GenerateDataGANWeekly",
-    #         python_callable=airflow_wrapper,
-    #         op_kwargs=task_params_manager['GenerateDataGANWeekly'],
-    #     )
+    with TaskGroup(
+        "AdditionalGanFeatures", tooltip="AdditionalGanFeatures"
+    ) as AdditionalGanFeatures:
+        GenerateBMEReturnsWeekly = PythonOperator(
+            task_id="GenerateBMEReturnsWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['GenerateBMEReturnsWeekly'],
+        )
+
+    with TaskGroup("SaveGANInputs", tooltip="SaveGANInputs") as SaveGANInputs:
+        GenerateDataGANWeekly = PythonOperator(
+            task_id="GenerateDataGANWeekly",
+            python_callable=airflow_wrapper,
+            op_kwargs=task_params_manager['GenerateDataGANWeekly'],
+        )
 
     with TaskGroup(
         "GenerateGANResults", tooltip="GenerateGANResults"
@@ -621,10 +621,10 @@ with DAG(
         # >> Transformation
         # >> MergeEcon
         # >> Standarization
-        # >> ActiveMatrix
-        # >> AdditionalGanFeatures
-        #SaveGANInputs
-        GenerateGANResults
+        ActiveMatrix
+        >> AdditionalGanFeatures
+        >> SaveGANInputs
+        >> GenerateGANResults
         >> MergeGANResults
         >> IntermediateModelTraining
         >> MergeSignal
