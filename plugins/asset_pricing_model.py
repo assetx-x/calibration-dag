@@ -1436,6 +1436,7 @@ class SDFExtraction(object):  # This is a complete version with data and gan net
 
 def get_saved_weights(gan_model, skip=True):
 
+
     bucket_name = 'assetx-equity-data'
     source_blob_name = (
         'data/live/save_gan_inputs/save_gan_inputs/saved_weights.h5'
