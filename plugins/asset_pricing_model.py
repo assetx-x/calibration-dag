@@ -1188,11 +1188,11 @@ class SDFExtraction(object):  # This is a complete version with data and gan net
             training_loss=linear_pred_loss,
             optimizer=Adam(lr=0.00001, decay=0.0, epsilon=1e-8),
         )
-        print('N MACRO FEATURES {}'.format(n_macro_features))
-        print('N COMPANY FEATURES {}'.format(n_company_features))
-        print('N ASSETS FEATURES {}'.format(n_assets))
-        print('TIMESTES FEATURES {}'.format(time_steps))
-        print('BATCH SIZE FEATURES {}'.format(batch_size))
+        print(f'N MACRO FEATURES {n_macro_features}')
+        print(f'N COMPANY FEATURES {n_company_features}')
+        print(f'N ASSETS FEATURES {n_assets}')
+        print(f'TIMESTES FEATURES {time_steps}')
+        print(f'BATCH SIZE FEATURES {batch_size}')
 
         self.n_macro_features = gan_network.n_macro_features
         self.n_company_fetures = gan_network.n_company_fetures
@@ -1200,7 +1200,7 @@ class SDFExtraction(object):  # This is a complete version with data and gan net
         self.time_steps = gan_network.time_steps
         self.batch_size = gan_network.batch_size
         self.gan_model = gan_network.gan_model
-        print('GAN MODEL LOADED : {}'format(self.gan_model))
+        print(f'GAN MODEL LOADED : {self.gan_model}')
         get_saved_weights(self.gan_model, skip=False)
         # if saved_weight_path:
         #    self.gan_model.load_weights(saved_weight_path)  # load weights
