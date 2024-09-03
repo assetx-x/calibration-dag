@@ -1200,7 +1200,7 @@ class SDFExtraction(object):  # This is a complete version with data and gan net
         self.time_steps = gan_network.time_steps
         self.batch_size = gan_network.batch_size
         self.gan_model = gan_network.gan_model
-        print('GAN MODEL LOADED : {}'format(self.gan_model))
+        print('GAN MODEL LOADED : {}'.format(self.gan_model))
         get_saved_weights(self.gan_model, skip=False)
         # if saved_weight_path:
         #    self.gan_model.load_weights(saved_weight_path)  # load weights
