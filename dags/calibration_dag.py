@@ -441,42 +441,42 @@ with DAG(
     #         op_kwargs=task_params_manager['FactorStandardizationFullPopulationWeekly'],
     #     )
     #
-    with TaskGroup("ActiveMatrix", tooltip="ActiveMatrix") as ActiveMatrix:
-        GenerateActiveMatrixWeekly = PythonOperator(
-            task_id="GenerateActiveMatrixWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['GenerateActiveMatrixWeekly'],
-        )
+    # with TaskGroup("ActiveMatrix", tooltip="ActiveMatrix") as ActiveMatrix:
+    #     GenerateActiveMatrixWeekly = PythonOperator(
+    #         task_id="GenerateActiveMatrixWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['GenerateActiveMatrixWeekly'],
+    #     )
 
-    with TaskGroup(
-        "AdditionalGanFeatures", tooltip="AdditionalGanFeatures"
-    ) as AdditionalGanFeatures:
-        GenerateBMEReturnsWeekly = PythonOperator(
-            task_id="GenerateBMEReturnsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['GenerateBMEReturnsWeekly'],
-        )
+    # with TaskGroup(
+    #     "AdditionalGanFeatures", tooltip="AdditionalGanFeatures"
+    # ) as AdditionalGanFeatures:
+    #     GenerateBMEReturnsWeekly = PythonOperator(
+    #         task_id="GenerateBMEReturnsWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['GenerateBMEReturnsWeekly'],
+    #     )
+    #
+    # with TaskGroup("SaveGANInputs", tooltip="SaveGANInputs") as SaveGANInputs:
+    #     GenerateDataGANWeekly = PythonOperator(
+    #         task_id="GenerateDataGANWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['GenerateDataGANWeekly'],
+    #     )
 
-    with TaskGroup("SaveGANInputs", tooltip="SaveGANInputs") as SaveGANInputs:
-        GenerateDataGANWeekly = PythonOperator(
-            task_id="GenerateDataGANWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['GenerateDataGANWeekly'],
-        )
-
-    with TaskGroup(
-        "GenerateGANResults", tooltip="GenerateGANResults"
-    ) as GenerateGANResults:
-        ExtractGANFactors = DockerOperator(
-            task_id="ExtractGANFactors",
-            container_name='task__generate_gan',
-            command="echo 'RUNNING GAN STEP'",
-            # command=f"python generate_gan_results.py",
-            api_version='auto',
-            auto_remove='success',
-            image='gan_image',
-            network_mode='host',
-        )
+    # with TaskGroup(
+    #     "GenerateGANResults", tooltip="GenerateGANResults"
+    # ) as GenerateGANResults:
+    #     ExtractGANFactors = DockerOperator(
+    #         task_id="ExtractGANFactors",
+    #         container_name='task__generate_gan',
+    #         command="echo 'RUNNING GAN STEP'",
+    #         # command=f"python generate_gan_results.py",
+    #         api_version='auto',
+    #         auto_remove='success',
+    #         image='gan_image',
+    #         network_mode='host',
+    #     )
 
     with TaskGroup("MergeGANResults", tooltip="MergeGANResults") as MergeGANResults:
         ConsolidateGANResultsWeekly = PythonOperator(
@@ -621,11 +621,11 @@ with DAG(
         # >> Transformation
         # >> MergeEcon
         # >> Standarization
-        ActiveMatrix
-        >> AdditionalGanFeatures
-        >> SaveGANInputs
-        >> GenerateGANResults
-        >> MergeGANResults
+        #ActiveMatrix
+        # AdditionalGanFeatures
+        # >> SaveGANInputs
+        # >> GenerateGANResults
+        MergeGANResults
         >> IntermediateModelTraining
         >> MergeSignal
         >> GetAdjustmentFactors
