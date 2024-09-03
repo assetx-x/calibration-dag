@@ -53,9 +53,9 @@ class ConsolidateGANResults(DataReaderClass):
         return df
 
     def _get_gan_factors(self):
-        bucket_name = 'dcm-prod-ba2f-us-dcm-data-test'
+        bucket_name = 'assetx-equity-data'
         source_blob_name = (
-            'calibration_data/live/save_gan_inputs/save_gan_inputs/all_factors.h5'
+            'dump/all_factors.h5'
         )
         destination_file_name = os.path.join(os.getcwd(), 'all_factors.h5')
 
