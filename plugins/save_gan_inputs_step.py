@@ -132,7 +132,8 @@ class GenerateDataGANWeekly(GenerateDataGAN):
         company_data_monthly = self.melt_merge(future_return_data, monthly_df)
         company_data_weekly = self.melt_merge(future_return_weekly, weekly_df)
 
-        base_dir = 'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/live/save_gan_inputs/save_gan_inputs'
+        # base_dir = 'gs://dcm-prod-ba2f-us-dcm-data-test/calibration_data/live/save_gan_inputs/save_gan_inputs'
+        base_dir = 'gs://assetx-equity-data/data/live/save_gan_inputs/save_gan_inputs'
 
         # full_path = get_local_dated_dir(base_dir, self.task_params.end_dt, self.data_dir)
         full_path = base_dir
