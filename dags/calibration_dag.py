@@ -530,42 +530,42 @@ with DAG(
     #         network_mode='host',
     #     )
 
-    with TaskGroup("PopulationSplit", tooltip="PopulationSplit") as PopulationSplit:
-        FilterRussell1000AugmentedWeekly = DockerOperator(
-            task_id="FilterRussell1000AugmentedWeekly",
-            container_name='task__filterr1k',
-            command="echo 'RUNNING GET FILTER R1K STEP'",
-            # command=f"python generate_gan_results.py",
-            api_version='auto',
-            auto_remove='success',
-            image='filter_r1k_image',
-            network_mode='host',
-        )
-
-    with TaskGroup("Residualization", tooltip="Residualization") as Residualization:
-        FactorNeutralizationForStackingWeekly = PythonOperator(
-            task_id="FactorNeutralizationForStackingWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['FactorNeutralizationForStackingWeekly'],
-        )
-
-    with TaskGroup(
-        "ResidualizedStandardization", tooltip="ResidualizedStandardization"
-    ) as ResidualizedStandardization:
-        FactorStandardizationNeutralizedForStackingWeekly = PythonOperator(
-            task_id="FactorStandardizationNeutralizedForStackingWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager[
-                'FactorStandardizationNeutralizedForStackingWeekly'
-            ],
-        )
-
-    with TaskGroup("AddFinalFoldId", tooltip="AddFinalFoldId") as AddFinalFoldId:
-        AddFoldIdToNormalizedDataPortfolioWeekly = PythonOperator(
-            task_id="AddFoldIdToNormalizedDataPortfolioWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['AddFoldIdToNormalizedDataPortfolioWeekly'],
-        )
+    # with TaskGroup("PopulationSplit", tooltip="PopulationSplit") as PopulationSplit:
+    #     FilterRussell1000AugmentedWeekly = DockerOperator(
+    #         task_id="FilterRussell1000AugmentedWeekly",
+    #         container_name='task__filterr1k',
+    #         command="echo 'RUNNING GET FILTER R1K STEP'",
+    #         # command=f"python generate_gan_results.py",
+    #         api_version='auto',
+    #         auto_remove='success',
+    #         image='filter_r1k_image',
+    #         network_mode='host',
+    #     )
+    #
+    # with TaskGroup("Residualization", tooltip="Residualization") as Residualization:
+    #     FactorNeutralizationForStackingWeekly = PythonOperator(
+    #         task_id="FactorNeutralizationForStackingWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['FactorNeutralizationForStackingWeekly'],
+    #     )
+    #
+    # with TaskGroup(
+    #     "ResidualizedStandardization", tooltip="ResidualizedStandardization"
+    # ) as ResidualizedStandardization:
+    #     FactorStandardizationNeutralizedForStackingWeekly = PythonOperator(
+    #         task_id="FactorStandardizationNeutralizedForStackingWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager[
+    #             'FactorStandardizationNeutralizedForStackingWeekly'
+    #         ],
+    #     )
+    #
+    # with TaskGroup("AddFinalFoldId", tooltip="AddFinalFoldId") as AddFinalFoldId:
+    #     AddFoldIdToNormalizedDataPortfolioWeekly = PythonOperator(
+    #         task_id="AddFoldIdToNormalizedDataPortfolioWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['AddFoldIdToNormalizedDataPortfolioWeekly'],
+    #     )
 
     with TaskGroup(
         "FinalModelTraining", tooltip="FinalModelTraining"
@@ -630,11 +630,11 @@ with DAG(
         # >> MergeSignal
         # >> GetAdjustmentFactors
         #GetRawPrices
-        PopulationSplit
-        >> Residualization
-        >> ResidualizedStandardization
-        >> AddFinalFoldId
-        >> FinalModelTraining
+        #PopulationSplit
+        #>> Residualization
+        #>> ResidualizedStandardization
+        #>> AddFinalFoldId
+        FinalModelTraining
         >> EconFactorShap
         >> FinalModelInterpretation
         >> WritePredictions
