@@ -518,17 +518,17 @@ with DAG(
     #         op_kwargs=task_params_manager['SQLReaderAdjustmentFactors'],
     #     )
 
-    with TaskGroup("GetRawPrices", tooltip="GetRawPrices") as GetRawPrices:
-        CalculateRawPrices = DockerOperator(
-            task_id="CalculateRawPrices",
-            container_name='task__prices',
-            command="echo 'RUNNING GET RAW PRICES STEP'",
-            # command=f"python generate_gan_results.py",
-            api_version='auto',
-            auto_remove='success',
-            image='get_raw_prices_image',
-            network_mode='host',
-        )
+    # with TaskGroup("GetRawPrices", tooltip="GetRawPrices") as GetRawPrices:
+    #     CalculateRawPrices = DockerOperator(
+    #         task_id="CalculateRawPrices",
+    #         container_name='task__prices',
+    #         command="echo 'RUNNING GET RAW PRICES STEP'",
+    #         # command=f"python generate_gan_results.py",
+    #         api_version='auto',
+    #         auto_remove='success',
+    #         image='get_raw_prices_image',
+    #         network_mode='host',
+    #     )
 
     with TaskGroup("PopulationSplit", tooltip="PopulationSplit") as PopulationSplit:
         FilterRussell1000AugmentedWeekly = DockerOperator(
@@ -629,8 +629,8 @@ with DAG(
         # >> IntermediateModelTraining
         # >> MergeSignal
         # >> GetAdjustmentFactors
-        GetRawPrices
-        >> PopulationSplit
+        #GetRawPrices
+        PopulationSplit
         >> Residualization
         >> ResidualizedStandardization
         >> AddFinalFoldId

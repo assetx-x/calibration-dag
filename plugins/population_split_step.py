@@ -17,14 +17,14 @@ _SMALL_EPSILON = np.finfo(np.float64).eps
 
 def construct_required_path(step, file_name):
     return (
-        "gs://{}/calibration_data/live/calib_data"
+        "gs://{}/data/live/calib_data"
         + "/{}/".format(step)
         + "{}.csv".format(file_name)
     )
 
 
 def construct_destination_path(step):
-    return "gs://{}/calibration_data/live" + "/{}/".format(step) + "{}.csv"
+    return "gs://{}/data/live/calib_data" + "/{}/".format(step) + "{}.csv"
 
 
 class DataFormatter(object):
