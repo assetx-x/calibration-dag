@@ -478,45 +478,45 @@ with DAG(
     #         network_mode='host',
     #     )
 
-    with TaskGroup("MergeGANResults", tooltip="MergeGANResults") as MergeGANResults:
-        ConsolidateGANResultsWeekly = PythonOperator(
-            task_id="ConsolidateGANResultsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['ConsolidateGANResultsWeekly'],
-        )
-
-        AddFoldIdToGANResultDataWeekly = PythonOperator(
-            task_id="AddFoldIdToGANResultDataWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['AddFoldIdToGANResultDataWeekly'],
-        )
-
-        ConsolidateGANResultsWeekly >> AddFoldIdToGANResultDataWeekly
-
-    with TaskGroup(
-        "IntermediateModelTraining", tooltip="IntermediateModelTraining"
-    ) as IntermediateModelTraining:
-        TrainIntermediateModelsWeekly = PythonOperator(
-            task_id="TrainIntermediateModelsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['TrainIntermediateModelsWeekly'],
-        )
-
-    with TaskGroup("MergeSignal", tooltip="MergeSignal") as MergeSignal:
-        QuantamentalMergeSignalsWeekly = PythonOperator(
-            task_id="QuantamentalMergeSignalsWeekly",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['QuantamentalMergeSignalsWeekly'],
-        )
-
-    with TaskGroup(
-        "GetAdjustmentFactors", tooltip="GetAdjustmentFactors"
-    ) as GetAdjustmentFactors:
-        SQLReaderAdjustmentFactors = PythonOperator(
-            task_id="SQLReaderAdjustmentFactors",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['SQLReaderAdjustmentFactors'],
-        )
+    # with TaskGroup("MergeGANResults", tooltip="MergeGANResults") as MergeGANResults:
+    #     ConsolidateGANResultsWeekly = PythonOperator(
+    #         task_id="ConsolidateGANResultsWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['ConsolidateGANResultsWeekly'],
+    #     )
+    #
+    #     AddFoldIdToGANResultDataWeekly = PythonOperator(
+    #         task_id="AddFoldIdToGANResultDataWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['AddFoldIdToGANResultDataWeekly'],
+    #     )
+    #
+    #     ConsolidateGANResultsWeekly >> AddFoldIdToGANResultDataWeekly
+    #
+    # with TaskGroup(
+    #     "IntermediateModelTraining", tooltip="IntermediateModelTraining"
+    # ) as IntermediateModelTraining:
+    #     TrainIntermediateModelsWeekly = PythonOperator(
+    #         task_id="TrainIntermediateModelsWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['TrainIntermediateModelsWeekly'],
+    #     )
+    #
+    # with TaskGroup("MergeSignal", tooltip="MergeSignal") as MergeSignal:
+    #     QuantamentalMergeSignalsWeekly = PythonOperator(
+    #         task_id="QuantamentalMergeSignalsWeekly",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['QuantamentalMergeSignalsWeekly'],
+    #     )
+    #
+    # with TaskGroup(
+    #     "GetAdjustmentFactors", tooltip="GetAdjustmentFactors"
+    # ) as GetAdjustmentFactors:
+    #     SQLReaderAdjustmentFactors = PythonOperator(
+    #         task_id="SQLReaderAdjustmentFactors",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['SQLReaderAdjustmentFactors'],
+    #     )
 
     with TaskGroup("GetRawPrices", tooltip="GetRawPrices") as GetRawPrices:
         CalculateRawPrices = DockerOperator(
