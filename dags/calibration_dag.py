@@ -625,11 +625,11 @@ with DAG(
         # AdditionalGanFeatures
         # >> SaveGANInputs
         # >> GenerateGANResults
-        MergeGANResults
-        >> IntermediateModelTraining
-        >> MergeSignal
-        >> GetAdjustmentFactors
-        >> GetRawPrices
+        # MergeGANResults
+        # >> IntermediateModelTraining
+        # >> MergeSignal
+        # >> GetAdjustmentFactors
+        GetRawPrices
         >> PopulationSplit
         >> Residualization
         >> ResidualizedStandardization

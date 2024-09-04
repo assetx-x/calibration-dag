@@ -1,15 +1,10 @@
-import pandas as pd
 from market_timeline import marketTimeline
 import pandas as pd
 import numpy as np
 from datetime import datetime
 import os
 from abc import ABC, abstractmethod
-from google.cloud import storage
-#import statsmodels.api as sm
-from google.cloud import storage
 import gcsfs
-from collections import defaultdict
 
 current_date = datetime.now().date()
 
@@ -20,11 +15,9 @@ NORMALIZATION_CONSTANT = 0.67448975019608171
 _SMALL_EPSILON = np.finfo(np.float64).eps
 
 
-
-
 def construct_required_path(step, file_name):
     return (
-        "gs://{}/calibration_data/live"
+        "gs://{}/calibration_data/live/calib_data"
         + "/{}/".format(step)
         + "{}.csv".format(file_name)
     )
@@ -101,6 +94,7 @@ class DataReaderClass(ABC):
     def _get_data_lineage(self):
         raise NotImplementedError()
 
+
 def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='ax-prod-393101'):
     """
     Reads a CSV file from Google Cloud Storage in chunks.
@@ -129,7 +123,7 @@ def airflow_wrapper(**kwargs):
         k: pd.read_csv(v.format(os.environ['GCS_BUCKET']), index_col=0)
         for k, v in kwargs['required_data'].items()
     }
-    #print(f'Executing step action with args {step_action_args}')
+    # print(f'Executing step action with args {step_action_args}')
 
     # Execute do_step_action method
     data_outputs = kwargs['class'](**params).do_step_action(**step_action_args)
@@ -152,21 +146,25 @@ def airflow_wrapper(**kwargs):
             print(gcs_path)
             data_value.to_csv(gcs_path)
 
+
 def offset_with_prices(data, use_offset=True):
     # Step 1: Extract unique dates
     unique_dates = pd.to_datetime(data["date"].unique())
 
     # Step 2: Compute the offset for these unique dates
     if use_offset:
-        unique_dates_with_offset = {date: marketTimeline.get_trading_day_using_offset(pd.Timestamp(date), 1) for date in unique_dates}
+        unique_dates_with_offset = {
+            date: marketTimeline.get_trading_day_using_offset(pd.Timestamp(date), 1)
+            for date in unique_dates
+        }
     else:
-        unique_dates_with_offset = {date: pd.Timestamp(date) for date in
-                                    unique_dates}
+        unique_dates_with_offset = {date: pd.Timestamp(date) for date in unique_dates}
 
     # Step 3: Create a mapping from the original dates to the offset dates
     date_offset_mapping = pd.Series(unique_dates_with_offset)
 
     return date_offset_mapping
+
 
 class FilterRussell1000Augmented(DataReaderClass):
     '''
@@ -220,7 +218,7 @@ class FilterRussell1000Augmented(DataReaderClass):
 
         data.rename(columns={'ticker': 'dcm_security_id'}, inplace=True)
         univ = russell_df[['date', 'dcm_security_id', 'wt-r1', 'wt-r1v', 'wt-r1g']]
-        #univ['dcm_security_id'] = univ['dcm_security_id'].astype(int)
+        # univ['dcm_security_id'] = univ['dcm_security_id'].astype(int)
         univ = pd.merge(data, univ, how='left', on=['date', 'dcm_security_id'])
         univ['dcm_security_id'] = univ['dcm_security_id'].astype(int)
         univ.rename(columns={"dcm_security_id": "ticker"}, inplace=True)
@@ -410,31 +408,31 @@ class FilterRussell1000AugmentedWeekly(FilterRussell1000Augmented):
         ].rename(columns={"dcm_security_id": "ticker"})
         raw_prices = kwargs[self.__class__.REQUIRES_FIELDS[4]].copy(deep=True)
         raw_prices["ticker"] = raw_prices["ticker"].fillna(-1).astype(int)
-        datasets = {'raw_prices': raw_prices,
-                    'data_filt': data_to_filter_monthly,
-                    'data_filt_weekly': data_to_filter_weekly,
-                    'marketcap': marketcap,
-                    'russell_components': russell_components}
+        datasets = {
+            'raw_prices': raw_prices,
+            'data_filt': data_to_filter_monthly,
+            'data_filt_weekly': data_to_filter_weekly,
+            'marketcap': marketcap,
+            'russell_components': russell_components,
+        }
 
-        for name,dataframe in datasets.items():
+        for name, dataframe in datasets.items():
 
             dataframe['date'] = dataframe['date'].map(
-                {i: pd.Timestamp(i) for i in dataframe.date.unique()})
+                {i: pd.Timestamp(i) for i in dataframe.date.unique()}
+            )
 
             if name in ['marketcap', 'raw_prices']:
 
                 dataframe['date'] = dataframe['date'].map(
-                    offset_with_prices(dataframe,use_offset=True)
+                    offset_with_prices(dataframe, use_offset=True)
                 )
-
-
 
         print('raw_prices shape: {}'.format(raw_prices.shape))
         print('data_to_filter_monthly shape: {}'.format(data_to_filter_monthly.shape))
         print('marketcap shape: {}'.format(marketcap.shape))
 
         print('marketcap limit param :{}'.format(self.marketcap_limit))
-
 
         if self.filter_price_marketcap:
             data_to_filter_monthly = self._filter_price_marketcap(
@@ -544,8 +542,6 @@ def neutralize_data(df, factors, exclusion_list):
             df.loc[dt, y] = ols_res(df.loc[dt, x_cols], df.loc[dt, y]).values
     df = df.reset_index()
     return df
-
-
 
 
 # Set specific date

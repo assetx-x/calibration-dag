@@ -1,21 +1,14 @@
 import pandas as pd
 from abc import ABC, abstractmethod
 import pandas as pd
-import numpy as np
-from datetime import datetime
-import os
-from google.cloud import storage
 
-
-from datetime import datetime
 import os
-from google.cloud import storage
 import gcsfs
-from collections import defaultdict
+
 
 def construct_required_path(step, file_name):
     return (
-        "gs://{}/calibration_data/live"
+        "gs://{}/calibration_data/live/calib_data"
         + "/{}/".format(step)
         + "{}.csv".format(file_name)
     )
@@ -92,6 +85,7 @@ class DataReaderClass(ABC):
     def _get_data_lineage(self):
         raise NotImplementedError()
 
+
 def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='dcm-prod-ba2f'):
     """
     Reads a CSV file from Google Cloud Storage in chunks.
@@ -120,7 +114,7 @@ def airflow_wrapper(**kwargs):
         k: pd.read_csv(v.format(os.environ['GCS_BUCKET']), index_col=0)
         for k, v in kwargs['required_data'].items()
     }
-    #print(f'Executing step action with args {step_action_args}')
+    # print(f'Executing step action with args {step_action_args}')
 
     # Execute do_step_action method
     data_outputs = kwargs['class'](**params).do_step_action(**step_action_args)
@@ -178,7 +172,9 @@ class CalculateRawPrices(DataReaderClass):
             adjustment_factor_data["date"]
         ).normalize()
         # TODO: Cutting this off here so that it is equal to dev
-        adjustment_factor_data = adjustment_factor_data[(adjustment_factor_data['date'] < '2023-07-15')]
+        adjustment_factor_data = adjustment_factor_data[
+            (adjustment_factor_data['date'] < '2023-07-15')
+        ]
         daily_price_data['date'] = daily_price_data['date'].apply(pd.Timestamp)
         data_to_use = daily_price_data[["close", "ticker", "date"]]
         merged_data = pd.merge(
@@ -191,8 +187,13 @@ class CalculateRawPrices(DataReaderClass):
         )
         merged_data = merged_data[["ticker", "date", "raw_close_price"]]
 
-        merged_shifted_data = merged_data.sort_values(["ticker", "date"]).set_index("date").groupby("ticker") \
-            .apply(lambda x: x.shift(1)).reset_index()
+        merged_shifted_data = (
+            merged_data.sort_values(["ticker", "date"])
+            .set_index("date")
+            .groupby("ticker")
+            .apply(lambda x: x.shift(1))
+            .reset_index()
+        )
         merged_shifted_data = merged_shifted_data.dropna(subset=["ticker"])
         merged_shifted_data["ticker"] = merged_shifted_data["ticker"].astype(int)
         self.data = merged_shifted_data
@@ -215,7 +216,6 @@ calculate_raw_prices = DataFormatter(
         'DataPull': ['daily_price_data'],
     },
 )
-
 
 
 if __name__ == "__main__":
