@@ -567,25 +567,25 @@ with DAG(
     #         op_kwargs=task_params_manager['AddFoldIdToNormalizedDataPortfolioWeekly'],
     #     )
 
-    with TaskGroup(
-        "FinalModelTraining", tooltip="FinalModelTraining"
-    ) as FinalModelTraining:
-        RollingModelEstimationWeekly = DockerOperator(
-            task_id="RollingModelEstimationWeekly",
-            container_name='task__rolling_model_estimation',
-            # command=f"python rolling_model_estimation.py",
-            api_version='auto',
-            auto_remove='success',
-            image='rolling_image',
-            network_mode='host',
-        )
-
-    with TaskGroup("EconFactorShap", tooltip="EconFactorShap") as EconFactorShap:
-        EconInterpretation = PythonOperator(
-            task_id="EconInterpretation",
-            python_callable=airflow_wrapper,
-            op_kwargs=task_params_manager['EconInterpretation'],
-        )
+    # with TaskGroup(
+    #     "FinalModelTraining", tooltip="FinalModelTraining"
+    # ) as FinalModelTraining:
+    #     RollingModelEstimationWeekly = DockerOperator(
+    #         task_id="RollingModelEstimationWeekly",
+    #         container_name='task__rolling_model_estimation',
+    #         # command=f"python rolling_model_estimation.py",
+    #         api_version='auto',
+    #         auto_remove='success',
+    #         image='rolling_image',
+    #         network_mode='host',
+    #     )
+    #
+    # with TaskGroup("EconFactorShap", tooltip="EconFactorShap") as EconFactorShap:
+    #     EconInterpretation = PythonOperator(
+    #         task_id="EconInterpretation",
+    #         python_callable=airflow_wrapper,
+    #         op_kwargs=task_params_manager['EconInterpretation'],
+    #     )
 
     with TaskGroup(
         "FinalModelInterpretation", tooltip="FinalModelInterpretation"
@@ -634,9 +634,9 @@ with DAG(
         #>> Residualization
         #>> ResidualizedStandardization
         #>> AddFinalFoldId
-        FinalModelTraining
-        >> EconFactorShap
-        >> FinalModelInterpretation
+        #FinalModelTraining
+        #>> EconFactorShap
+        FinalModelInterpretation
         >> WritePredictions
     )
 
