@@ -6,16 +6,17 @@ import os
 import gcsfs
 
 
+
 def construct_required_path(step, file_name):
     return (
-        "gs://{}/calibration_data/live/calib_data"
+        "gs://{}/data/live/calib_data"
         + "/{}/".format(step)
         + "{}.csv".format(file_name)
     )
 
 
 def construct_destination_path(step):
-    return "gs://{}/calibration_data/live" + "/{}/".format(step) + "{}.csv"
+    return "gs://{}/data/live/calib_data" + "/{}/".format(step) + "{}.csv"
 
 
 class DataFormatter(object):
@@ -86,7 +87,7 @@ class DataReaderClass(ABC):
         raise NotImplementedError()
 
 
-def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='dcm-prod-ba2f'):
+def read_csv_in_chunks(gcs_path, batch_size=10000, project_id='ax-prod-393101'):
     """
     Reads a CSV file from Google Cloud Storage in chunks.
     Parameters:
