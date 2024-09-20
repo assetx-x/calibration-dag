@@ -2,7 +2,21 @@ from concurrent.futures import ThreadPoolExecutor, Future
 from typing import Callable, Any, List, Optional
 
 
-class JobExecutor:
+class JobExecutorSingleton(type):
+    """
+    A metaclass for the Job
+    """
+
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            instance = super(JobExecutorSingleton, cls).__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        return cls._instances[cls]
+
+
+class JobExecutor(metaclass=JobExecutorSingleton):
     """
     A static class that provides a global ThreadPoolExecutor instance to accept and execute jobs.
     """
