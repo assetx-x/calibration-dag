@@ -224,7 +224,7 @@ with DAG(
              >> YahooDailyPriceReader
              >> S3RussellComponentReader
              >> S3RawQuandlDataReader
-             SQLMinuteToDailyEquityPrices
+             >> SQLMinuteToDailyEquityPrices
         )
 
     with TaskGroup("EconData", tooltip="EconData") as EconData:
